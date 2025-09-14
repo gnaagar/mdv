@@ -29,7 +29,7 @@ body {
 
 .container {
   display: grid;
-  grid-template-columns: 50px 1fr 350px;
+  grid-template-columns: 36px 1fr 350px;
   min-height: 100vh;
 
   .section-left, .section-right, .section-main {
@@ -80,9 +80,10 @@ body {
   cursor: pointer;
   background: #F5FAFF;
   transition: background 0.2s;
-  margin-right: 20px;
+  // margin-right: 20px;
   color: #aaaaaa;
   font-size: 2rem;
+  overflow: hidden;
 
   &:hover {
     background: #f0f8ff;

@@ -25,9 +25,9 @@ $h3-weight: 600;
 $h4-weight: 600;
 
 // Blockquote
-$blockquote-bg: #f6fdf6;
-$blockquote-indicator-color: #4caf50;
-$blockquote-text-color: #2e4d2e;
+$blockquote-bg: #f6f8fa;
+$blockquote-indicator-color: #C5C6C8;
+$blockquote-text-color: #6F7070;
 
 
 // Markdown container
@@ -171,7 +171,7 @@ $blockquote-text-color: #2e4d2e;
     white-space: nowrap;
     text-align: left;
     vertical-align: top;
-    padding: 0.6rem 1rem;
+    padding: 0.4rem 0.8rem;
     border: 1px solid $markdown-table-border;
   }
 
@@ -196,7 +196,7 @@ $blockquote-text-color: #2e4d2e;
     display: block;
     padding: 12px;
     background: $blockquote-bg;
-    border-left: 3px solid $blockquote-indicator-color;
+    border-left: 5px solid $blockquote-indicator-color;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     color: $blockquote-text-color;
 
