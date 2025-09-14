@@ -463,8 +463,6 @@ body {
   padding-left: calc(var(--tree-depth, 0) * 1.5em + 0.7em);
   font-family: "JetBrains Mono", monospace;
   font-size: 1em;
-  margin: 1px 0;
-  border-radius: 4px;
   cursor: pointer;
   user-select: none;
   color: #6b7683;
@@ -479,7 +477,7 @@ body {
   color: #1976d2;
 }
 .tree .tree-entry.active {
-  background: #bbdefb;
+  background: #DAEDFD;
   color: #1976d2;
 }
 
@@ -535,7 +533,7 @@ body {
   color: #1976d2;
 }
 #search-results .search-body ul li.active {
-  background: #bbdefb;
+  background: #DAEDFD;
   color: #1976d2;
 }
 #search-results .search-body ul li pre {
