@@ -13,7 +13,11 @@ class FuzzySearch:
         word = re.escape(query)
         pattern = re.compile(rf'\b{word}\b', re.IGNORECASE)
         for path, content in self.file_contents.items():
-            lines = content.splitlines()
+
+            # TODO: Find the bug due to which content is sometimes none
+            # Ideally it should never be none
+            lines = (content or "").splitlines()
+
             for idx, line in enumerate(lines):
                 if pattern.search(line):
                     start = max(idx - 2, 0)
