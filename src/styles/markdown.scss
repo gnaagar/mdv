@@ -222,7 +222,7 @@ $blockquote-text-color: #6F7070;
     &:hover,
     &:focus {
       color: $link-hover-color;
-      // text-decoration: underline;
+      text-decoration: underline;
     }
   }
 

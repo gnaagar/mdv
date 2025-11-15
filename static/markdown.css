@@ -136,18 +136,17 @@
   margin-bottom: 0;
 }
 #markdown-body a {
-  color: #485fc7;
+  color: #2C6CCF;
   text-decoration: none;
 }
 #markdown-body a:visited, #markdown-body a:active {
-  color: #485fc7;
+  color: #2C6CCF;
 }
 #markdown-body a:hover, #markdown-body a:focus {
-  color: #2F3E81;
+  color: #2C6CCF;
+  text-decoration: underline;
 }
 #markdown-body a code {
   color: inherit;
   text-decoration: inherit;
 }
-
-/*# sourceMappingURL=markdown.css.map */
