@@ -41,11 +41,11 @@ function genCopyButtons(container) {
       const selection = window.getSelection();
       if (selection && selection.toString().length > 0) return; // Don't copy if selecting
       navigator.clipboard.writeText(codeBlock.innerText).then(() => {
-        pre.classList.add(commonClasses.mdCodeCopiedHighlight);
+        pre.classList.add('copied');
         pre.style.transition = 'none';
         setTimeout(() => {
           pre.style.transition = 'background-color 0.2s ease';
-          pre.classList.remove(commonClasses.mdCodeCopiedHighlight);
+          pre.classList.remove('copied');
         }, 200);
       });
     });
