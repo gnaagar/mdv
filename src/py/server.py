@@ -49,7 +49,7 @@ def get_children(tree, path):
 # ---------------------------------------------------------
 
 url_map = Map([
-    Rule("/", endpoint="index"),
+    Rule("/", endpoint="home"),
     Rule("/static/<path:filename>", endpoint="static"),
     Rule("/v/", endpoint="index"),
     Rule("/v/<path:filename>", endpoint="view"),
@@ -112,6 +112,9 @@ class App:
         return self.render_tree(template, prefix, filename)
 
     # HANDLERS
+    def on_home(self, request):
+        return Response(status=302, headers={"Location": "/v"})
+
     # HTML
     def on_index(self, request):
         tree = self.state.get_tree()
