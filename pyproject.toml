@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mdv = "mdv.server:main"
+mdv = "server:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
