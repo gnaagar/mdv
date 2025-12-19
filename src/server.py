@@ -4,6 +4,8 @@ import os
 import argparse
 import json
 import mimetypes
+from pathlib import Path
+import sys
 from logger import get_logger
 from mdparser import MarkdownParser
 from sv_state import MdViewerState
@@ -13,7 +15,16 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound
 
-env = Environment(loader=FileSystemLoader("templates"))
+# Get the package directory - works both in development and when installed
+if getattr(sys, 'frozen', False):
+    # Frozen/bundled case
+    package_dir = Path(sys.executable).parent
+else:
+    # Normal case - get the directory of this file
+    package_dir = Path(__file__).parent
+
+env = Environment(loader=FileSystemLoader(str(package_dir / "templates")))
+
 logger = get_logger(__name__)
 
 
@@ -67,7 +78,7 @@ url_map = Map([
 class App:
     def __init__(self, config):
         self.url_map = url_map
-        self.static_dir = "static"
+        self.static_dir = package_dir / "static"
         self.state = MdViewerState(config)
 
     # Dispatcher
@@ -185,12 +196,8 @@ class App:
 
 def main():
     parser = argparse.ArgumentParser(description="Markdown viewer")
-    parser.add_argument("--dir", "-d", required=True, help="Directory to serve")
     parser.add_argument("--port", "-p", type=int,default=5000, help="Port to serve on")
     parser.add_argument("--host", "-H", default="localhost", help="Host to bind to")
     args = parser.parse_args()
-    app = App(config={'dir':args.dir})
+    app = App(config={'dir':os.getcwd()})
     run_simple(args.host, args.port, app, use_reloader=True)
-
-if __name__ == "__main__":
-    main()
