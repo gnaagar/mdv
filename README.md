@@ -7,20 +7,18 @@
 - Table of contents automatically generates, heading tracking/highlighting
 - Searching: both files names and content
 
-## Usage
 
-For convenience, make a symlink
+## Installation
 
 ```sh
-ln -s "$PWD/mdv" ~/.local/bin/mdv
+pipx install git+ssh://git@github.com/gnaagar/mdv.git
 ```
 
-Start the server.
-On first time, it will create a virtual environment and setup all dependencies
-in the repo directory.
+## Usage
 
 ```sh
-mdv -d ~/workspace/scratch -p 5000
+cd ~/workspace/scratch
+mdv
 ```
 
 Suppose directory listing of `~/workspace/scratch` is
@@ -28,8 +26,8 @@ Suppose directory listing of `~/workspace/scratch` is
 ```
 /home/terxor/workspace/scratch
 └── notes
-    └── topics
-        └── abc.md
+    └── topics
+        └── abc.md
 ```
 
 You can then view the file `abc.md` in three ways:
@@ -40,31 +38,20 @@ You can then view the file `abc.md` in three ways:
 
 ## Development
 
-To regenerate syntax css:
-
-```sh
-pygmentize -S xcode -f html > static/pygments.css
-```
-
 Sass standalone binary:
 
 ```
-mkdir -p tmp
-cd tmp
-curl -fsSL -o sass.tar.gz https://github.com/sass/dart-sass/releases/download/1.91.0/dart-sass-1.91.0-linux-x64.tar.gz
+cd /tmp
+# Note: Use your os version
+SASS_URL=https://github.com/sass/dart-sass/releases/download/1.97.0/dart-sass-1.97.0-macos-arm64.tar.gz
+curl -fsSL -o sass.tar.gz $SASS_URL
 tar -xzf sass.tar.gz
 ```
 
 Now, regen css while development:
 
 ```
-tmp/dart-sass/sass --watch src/styles:static/
+/tmp/dart-sass/sass --watch src/styles:static/
 ```
-
-### TODOs
-
-- Fix search of terms with special symbols like 'vector<int>'
-- Reload button (?)
-- Bug: splitlines on None in fuzzysearch (L=43)
 
 --------------------------------------------------------------------------------
