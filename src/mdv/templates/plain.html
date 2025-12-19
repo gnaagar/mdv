@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div id="markdown-body">{{ content }}</div>
+<div id="markdown-body">{{ content | safe }}</div>
 {% endblock %}
 

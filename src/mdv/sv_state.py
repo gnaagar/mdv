@@ -1,6 +1,6 @@
-from fuzzy_search import FuzzySearch
-from mdparser import MarkdownParser
-from logger import get_logger
+from mdv.fuzzy_search import FuzzySearch
+from mdv.mdparser import MarkdownParser
+from mdv.logger import get_logger
 import os
 from dataclasses import dataclass
 import threading, time
