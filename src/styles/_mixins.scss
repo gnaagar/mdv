@@ -1,0 +1,50 @@
+// ============================================================================
+// Flexbox Utilities
+// ============================================================================
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// ============================================================================
+// Positioning
+// ============================================================================
+@mixin fixed-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@mixin sticky-top {
+  position: sticky;
+  top: 0;
+}
+
+// ============================================================================
+// Text Utilities
+// ============================================================================
+@mixin text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ============================================================================
+// Transitions
+// ============================================================================
+@mixin transition($property: all, $duration: 0.15s) {
+  transition: $property $duration ease-in-out;
+}
+
+@mixin focus-ring($color) {
+  border-color: $color;
+  outline: none;
+}

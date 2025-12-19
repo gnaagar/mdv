@@ -1,43 +1,57 @@
-// Fonts
+// ============================================================================
+// Typography
+// ============================================================================
 $font-primary: 'Roboto', sans-serif;
 $font-mono: 'JetBrains Mono', monospace;
 $font-primary-size: 14px;
 
+// ============================================================================
 // Layout
+// ============================================================================
 $main-top-padding: 1.5rem;
 $markdown-content-width: 900px;
-// $main-bg: #f0f8ff;
 $main-bg: #ffffff;
 
-// Markdown styling
+// ============================================================================
+// Text Colors
+// ============================================================================
+$text-color: rgb(20, 20, 20);
+$text-muted: #6c757d;
+
+// ============================================================================
+// Markdown Styling
+// ============================================================================
 $markdown-bg: #fff;
 $markdown-shadow: rgba(0, 0, 0, 0.05);
 $markdown-hr: #ccc;
 
+// Markdown Tables
 $markdown-table-border: #dbd9d5;
 $markdown-table-header-bg: #f6f8fa;
 $markdown-table-row-bg: #fdfcfb;
 $markdown-table-header-color: #333;
+$markdown-table-hover-bg: #f9f9f9;
 
-// Code blocks
+// ============================================================================
+// Code Blocks
+// ============================================================================
 $code-bg: #f5f7fa;
 $code-border: #D3D5D6;
 $code-highlight: #ccc;
 $code-copied-bg: #EBEDF2;
 $code-color: #252b33;
-// $inline-code-color: #8D0033;
-// $inline-code-color: #B7410E;
-// $inline-code-color: #a0522d;
-// $inline-code-color: #e06c75;
+$code-button-color: #d0d0d0;
 $inline-code-color: #A90D91;
 
+// ============================================================================
 // Links
+// ============================================================================
 $link-color: #2C6CCF;
 $link-hover-color: #2C6CCF;
-// $link-hover-color: #1A498E;
-// $link-hover-color: #1976d2;
 
-// Tree view
+// ============================================================================
+// Tree View
+// ============================================================================
 $tree-entry-color: #6b7683;
 $tree-entry-hover-color: #1976d2;
 $tree-entry-highlight-bg: #F1F9FE;
@@ -46,11 +60,25 @@ $tree-indent-line-color: #e3e8ee;
 $tree-active-bg: #DAEDFD;
 $tree-active-color: #1976d2;
 
-// Misc
-$highlight-bg: #fff59d;
+// ============================================================================
+// Blockquote
+// ============================================================================
+$blockquote-bg: #f0f4f8;
+$blockquote-indicator-color: #7fa0c3;
+$blockquote-text-color: #2e3a46;
 
-// Search overlay
+// ============================================================================
+// UI Elements
+// ============================================================================
+$highlight-bg: #fff59d;
 $search-hover-color: #1976d2;
 $search-overlay-bg: rgba(255, 255, 255, 0.9);
 $search-overlay-shadow: rgba(0, 0, 0, 0.1);
 $search-preview-file-color: #3572b0;
+$toggle-area-bg: #F5FAFF;
+$toggle-area-hover-bg: #f0f8ff;
+$toggle-area-color: #aaaaaa;
+$overlay-bg: rgba(0, 0, 0, 0.5);
+$border-color-light: #ccc;
+$border-color-dark: #bbb;
+$shadow-color: #0002;
