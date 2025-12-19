@@ -8,7 +8,6 @@ const DIR_TREE = document.getElementById('dtree-container')
 const TOC_TREE = document.getElementById('toc-container')
 
 const dirTreeState = {
-  id: null, // currently loaded page
   entryMap: {},
 };
 
@@ -32,7 +31,6 @@ const treeClasses = Object.freeze({
 function onPageLoad() {
   loadDirTree(DIR_TREE);
   setupSearch();
-  highlightCurrentFileInDirTree();
   generateTOC(MD_BODY, TOC_TREE);
   processSearchQuery();
 
@@ -505,16 +503,16 @@ function getDirTreeIds() {
   return Object.keys(dirTreeState.entryMap);
 }
 
-function setCurrentPage(id) {
-  if (dirTreeState.id != null && dirTreeState.id in dirTreeState.entryMap) {
-    dirTreeState.entryMap[dirTreeState.id].classList.remove(treeClasses.active);
-  }
-  dirTreeState.id = id;
+function extractPath(url) {
+  const match = url.match(/\/v\/([^?#]+)/);
+  return match ? match[1] : null;
 }
 
 // Helper to expand and highlight the current file in the directory tree
 function highlightCurrentFileInDirTree() {
-  let id = dirTreeState.id;
+  const id=extractPath(window.location.pathname);
+  if (!id) return;
+
   if (id == null || !(id in dirTreeState.entryMap)) {
     return;
   }
@@ -568,6 +566,7 @@ function loadDirTree(container, callback) {
     .then((res) => res.json())
     .then((tree) => {
       renderTree(container, enrichDirTree(tree));
+      highlightCurrentFileInDirTree();
     });
 }
 

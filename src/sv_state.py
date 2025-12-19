@@ -68,12 +68,12 @@ class MdViewerState:
                         # Create new bare node
                         node = FileNode(id=id)
                         self._node_map[node.id] = node
-                    
+
                     self._sync_node(self._node_map[id])
-                    
+
                     if id in to_delete:
                         to_delete.remove(id)
-        
+
         # Remove nodes that are no longer in the file system
         for id in to_delete:
             logger.debug(f"Removing node: {id} from cache")
@@ -84,7 +84,7 @@ class MdViewerState:
         for node in self._node_map.values():
             time.sleep(0.05) # Sleep for 50ms to allow other processing
             self._refresh_node(node)
-        
+
         # For stats
         size = 0
         for node in self._node_map.values():
@@ -108,6 +108,9 @@ class MdViewerState:
                 node.last_updated = os.stat(full_path).st_mtime
         except Exception as e:
             logger.error(f"Error reading file {full_path}: {e}")
+
+    def is_file(self, path):
+        return path in self._node_map
 
     def get_content(self, id, raw=False):
         if id not in self._node_map:
@@ -136,18 +139,33 @@ class MdViewerState:
             return (0, name)
 
         tree = {}
+
         for node in self._node_map.values():
             parts = node.id.split(PATH_DELIMITER)
             current_level = tree
+
+            current_path = ""
+
             for part in parts[:-1]:
-                # Find or create the directory node
+                # build directory path (added)
+                current_path = part if current_path == "" else current_path + PATH_DELIMITER + part
+
                 dir_node = current_level.get(part, None)
                 if not dir_node:
-                    dir_node = {'type': 'directory', 'name': part, 'children': {}}
+                    dir_node = {
+                        'type': 'directory',
+                        'name': part,
+                        'id': current_path,
+                        'children': {}
+                    }
                     current_level[part] = dir_node
                 current_level = dir_node['children']
-            # Add the file node
-            file_node = {'type': 'file', 'name': parts[-1], 'id': node.id}
+
+            file_node = {
+                'type': 'file',
+                'name': parts[-1],
+                'id': node.id
+            }
             current_level[parts[-1]] = file_node
 
         def dict_to_list(node):
@@ -158,6 +176,7 @@ class MdViewerState:
                 return {
                     'type': 'directory',
                     'name': node['name'],
+                    'path': node['id'],
                     'children': children_list
                 }
             else:

@@ -4,6 +4,8 @@ import os
 import argparse
 import json
 import mimetypes
+from pathlib import Path
+import sys
 from logger import get_logger
 from mdparser import MarkdownParser
 from sv_state import MdViewerState
@@ -13,22 +15,56 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound
 
-env = Environment(loader=FileSystemLoader("templates"))
+# Get the package directory - works both in development and when installed
+if getattr(sys, 'frozen', False):
+    # Frozen/bundled case
+    package_dir = Path(sys.executable).parent
+else:
+    # Normal case - get the directory of this file
+    package_dir = Path(__file__).parent
 
-def render_markdown_page(html: str) -> str:
-    template = env.get_template("plain.html")
-    return template.render(content=html)
+env = Environment(loader=FileSystemLoader(str(package_dir / "templates")))
 
 logger = get_logger(__name__)
+
+
+def get_children(tree, path):
+    # split path into parts, skip empty parts
+    parts = [p for p in path.split("/") if p]
+
+    # if path is empty, the "children" are the root nodes
+    if not parts:
+        return tree
+
+    # start from the virtual root
+    nodes = tree
+
+    for part in parts:
+        found = None
+        # look for the directory with the matching name
+        for node in nodes:
+            if node["type"] == "directory" and node["name"] == part:
+                found = node
+                break
+
+        if not found:
+            return None   # directory doesn't exist
+
+        nodes = found.get("children", [])
+
+    return nodes or []
+
 
 # ---------------------------------------------------------
 # URL map
 # ---------------------------------------------------------
 
 url_map = Map([
-    Rule("/", endpoint="index"),
+    Rule("/", endpoint="home"),
     Rule("/static/<path:filename>", endpoint="static"),
+    Rule("/v/", endpoint="index"),
     Rule("/v/<path:filename>", endpoint="view"),
+    Rule("/m/", endpoint="index_mdplain"),
     Rule("/m/<path:filename>", endpoint="mdplain"),
     Rule("/t/<path:filename>", endpoint="mdtext"),
     Rule("/api/tree", endpoint="dirtree"),
@@ -42,7 +78,7 @@ url_map = Map([
 class App:
     def __init__(self, config):
         self.url_map = url_map
-        self.static_dir = "static"
+        self.static_dir = package_dir / "static"
         self.state = MdViewerState(config)
 
     # Dispatcher
@@ -57,16 +93,52 @@ class App:
         except HTTPException as e:
             return e
 
+    # Helpers
+    def render_markdown(self, template, content):
+        html = env.get_template(template).render(content=content)
+        return Response(html, mimetype="text/html")
+
+
+    def render_tree(self, template, prefix, filename):
+        tree = get_children(self.state.get_tree(), filename)
+        if tree is None:
+            return Response("Not found", status=404, mimetype="text/plain")
+
+        tree_md = env.get_template("tree.md").render(
+            tree=tree,
+            path=prefix,
+            root="/" + filename
+        )
+        parsed = MarkdownParser.parse(tree_md)
+        return self.render_markdown(template, parsed)
+
+
+    def render_file(self, template, filename):
+        md_html = self.state.get_content(filename)
+        return self.render_markdown(template, md_html)
+
+    def handle_common(self, filename, template, prefix):
+        if self.state.is_file(filename):
+            return self.render_file(template, filename)
+        return self.render_tree(template, prefix, filename)
+
+    # HANDLERS
+    def on_home(self, request):
+        return Response(status=302, headers={"Location": "/v"})
+
     # HTML
     def on_index(self, request):
+        self.state.refresh()
         tree = self.state.get_tree()
-        tree_md = env.get_template("tree.md").render(tree=tree)
+        tree_md = env.get_template("tree.md").render(tree=tree,path="v",root="/")
         html = env.get_template("viewer.html").render(content=MarkdownParser.parse(tree_md))
         return Response(html, mimetype="text/html")
 
-    def on_view(self, request, filename):
-        md_html = self.state.get_content(filename)
-        html = env.get_template("viewer.html").render(content=md_html)
+    def on_index_mdplain(self, request):
+        self.state.refresh()
+        tree = self.state.get_tree()
+        tree_md = env.get_template("tree.md").render(tree=tree,path="m",root="/")
+        html = env.get_template("plain.html").render(content=MarkdownParser.parse(tree_md))
         return Response(html, mimetype="text/html")
 
     # JSON
@@ -80,11 +152,11 @@ class App:
         result = self.state.search(query)
         return Response(json.dumps(result), mimetype="application/json")
 
-    # Plain markdown
     def on_mdplain(self, request, filename):
-        md_html = self.state.get_content(filename)
-        html = env.get_template("plain.html").render(content=md_html)
-        return Response(html, mimetype="text/html")
+        return self.handle_common(filename, template="plain.html", prefix="m")
+
+    def on_view(self, request, filename):
+        return self.handle_common(filename, template="viewer.html", prefix="v")
 
     # Plain markdown
     def on_mdtext(self, request, filename):
@@ -124,12 +196,8 @@ class App:
 
 def main():
     parser = argparse.ArgumentParser(description="Markdown viewer")
-    parser.add_argument("--dir", "-d", required=True, help="Directory to serve")
     parser.add_argument("--port", "-p", type=int,default=5000, help="Port to serve on")
     parser.add_argument("--host", "-H", default="localhost", help="Host to bind to")
     args = parser.parse_args()
-    app = App(config={'dir':args.dir})
+    app = App(config={'dir':os.getcwd()})
     run_simple(args.host, args.port, app, use_reloader=True)
-
-if __name__ == "__main__":
-    main()
