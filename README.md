@@ -11,7 +11,7 @@
 ## Installation
 
 ```sh
-pipx install git+ssh://git@github.com/gnaagar/mdv.git
+pipx install git+https://github.com/gnaagar/mdv.git
 ```
 
 ## Usage
