@@ -7,9 +7,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   renderMath(mdbody);
+  renderMermaidDiagrams();
   // Make code blocks copy-able
   genCopyButtons(mdbody);
 });
+
+function renderMermaidDiagrams() {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "default"
+  });
+
+  // Convert code blocks → Mermaid containers
+  document.querySelectorAll("code.language-mermaid").forEach(block => {
+    const div = document.createElement("div");
+    div.className = "mermaid";
+    div.textContent = block.textContent;
+    block.parentElement.replaceWith(div);
+  });
+
+  mermaid.run();
+}
 
 function renderMath(container) {
   const unescapeLatex = (text) => text.replace(/\\\\/g, '\\');
