@@ -10,11 +10,21 @@
 
 ## Installation
 
+Install globally:
+
 ```sh
-pipx install git+https://github.com/gnaagar/mdv.git
+uv tool install git+https://github.com/gnaagar/mdv.git
 ```
 
 ## Usage
+
+Run without installing:
+
+```sh
+uvx git+https://github.com/gnaagar/mdv.git
+```
+
+Or, if installed:
 
 ```sh
 cd ~/workspace/scratch
