@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "mdv"
 version = "0.1.0"
 description = "Markdown viewer"
-requires-python = ">=3.8"
+requires-python = ">=3.13"
 
 dependencies = [
     "beautifulsoup4==4.13.4",
@@ -30,3 +30,8 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 mdv = ["templates/**/*", "static/**/*"]
+
+[tool.uv.workspace]
+members = [
+    "mdv",
+]
