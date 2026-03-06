@@ -7,6 +7,7 @@ from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from mdit_py_plugins.anchors import anchors_plugin
 from mdit_py_plugins.dollarmath import dollarmath_plugin
+from mdit_py_plugins.tasklists import tasklists_plugin
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
@@ -21,7 +22,7 @@ def highlight_code(code, lang, attrs):
     formatter = HtmlFormatter(nowrap=True)
     return highlight(code, lexer, formatter)
 
-mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True)
+mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True).use(tasklists_plugin)
 
 # Custom plugin to add target="_blank" to all <a> tags
 def add_target_blank(md):
@@ -87,4 +88,14 @@ class MarkdownParser:
         dom = BeautifulSoup(html, 'html.parser')
         wrap_tables_and_images(dom)
         simplify_anchor_text(dom)
+        MarkdownParser._post_process_tasklists(dom)
         return str(dom)
+
+    @staticmethod
+    def _post_process_tasklists(dom: BeautifulSoup):
+        for li in dom.find_all('li'):
+            checkbox = li.find('input', type='checkbox')
+            if checkbox:
+                checkbox['disabled'] = ''  # Disable the checkbox
+                if 'checked' in checkbox.attrs:
+                    li['class'] = li.get('class', []) + ['task-completed']

@@ -36,7 +36,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------
 
 def get_children(tree, path):
-    parts = [p for p in path.split("/") if p]
+    parts = [p for p in path.split(os.path.sep) if p]
 
     if not parts:
         return tree

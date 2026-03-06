@@ -219,6 +219,15 @@
   border-top: solid 3px rgba(189, 193, 198, 0.2);
   margin: 2em 0;
 }
+#markdown-body .task-list-item {
+  list-style-type: none; /* Remove default bullet/number */
+}
+#markdown-body .task-list-item input[type=checkbox] {
+  margin-right: 0.5em;
+}
+#markdown-body .task-completed {
+  color: #006400;
+}
 #markdown-body blockquote {
   display: block;
   padding: 12px;

@@ -7,7 +7,7 @@ import threading, time
 
 logger = get_logger(__name__)
 
-PATH_DELIMITER = '/'
+PATH_DELIMITER = os.path.sep
 IGNORED_DIRS = {'.git'}
 MD_EXTENSION = '.md'
 
