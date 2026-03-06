@@ -70,7 +70,9 @@ $blockquote-text-color: #2e3a46;
 // ============================================================================
 // Task List
 // ============================================================================
-$task-completed-color: #006400;
+$task-completed-color: #2e7d32; // A slightly softer dark green
+$task-completed-bg: #e8f5e9;    // Very light green background
+$task-pending-color: $text-color;
 
 // ============================================================================
 // UI Elements

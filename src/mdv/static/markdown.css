@@ -221,12 +221,18 @@
 }
 #markdown-body .task-list-item {
   list-style-type: none; /* Remove default bullet/number */
+  margin-left: -28px; /* Pull back to remove the gap left by the list padding */
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-radius: 4px;
 }
 #markdown-body .task-list-item input[type=checkbox] {
   margin-right: 0.5em;
 }
 #markdown-body .task-completed {
-  color: #006400;
+  color: #2e7d32;
+  background-color: #e8f5e9;
+  opacity: 0.8;
 }
 #markdown-body blockquote {
   display: block;

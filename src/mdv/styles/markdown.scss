@@ -229,6 +229,11 @@ $list-item-gap: 10px;
   // =========================================================================
   .task-list-item {
     list-style-type: none; /* Remove default bullet/number */
+    margin-left: -$list-padding; /* Pull back to remove the gap left by the list padding */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 4px;
+
     input[type="checkbox"] {
       margin-right: 0.5em;
     }
@@ -236,6 +241,8 @@ $list-item-gap: 10px;
 
   .task-completed {
     color: $task-completed-color;
+    background-color: $task-completed-bg;
+    opacity: 0.8;
   }
 
   // =========================================================================
