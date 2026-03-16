@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
 
 </head>
-<body>
+<body class="theme-{{ theme | default('light') }}">
   {% block body %}
   {% endblock %}
   <script src="/static/katex/katex-0-16-22.min.js"></script>

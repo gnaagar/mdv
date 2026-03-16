@@ -36,7 +36,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------
 
 def get_children(tree, path):
-    parts = [p for p in path.split(os.path.sep) if p]
+    parts = [p for p in path.split('/') if p]
 
     if not parts:
         return tree
@@ -82,6 +82,7 @@ class App:
     def __init__(self, config):
         self.url_map = url_map
         self.state = MdViewerState(config)
+        self.theme = config.get("theme", "light")
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -110,7 +111,7 @@ class App:
     # -----------------------------------------------------
 
     def render_markdown(self, template, content):
-        html = env.get_template(template).render(content=content)
+        html = env.get_template(template).render(content=content, theme=self.theme)
         return Response(html, mimetype="text/html")
 
     def render_tree(self, template, prefix, filename):
@@ -151,7 +152,8 @@ class App:
             root="/"
         )
         html = env.get_template("viewer.html").render(
-            content=MarkdownParser.parse(tree_md)
+            content=MarkdownParser.parse(tree_md),
+            theme=self.theme
         )
         return Response(html, mimetype="text/html")
 
@@ -164,7 +166,8 @@ class App:
             root="/"
         )
         html = env.get_template("plain.html").render(
-            content=MarkdownParser.parse(tree_md)
+            content=MarkdownParser.parse(tree_md),
+            theme=self.theme
         )
         return Response(html, mimetype="text/html")
 
@@ -214,7 +217,8 @@ def main():
     parser = argparse.ArgumentParser(description="Markdown viewer")
     parser.add_argument("--port", "-p", type=int, default=5000)
     parser.add_argument("--host", "-H", default="localhost")
+    parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     args = parser.parse_args()
 
-    app = App(config={"dir": os.getcwd()})
+    app = App(config={"dir": os.getcwd(), "theme": args.theme})
     run_simple(args.host, args.port, app, use_reloader=True)

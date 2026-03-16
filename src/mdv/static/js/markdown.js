@@ -13,9 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderMermaidDiagrams() {
+  const isDark = document.body.classList.contains('theme-dark');
   mermaid.initialize({
     startOnLoad: false,
-    theme: "default"
+    theme: isDark ? "dark" : "default"
   });
 
   // Convert code blocks → Mermaid containers

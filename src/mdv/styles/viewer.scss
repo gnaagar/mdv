@@ -72,7 +72,7 @@ body {
   left: -350px;
   width: 350px;
   height: 100%;
-  background: white;
+  background: $main-bg;
   @include transition(left, 0.1s);
   z-index: 1000;
   padding: 20px;
@@ -202,6 +202,8 @@ body {
     width: 100%;
     padding: 0.5rem;
     font-size: 1rem;
+    background: $main-bg;
+    color: $text-color;
     border: 1px solid $border-color-light;
     border-radius: 4px;
     @include transition(border-color);
@@ -285,7 +287,7 @@ body {
   position: fixed;
   left: 0;
   top: 0;
-  background: #fff;
+  background: $main-bg;
   border: 1px solid $border-color-dark;
   box-shadow: 0 4px 24px $shadow-color;
   border-radius: 8px;
@@ -298,7 +300,7 @@ body {
 
   .search-header {
     display: flex;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid $border-color-light;
 
     & > div {
       padding: 0.5em 1em;
@@ -345,7 +347,7 @@ body {
           margin: 0.2em 0 0 0;
           padding: 0;
           font-size: 0.95em;
-          color: #555;
+          color: $text-muted;
           font-family: $font-mono;
           white-space: pre-wrap;
         }
