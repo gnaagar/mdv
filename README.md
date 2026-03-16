@@ -10,11 +10,29 @@
 
 ## Installation
 
+Install globally using `pipx` or `uv`:
+
 ```sh
+# using pipx
 pipx install git+https://github.com/gnaagar/mdv.git
+
+# or using uv
+uv tool install git+https://github.com/gnaagar/mdv.git
 ```
 
 ## Usage
+
+Run without installing:
+
+```sh
+# using pipx
+pipx run git+https://github.com/gnaagar/mdv.git
+
+# or using uv
+uvx git+https://github.com/gnaagar/mdv.git
+```
+
+Or, if installed:
 
 ```sh
 cd ~/workspace/scratch
