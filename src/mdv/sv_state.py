@@ -7,7 +7,7 @@ import threading, time
 
 logger = get_logger(__name__)
 
-PATH_DELIMITER = os.path.sep
+PATH_DELIMITER = '/'
 IGNORED_DIRS = {'.git'}
 MD_EXTENSION = '.md'
 
@@ -38,7 +38,7 @@ class MdViewerState:
     # Refresh the last updated time of the node and invalidate
     # content if required
     def _sync_node (self, node):
-        full_path = os.path.join(self._root_dir, node.id)
+        full_path = os.path.join(self._root_dir, os.path.normpath(node.id))
         last_updated = os.stat(full_path).st_mtime
         if node.last_updated is None or node.last_updated < last_updated:
             if node.last_updated is not None:
@@ -61,7 +61,7 @@ class MdViewerState:
             for file in files:
                 if file.endswith(MD_EXTENSION) and not any(ignored in root for ignored in IGNORED_DIRS):
                     full_path = os.path.join(root, file)
-                    id = os.path.relpath(full_path, self._root_dir)
+                    id = os.path.relpath(full_path, self._root_dir).replace(os.path.sep, '/')
 
                     if id not in self._node_map:
                         logger.debug(f"Adding node: {id} to cache")
@@ -98,7 +98,7 @@ class MdViewerState:
             # Node is already fully loaded, no need to refresh
             return
 
-        full_path = os.path.join(self._root_dir, node.id)
+        full_path = os.path.join(self._root_dir, os.path.normpath(node.id))
         logger.debug(f"Building node: {node.id} ")
         try:
             with open(full_path, 'r', encoding='utf-8') as f:
