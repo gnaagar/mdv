@@ -110,6 +110,7 @@
 }
 
 body.theme-dark {
+  color-scheme: dark;
   --main-bg: #1e1e1e;
   --text-color: #d4d4d4;
   --text-muted: #858585;
