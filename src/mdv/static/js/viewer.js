@@ -33,179 +33,186 @@ function onPageLoad() {
   setupSearch();
   generateTOC(MD_BODY, TOC_TREE);
   processSearchQuery();
-
-  // Listen for scroll to highlight current TOC entry
-  document.getElementById('section-main').addEventListener('scroll', highlightCurrentHeading);
-  const sidebarToggler = document.getElementById("sidebar-left-toggle-area");
-  const overlay = document.getElementById("overlay");
-
-  sidebarToggler.addEventListener('click', openLeft);
-  overlay.addEventListener('click', closeLeft);
+  setupModalsAndHeader();
+  setupHeadingObserver();
+  
+  setTimeout(() => {
+     if (window.location.hash) {
+        const h = document.getElementById(window.location.hash.substring(1));
+        if (h) {
+           h.scrollIntoView({ block: 'start', behavior: 'auto' });
+        }
+     }
+     
+     // Force a scroll event to sync initial TOC highlights
+     document.getElementById('section-main').dispatchEvent(new Event('scroll'));
+  }, 100);
 }
 
-function openLeft() {
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
-  sidebar.classList.add("open");
-  overlay.classList.add("active");
-}
+function setupModalsAndHeader() {
+  const overlay = document.getElementById('modal-overlay');
+  const dirModal = document.getElementById('dir-modal');
+  const searchModal = document.getElementById('search-modal');
+  
+  const btnDir = document.getElementById('btn-dir-explorer');
+  const btnSearch = document.getElementById('btn-search');
+  const btnTheme = document.getElementById('btn-theme-toggle');
 
-function closeLeft() {
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
-  sidebar.classList.remove("open");
-  overlay.classList.remove("active");
+  const dirFilterInput = document.getElementById('dir-filter-input');
+  const searchInput = document.getElementById('search-input');
+
+  function openModal(modal, focusInput) {
+    overlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    setTimeout(() => { if (focusInput) focusInput.focus(); }, 100);
+  }
+
+  function closeAllModals() {
+    overlay.classList.add('hidden');
+    dirModal.classList.add('hidden');
+    searchModal.classList.add('hidden');
+  }
+
+  btnDir.addEventListener('click', () => openModal(dirModal, dirFilterInput));
+  btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
+  overlay.addEventListener('click', closeAllModals);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllModals();
+  });
+
+  // Directory filter logic
+  dirFilterInput.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const allLis = document.querySelectorAll('#dtree-container li');
+    const entries = document.querySelectorAll('#dtree-container .tree-entry');
+    
+    if (q === '') {
+      allLis.forEach(li => {
+        li.style.display = '';
+        if (li.querySelector('ul')) li.classList.add('tree-collapsed'); // Reset folders to collapsed
+      });
+      entries.forEach(entry => {
+        if (entry.title) entry.textContent = entry.title;
+      });
+      return;
+    }
+
+    // Hide all initially
+    allLis.forEach(li => li.style.display = 'none');
+    
+    // Reveal matches and their parents with visual highlighting
+    entries.forEach(entry => {
+       const originalName = entry.title || '';
+       
+       if (originalName.toLowerCase().includes(q)) {
+          const safeName = originalName.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+          entry.innerHTML = highlightMatches(safeName, q);
+          
+          let li = entry.parentElement;
+          while (li && li.tagName === 'LI') {
+             li.style.display = '';
+             li.classList.remove('tree-collapsed');
+             li = li.parentElement.closest('li');
+          }
+       } else {
+          entry.textContent = originalName;
+       }
+    });
+  });
+
+  // Theme Toggler
+  btnTheme.addEventListener('click', () => {
+    document.body.classList.toggle('theme-dark');
+    const isDark = document.body.classList.contains('theme-dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
+  });
+
+  // Init theme
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('theme-dark');
+  }
 }
 
 function processSearchQuery() {
   const params = new URLSearchParams(window.location.search);
-  const query = params.get('q')
-  const ctx = params.get('c')
-  if (query && ctx) {
-    highlightWordInViewer(MD_BODY, query, atob(ctx));
+  const q = params.get('q');
+  const l = params.get('l');
+  
+  if (q && l) {
+    let targetLine = parseInt(l, 10);
+    if (!isNaN(targetLine)) {
+       let targetEl = null;
+       // Sweep backwards locally to find the bounding block
+       while (targetLine > 0) {
+          targetEl = document.querySelector(`[data-source-line="${targetLine}"]`);
+          if (targetEl) break;
+          targetLine--;
+       }
+       
+       if (targetEl) {
+          isTocClickScrolling = true;
+          
+          targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
+          
+          setTimeout(() => { isTocClickScrolling = false; }, 800);
+          
+          // Pure visual highlighting on isolated block node
+          highlightTextInNode(targetEl, q);
+       }
+    }
   }
 }
 
-function highlightWordInViewer(container, query, context) {
-  console.log(query,context);
-  if (!query) return;
-
-  // Prepare search and context words
-  const searchWords = query
+function highlightTextInNode(node, query) {
+  const words = query
     .split(/\s+/)
     .filter(Boolean)
-    .map((w) => w.toLowerCase());
-  if (searchWords.length === 0) return;
-
-  const contextWords = context
-    ? context
-        .replace(/[^\w\s]|_/g, '')
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(Boolean)
-    : [];
-
-  // console.log('searchWords:', searchWords);
-  // console.log('contextWords:', contextWords);
-
-  // Gather all blocks
-  let blocks = Array.from(
-    container.querySelectorAll('p, li, pre, div, h1, h2, h3, h4, h5, h6, tr, td, th')
-  );
-
-  // Find the window of consecutive blocks containing the most context words in order
-  let bestWindow = [0, 0];
-  let bestScore = -1;
-  const maxWindow = 5;
-
-  if (contextWords.length) {
-    // Pre-normalize block texts
-    const blockNorms = blocks.map((b) =>
-      b.innerText
-        .replace(/[^\w\s]|_/g, '')
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(Boolean)
-    );
-    // console.log('blockNorms:', blockNorms);
-    for (let start = 0; start < blocks.length; ++start) {
-      let joined = [];
-      for (let end = start; end < Math.min(blocks.length, start + maxWindow); ++end) {
-        joined = joined.concat(blockNorms[end]);
-        // Score: count of context words found in order in joined
-        let score = countOrderedMatch(contextWords, joined, searchWords);
-        if (score > bestScore) {
-          bestScore = score;
-          bestWindow = [start, end];
-        }
-        // Early exit if perfect match
-        if (score === contextWords.length) break;
-      }
-      if (bestScore === contextWords.length) break;
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (words.length === 0) return;
+  const regex = new RegExp(`(${words.join('|')})`, 'gi');
+  
+  const textNodes = [];
+  function collectTextNodes(n) {
+    if (n.nodeType === 3 && n.nodeValue.trim()) {
+      textNodes.push({ node: n, text: n.nodeValue });
+    } else if (n.nodeType === 1 && !['SCRIPT', 'STYLE', 'SPAN'].includes(n.tagName)) {
+      Array.from(n.childNodes).forEach(collectTextNodes);
     }
-    blocks = blocks.slice(bestWindow[0], bestWindow[1] + 1);
-  } else {
-    blocks = [container];
   }
-
-  // console.log('bestWindow:', bestWindow);
-  // console.log('bestScore:', bestScore);
-  // console.log('blocks:', blocks.map(b => b.innerText.trim()));
-
-  // Highlight search words in the best window
-  blocks.forEach((block) => {
-    const textNodes = [];
-    function collectTextNodes(node) {
-      if (node.nodeType === 3 && node.nodeValue.trim()) {
-        textNodes.push({ node, text: node.nodeValue, parent: node.parentNode });
-      } else if (node.nodeType === 1 && !['SCRIPT', 'STYLE', 'SPAN'].includes(node.tagName)) {
-        Array.from(node.childNodes).forEach(collectTextNodes);
+  collectTextNodes(node);
+  
+  textNodes.forEach((t) => {
+    let text = t.text;
+    let replaced = false;
+    let parts = [];
+    let lastIdx = 0;
+    
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIdx) {
+        parts.push(document.createTextNode(text.slice(lastIdx, match.index)));
       }
+      const span = document.createElement('span');
+      span.textContent = match[0];
+      span.style.borderRadius = '3px';
+      span.style.padding = '0 0.15rem';
+      span.style.color = 'inherit';
+      addTempHighlight(span, 4000, 700);
+      parts.push(span);
+      lastIdx = regex.lastIndex;
+      replaced = true;
     }
-    collectTextNodes(block);
-
-    textNodes.forEach((t) => {
-      let text = t.text;
-      let replaced = false;
-      let parts = [];
-      let lastIdx = 0;
-      let regex = new RegExp(
-        searchWords.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
-        'gi'
-      );
-      let match;
-      while ((match = regex.exec(text)) !== null) {
-        if (match.index > lastIdx) {
-          parts.push(document.createTextNode(text.slice(lastIdx, match.index)));
-        }
-        const span = document.createElement('span');
-        span.textContent = match[0];
-        addTempHighlight(span, 4000, 700);
-        parts.push(span);
-        lastIdx = regex.lastIndex;
-        replaced = true;
+    if (replaced) {
+      if (lastIdx < text.length) {
+        parts.push(document.createTextNode(text.slice(lastIdx)));
       }
-      if (replaced) {
-        if (lastIdx < text.length) {
-          parts.push(document.createTextNode(text.slice(lastIdx)));
-        }
-        const frag = document.createDocumentFragment();
-        parts.forEach((p) => frag.appendChild(p));
-        if (t.node.parentNode) t.node.parentNode.replaceChild(frag, t.node);
-      }
-    });
+      const frag = document.createDocumentFragment();
+      parts.forEach((p) => frag.appendChild(p));
+      if (t.node.parentNode) t.node.parentNode.replaceChild(frag, t.node);
+    }
   });
-
-  // Scroll to the first .temp-highlight in any of the blocks
-  let first = null;
-  for (const block of blocks) {
-    first = block.querySelector('.temp-highlight');
-    if (first) break;
-  }
-  if (first) {
-    first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-}
-
-// Helper: count how many contextWords appear in order in joinedWords,
-// but only if all searchWords are present in joinedWords
-function countOrderedMatch(contextWords, joinedWords, searchWords) {
-  // Prerequisite: all searchWords must be present in joinedWords
-  for (const word of searchWords) {
-    if (!joinedWords.some((w) => w.includes(word))) return 0;
-  }
-  // Count how many contextWords appear in order in joinedWords
-  let i = 0,
-    j = 0,
-    count = 1;
-  while (i < contextWords.length && j < joinedWords.length) {
-    if (contextWords[i] === joinedWords[j]) {
-      count++;
-      i++;
-    }
-    j++;
-  }
-  return count;
 }
 
 // --------------------------------------------------------------------------------
@@ -216,109 +223,92 @@ const constants = Object.freeze({
 });
 
 const state = {
-  // curHeadings: new Set(),
+  activeIndices: [],
   headings: [],
   headingEntries: [],
-  lastUpdateTs: Date.now() - 2 * constants.debounceDelay
 };
 
-function scrollIntoViewIfNeeded(el) {
-  if (!el) return;
-  const rect = el.getBoundingClientRect();
-  const outOfView =
-    rect.top < 0 ||
-    rect.bottom > window.innerHeight ||
-    rect.left < 0 ||
-    rect.right > window.innerWidth;
+let isTocClickScrolling = false;
 
-  if (outOfView) {
-    el.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest'
+function setupHeadingObserver() {
+  if (!state.headings || !state.headings.length) return;
+
+  let animFrame = null;
+  const mainSection = document.getElementById('section-main');
+  
+  const handleScroll = () => {
+    if (isTocClickScrolling) return;
+    
+    if (animFrame) cancelAnimationFrame(animFrame);
+    animFrame = requestAnimationFrame(() => {
+      const mainRect = mainSection.getBoundingClientRect();
+      const activeIndices = [];
+      const tops = Array.from(state.headings).map(h => h.getBoundingClientRect().top);
+      const mdBodyBottom = document.getElementById('markdown-body').getBoundingClientRect().bottom;
+      
+      const viewTop = Math.max(mainRect.top, 0);
+      const viewBottom = Math.min(mainRect.bottom, window.innerHeight);
+
+      for (let i = 0; i < state.headings.length; i++) {
+         const top = tops[i];
+         const bottom = (i + 1 < state.headings.length) ? tops[i+1] : mdBodyBottom;
+         
+         if (top < viewBottom - 10 && bottom > viewTop + 10) {
+           activeIndices.push(i);
+         }
+      }
+      
+      if (activeIndices.length === 0 && state.headings.length > 0) {
+        activeIndices.push(0);
+      }
+      
+      updateActiveTocItems(activeIndices);
     });
-  }
+  };
+
+  mainSection.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('scroll', handleScroll, { passive: true });
 }
 
-
-// Helper to highlight the TOC entry for the current scroll position
-function highlightCurrentHeading() {
-  let now = Date.now();
-  if (now - state.lastUpdateTs <= constants.debounceDelay) {
+function updateActiveTocItems(indices) {
+  if (state.activeIndices && state.activeIndices.length === indices.length && state.activeIndices.every((val, i) => val === indices[i])) {
     return;
   }
-
-  // if (state.headings.length == 0) {
-  //   return;
-  // }
-
-  // const threshold = 20; // Extra buffer
-
-  // const container = document.getElementById('section-main');
-  // const scrollPos = container.scrollTop + threshold;
-  // const topPos = container.scrollTop;
-  // const bottomPos = container.scrollBottom;
   
-  let last = -1, firstDist = -1;
-  let firstActive = -1, lastActive = -1;
-
-  for (let i = 0; i < state.headings.length; i++) {
-    const rect = state.headings[i].getBoundingClientRect();
-    if (rect.top < 0) {
-      last = i;
-    }
-
-    if (rect.top >= 0 && rect.bottom + 2 * constants.headingSwitchBuffer <= window.innerHeight) {
-      if (firstDist == -1) {
-        firstDist = rect.top;
+  if (state.activeIndices) {
+    state.activeIndices.forEach(idx => {
+      if (state.headingEntries[idx]) {
+        state.headingEntries[idx].classList.remove(treeClasses.active);
       }
-      state.headingEntries[i].classList.add(treeClasses.active);
-      if (firstActive == -1) firstActive = i;
-      else if (lastActive == -1) lastActive = i;
-    } else {
-      state.headingEntries[i].classList.remove(treeClasses.active);
+    });
+  }
+  
+  state.activeIndices = indices;
+  let firstTarget = null;
+  
+  indices.forEach(idx => {
+    const target = state.headingEntries[idx];
+    if (target) {
+      target.classList.add(treeClasses.active);
+      if (!firstTarget) firstTarget = target;
+    }
+  });
+  
+  if (firstTarget && !isTocClickScrolling) {
+    const tocContainer = document.getElementById('toc-container');
+    const targetRect = firstTarget.getBoundingClientRect();
+    const containerRect = tocContainer.getBoundingClientRect();
+    
+    if (targetRect.top < containerRect.top + 30 || targetRect.bottom > containerRect.bottom - 30) {
+        const topPos = tocContainer.scrollTop + (targetRect.top - containerRect.top) - containerRect.height / 2;
+        tocContainer.scrollTo({
+            top: topPos,
+            behavior: 'smooth'
+        });
     }
   }
-
-  if ((firstDist == -1 || firstDist > constants.headingSwitchBuffer) && last != -1) {
-    state.headingEntries[last].classList.add(treeClasses.active);
-  }
-
-  if (firstActive != -1) {
-    scrollIntoViewIfNeeded(state.headingEntries[firstActive]);
-    scrollIntoViewIfNeeded(state.headingEntries[lastActive]);
-  }
-
-  state.lastUpdateTs = now;
-
-  // Fire once more to cover edge cases (fast scroll stop)
-  setTimeout(highlightCurrentHeading, constants.debounceDelay);
-
-  // let low = 0,
-  //   high = state.headings.length - 1,
-  //   result = 0;
-  //
-  // while (low <= high) {
-  //   let mid = Math.floor((low + high) / 2);
-  //   if (state.headings[mid].offsetTop <= scrollPos) {
-  //     result = mid;
-  //     low = mid + 1;
-  //   } else {
-  //     high = mid - 1;
-  //   }
-  // }
-  // if (state.curHeadings != null) {
-  //   state.headingEntries[state.curHeadings].classList.remove(treeClasses.active);
-  // }
-  // state.curHeadings = result;
-  // const target = state.headingEntries[result];
-  // target.classList.add(treeClasses.active);
-  // target.scrollIntoView({
-  //   behavior: 'auto',
-  //   block: 'nearest',
-  //   inline: 'nearest',
-  // });
-  
 }
+
 
 function generateTOC(contentContainer, treeContainer) {
 
@@ -329,24 +319,27 @@ function generateTOC(contentContainer, treeContainer) {
   const root = [];
   const stack = [{ level: 0, children: root }];
 
-  state.headings.forEach((h, idx) => {
+    state.headings.forEach((h, idx) => {
     const level = parseInt(h.tagName[1]);
     const node = {
       name: h.textContent,
       children: [],
       action: function (e) {
-        // Let browser handle certain cases, useful for opening in new tab
-        if (e.ctrlKey || e.metaKey || e.button === 1) {
-          return;
-        }
-
-        // Otherwise, intercept and load dynamically
+        if (e.ctrlKey || e.metaKey || e.button === 1) return;
         e.preventDefault();
-        h.scrollIntoView({ block: 'start' });
-        if (h.id && window.location.hash != h.id) {
-          window.location.hash = h.id;
+        
+        isTocClickScrolling = true;
+        updateActiveTocItems([idx]);
+        
+        h.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        
+        if (h.id && window.location.hash !== '#' + h.id) {
+          history.pushState(null, null, '#' + h.id);
         }
         addTempHighlight(h);
+        
+        // Re-enable observer when scroll is roughly done
+        setTimeout(() => { isTocClickScrolling = false; }, 800);
       },
       href: `${window.location.pathname}#${h.id}`,
       collapsed: false,
@@ -362,7 +355,6 @@ function generateTOC(contentContainer, treeContainer) {
     stack.push({ level, children: node.children });
   });
   renderTree(treeContainer, root);
-  highlightCurrentHeading();
 }
 
 // -------------------------------------------------------------------------------- 
@@ -370,50 +362,21 @@ function generateTOC(contentContainer, treeContainer) {
 const elems = {
   input: null,
   resultsPanel: null,
-  fileResults: null,
   contentResults: null,
 };
 
 function setupElems() {
   elems.input = document.getElementById('search-input');
   elems.resultsPanel = document.getElementById('search-results');
-  elems.fileResults = document.getElementById('search-results-file');
   elems.contentResults = document.getElementById('search-results-content');
 }
 
 function prepareSearchPanel() {
-  const rect = elems.input.getBoundingClientRect();
-  elems.resultsPanel.style.left = rect.left + 'px';
-  elems.resultsPanel.style.top = rect.bottom + +4 + 'px';
-  elems.resultsPanel.style.display = 'block';
-}
-
-async function searchFiles(query) {
-  const fileMatches = getDirTreeIds().filter((f) => f.toLowerCase().includes(query.toLowerCase()));
-
-  if (fileMatches.length === 0) {
-    elems.fileResults.innerHTML = '<li style="color:#888;padding:0.5em;">No files found.</li>';
-    return;
-  }
-
-  fileMatches.forEach((key) => {
-    const li = document.createElement('li');
-    li.className = 'file';
-
-    const a = document.createElement('a');
-    // Remove default link styling
-    a.style.textDecoration = 'none';
-    a.style.color = 'inherit';
-    a.href = '/v/' + key;
-    a.innerHTML = highlightMatches(key, query);
-
-    li.appendChild(a);
-    elems.fileResults.appendChild(li);
-  });
+  // Results natively shown in modal, no absolute positioning needed
+  elems.resultsPanel.style.display = 'flex';
 }
 
 async function searchContent(query) {
-  // 2. Global content/context search
   const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
   const results = await response.json();
   if (results.length === 0) {
@@ -423,15 +386,16 @@ async function searchContent(query) {
   results.forEach((item) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    // Remove default link styling
     a.style.display = 'block';
     a.style.textDecoration = 'none';
     a.style.color = 'inherit';
-    a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&c=${btoa(item.preview)}`;
+    // Fix undefined 'preview' bug by ensuring string access
+    const preview = item.preview || '';
+    a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
     a.innerHTML = `<div>
       <strong>${highlightMatches(item.path, query)}</strong>
       <pre style="font-size:smaller;color:#555;margin-top:2px;">${highlightMatches(
-        item.preview.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]),
+        preview.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]),
         query
       )}</pre>
     </div>`;
@@ -443,18 +407,15 @@ async function searchContent(query) {
 async function search() {
   prepareSearchPanel();
 
-  elems.fileResults.innerHTML = '';
   elems.contentResults.innerHTML = '';
 
   const query = elems.input.value.trim();
 
   if (!query) {
-    elems.resultsPanel.style.display = 'none';
+    elems.contentResults.innerHTML = '';
     return;
   }
-  elems.resultsPanel.style.display = 'block';
 
-  searchFiles(query);
   searchContent(query);
 }
 
@@ -462,24 +423,8 @@ function setupSearch() {
   setupElems();
   let debounceTimer = null;
   elems.input.addEventListener('input', function () {
-    // console.log('query: ', elems.input.value);
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(search, 300);
-  });
-
-  // Hide results when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!elems.resultsPanel.contains(e.target) && e.target !== elems.input) {
-      elems.resultsPanel.style.display = 'none';
-    }
-  });
-
-  // Hide on Escape
-  elems.input.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      elems.resultsPanel.style.display = 'none';
-      elems.input.value = '';
-    }
   });
 }
 

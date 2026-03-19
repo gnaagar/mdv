@@ -24,24 +24,38 @@ def highlight_code(code, lang, attrs):
 
 mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True).use(tasklists_plugin)
 
-# Custom plugin to add target="_blank" to all <a> tags
+# Custom plugin to add target="_blank" only to external <a> tags
 def add_target_blank(md):
     def link_open_with_target_blank(tokens, idx, options, env):
         token = tokens[idx]
+        
+        href = token.attrGet('href')
+        if href and (href.startswith('http://') or href.startswith('https://')):
+            # Ensure token.attrs exists
+            if token.attrs is None:
+                token.attrs = []
 
-        # Ensure token.attrs exists
-        if token.attrs is None:
-            token.attrs = []
-
-        # Add or overwrite 'target' attribute
-        token.attrSet('target', '_blank')
+            # Add or overwrite 'target' attribute
+            token.attrSet('target', '_blank')
 
         return md.renderer.renderToken(tokens, idx, options, env)
 
     md.renderer.rules['link_open'] = link_open_with_target_blank
 
-# Apply the plugin
+# Custom plugin to add source line numbers to all block elements
+def inject_line_numbers(md):
+    def core_inject(state):
+        for token in state.tokens:
+            if getattr(token, 'map', None):
+                if token.attrs is None:
+                    token.attrs = []
+                token.attrSet('data-source-line', str(token.map[0] + 1))
+    
+    md.core.ruler.push('inject_line_numbers', core_inject)
+
+# Apply the plugins
 add_target_blank(mdparser)
+inject_line_numbers(mdparser)
 
 def wrap_tables_and_images(dom):
     # Wrap tables

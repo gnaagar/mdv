@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderMermaidDiagrams() {
-  const isDark = document.body.classList.contains('theme-dark');
+  const isDark = document.body.classList.contains('theme-dark') || localStorage.getItem('theme') === 'dark';
   mermaid.initialize({
     startOnLoad: false,
     theme: isDark ? "dark" : "default"
@@ -24,11 +24,28 @@ function renderMermaidDiagrams() {
     const div = document.createElement("div");
     div.className = "mermaid";
     div.textContent = block.textContent;
+    // Save original text for dynamic re-theming
+    div.setAttribute('data-mermaid-src', block.textContent);
     block.parentElement.replaceWith(div);
   });
 
   mermaid.run();
 }
+
+document.addEventListener('themeChanged', (e) => {
+  const isDark = e.detail.isDark;
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: isDark ? "dark" : "default"
+  });
+  
+  document.querySelectorAll('.mermaid').forEach(div => {
+     div.removeAttribute('data-processed');
+     div.innerHTML = div.getAttribute('data-mermaid-src');
+  });
+  
+  mermaid.run();
+});
 
 function renderMath(container) {
   const unescapeLatex = (text) => text.replace(/\\\\/g, '\\');
