@@ -1,5 +1,5 @@
-import re
 import os
+from rapidfuzz import fuzz
 
 class FuzzySearch:
     def __init__(self, node_map):
@@ -7,39 +7,44 @@ class FuzzySearch:
 
     def search(self, query, limit=10):
         query = query.strip()
-        if not query or ' ' in query:
+        if not query:
             return []
+            
         results = []
-        word = re.escape(query)
-        pattern = re.compile(rf'\b{word}\b', re.IGNORECASE)
-        for path, content in self.file_contents.items():
-
-            # TODO: Find the bug due to which content is sometimes none
-            # Ideally it should never be none
+        for path, node in self._node_map.items():
+            content = node.raw
             lines = (content or "").splitlines()
 
             for idx, line in enumerate(lines):
-                if pattern.search(line):
+                score = fuzz.partial_token_set_ratio(query.lower(), line.lower())
+                if score > 85:
                     start = max(idx - 2, 0)
                     end = min(idx + 3, len(lines))
                     snippet = '\n'.join(lines[start:end])
                     results.append({
                         'path': path,
                         'preview': snippet,
-                        'lineno': idx + 1
+                        'lineno': idx + 1,
+                        'score': score
                     })
-                    if len(results) >= limit:
-                        return results
-        return results
+
+        results.sort(key=lambda x: x['score'], reverse=True)
+        # Clean up score before returning
+        for r in results:
+            del r['score']
+            
+        return results[:limit]
 
     def context_search(self, search_query, block_size=5, limit=20):
         """
-        Return non-overlapping blocks of block_size lines containing ALL words (case-insensitive),
-        with highlights applied to the preview.
+        Return non-overlapping blocks of block_size lines containing the search words.
+        Uses rapidfuzz.partial_token_set_ratio for fast, intelligent subset matching.
         """
-        words = [w for w in search_query.strip().split() if w]
+        search_query = search_query.strip()
+        if not search_query:
+            return []
+            
         results = []
-        word_patterns = [re.compile(re.escape(w), re.IGNORECASE) for w in words]
         for node in self._node_map.values():
             path = node.id
             content = node.raw
@@ -49,16 +54,22 @@ class FuzzySearch:
             i = 0
             while i <= n - block_size:
                 block = lines[i:i+block_size]
-                if all(any(p.search(line) for line in block) for p in word_patterns):
-                    block_text = '\n'.join(block)
+                block_text = '\n'.join(block)
+                
+                score = fuzz.partial_token_set_ratio(search_query.lower(), block_text.lower())
+                if score > 80:
                     results.append({
                         'path': path,
                         'preview': block_text,
-                        'lineno': i + 1
+                        'lineno': i + 1,
+                        'score': score
                     })
-                    if len(results) >= limit:
-                        return results
                     i += block_size
                 else:
                     i += 1
-        return results
+                    
+        results.sort(key=lambda x: x['score'], reverse=True)
+        for r in results:
+            del r['score']
+            
+        return results[:limit]
