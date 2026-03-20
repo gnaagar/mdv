@@ -110,35 +110,37 @@ function setupModalsAndHeader() {
     const entries = document.querySelectorAll('#dtree-container .tree-entry');
     
     if (q === '') {
-      allLis.forEach(li => {
-        li.style.display = '';
-        if (li.querySelector('ul')) li.classList.add('tree-collapsed'); // Reset folders to collapsed
-      });
+      allLis.forEach(li => li.style.display = '');
       entries.forEach(entry => {
-        if (entry.title) entry.textContent = entry.title;
+        if (entry.dataset.fullPath) entry.textContent = entry.dataset.fullPath;
       });
       return;
     }
 
-    // Hide all initially
-    allLis.forEach(li => li.style.display = 'none');
-    
-    // Reveal matches and their parents with visual highlighting
+    const fuzzyMatch = (str, query) => {
+       let qIdx = 0;
+       for (let i = 0; i < str.length; i++) {
+           if (str[i].toLowerCase() === query[qIdx]) {
+               qIdx++;
+               if (qIdx === query.length) return true;
+           }
+       }
+       return false;
+    };
+
+    // Fast reveal for fuzzy matches without tree hierarchy calculations
     entries.forEach(entry => {
-       const originalName = entry.title || '';
-       
-       if (originalName.toLowerCase().includes(q)) {
-          const safeName = originalName.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
-          entry.innerHTML = highlightMatches(safeName, q);
-          
-          let li = entry.parentElement;
-          while (li && li.tagName === 'LI') {
-             li.style.display = '';
-             li.classList.remove('tree-collapsed');
-             li = li.parentElement.closest('li');
+       const pathName = entry.dataset.fullPath || '';
+       if (fuzzyMatch(pathName, q)) {
+          entry.parentElement.style.display = '';
+          if (pathName.toLowerCase().includes(q)) {
+              entry.innerHTML = highlightMatches(pathName.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])), q);
+          } else {
+              entry.textContent = pathName;
           }
        } else {
-          entry.textContent = originalName;
+          entry.parentElement.style.display = 'none';
+          entry.textContent = pathName;
        }
     });
   });
@@ -480,56 +482,63 @@ function highlightCurrentFileInDirTree() {
   }
   const entry = dirTreeState.entryMap[id];
   entry.classList.add(treeClasses.active);
-  // Expand all parent directories
-  let li = entry.closest('li');
-  while (li) {
-    li.classList.remove(treeClasses.collapsed);
-    li = li.parentElement.closest('li');
-  }
-  // Scroll into view if not visible
-  // entry.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  setTimeout(() => entry.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100);
 }
 
 // Dir tree related
 function loadDirTree(container, callback) {
-  // recursive function to enrich all nodes
-  function enrichDirTree(tree) {
-    return tree.map((item) => {
+  function flattenDirTree(tree, flatList = [], pathPrefix = '') {
+    tree.forEach(item => {
+      const fullPath = pathPrefix ? `${pathPrefix}/${item.name}` : item.name;
       if (item.type === 'directory') {
-        return {
-          name: item.name,
-          action: function (e) {
-            const li = this.parentNode;
-            li.classList.toggle(treeClasses.collapsed);
-            e.stopPropagation();
-          },
-          children: enrichDirTree(item.children || []),
-          collapsed: true, // Start directories collapsed
-          metadata: {
-            isFile: false,
-          },
-        };
+        flattenDirTree(item.children || [], flatList, fullPath);
       } else {
-        return {
+        flatList.push({
           name: item.name,
-          collapsed: false, // Files are not collapsible
+          fullPath: fullPath,
           href: '/v/' + item.path,
-          metadata: {
-            id: item.path,
-          },
-          render: (item, entry) => {
-            dirTreeState.entryMap[item.metadata.id] = entry;
-          },
-        };
+          metadata: { id: item.path }
+        });
       }
     });
+    return flatList;
   }
+
   return fetch('/api/tree')
     .then((res) => res.json())
     .then((tree) => {
-      renderTree(container, enrichDirTree(tree));
+      const flatFiles = flattenDirTree(tree);
+      renderFlatTree(container, flatFiles);
       highlightCurrentFileInDirTree();
     });
+}
+
+function renderFlatTree(container, flatFiles) {
+  const ul = document.createElement('ul');
+  ul.classList.add(treeClasses.tree);
+  ul.style.listStyle = 'none';
+  ul.style.paddingLeft = '0';
+
+  flatFiles.forEach(item => {
+    const li = document.createElement('li');
+    li.classList.add(treeClasses.tree);
+    
+    const entry = document.createElement('a');
+    entry.classList.add(treeClasses.entry);
+    entry.textContent = item.fullPath;
+    entry.style.setProperty('--tree-depth', 0);
+    entry.title = item.fullPath;
+    entry.href = item.href;
+    
+    entry.dataset.fullPath = item.fullPath;
+
+    li.appendChild(entry);
+    dirTreeState.entryMap[item.metadata.id] = entry;
+    ul.appendChild(li);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(ul);
 }
 
 function renderTreeRecursive(tree, parentNode, depth = 0) {
