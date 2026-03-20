@@ -100,10 +100,31 @@ class MarkdownParser:
         mdcontent = MarkdownParser._clean_math(mdcontent)
         html = mdparser.render(mdcontent)
         dom = BeautifulSoup(html, 'html.parser')
+        MarkdownParser._sanitize_html(dom)
         wrap_tables_and_images(dom)
         simplify_anchor_text(dom)
         MarkdownParser._post_process_tasklists(dom)
         return str(dom)
+
+    @staticmethod
+    def _sanitize_html(dom: BeautifulSoup):
+        # Remove dangerous tags completely
+        for tag in dom.find_all(['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base', 'form']):
+            tag.decompose()
+        
+        # Remove dangerous Javascript URIs and inline event handlers
+        for tag in dom.find_all(True):
+            # Iterate over a list of keys since we delete properties
+            attrs = list(tag.attrs.keys())
+            for attr_name in attrs:
+                attr_lower = attr_name.lower()
+                if attr_lower.startswith('on'):
+                    del tag[attr_name]
+                elif attr_lower in ('href', 'src'):
+                    attr_value = tag.attrs.get(attr_name, '')
+                    val_str = ' '.join(attr_value).strip().lower() if isinstance(attr_value, list) else str(attr_value).strip().lower()
+                    if val_str.startswith('javascript:') or val_str.startswith('vbscript:') or val_str.startswith('data:text/html'):
+                        del tag[attr_name]
 
     @staticmethod
     def _post_process_tasklists(dom: BeautifulSoup):

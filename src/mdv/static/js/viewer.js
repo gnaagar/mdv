@@ -411,8 +411,9 @@ async function searchContent(query) {
     // Fix undefined 'preview' bug by ensuring string access
     const preview = item.preview || '';
     a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
+    const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
     a.innerHTML = `<div>
-      <strong>${highlightMatches(item.path, query)}</strong>
+      <strong>${highlightMatches(safePath, query)}</strong>
       <pre style="font-size:smaller;color:#555;margin-top:2px;">${highlightMatches(
         preview.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]),
         query
