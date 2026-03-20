@@ -367,4 +367,43 @@ body {
   text-decoration: inherit;
 }
 
-/*# sourceMappingURL=markdown.css.map */
+/*Focus Mode Styles*/
+.focus-exit-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--markdown-bg);
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.2;
+  transition: all 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px var(--markdown-shadow);
+}
+.focus-exit-btn:hover {
+  opacity: 1;
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+  border-color: var(--border-color-light);
+}
+@media print {
+  .focus-exit-btn { display: none !important; }
+}
+
+.focus-layout {
+  padding: 4rem !important;
+  max-width: 950px !important;
+  margin: 0 auto !important;
+}
+@media (max-width: 768px) {
+  .focus-layout {
+    padding: 2rem !important;
+  }
+}
