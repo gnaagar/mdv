@@ -77,8 +77,26 @@ function setupModalsAndHeader() {
   btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
   overlay.addEventListener('click', closeAllModals);
 
+  // Global Keyboard Shortcuts
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllModals();
+    // Escape to close modals
+    if (e.key === 'Escape') {
+      closeAllModals();
+    }
+    
+    // Cmd/Ctrl + K : Global Content Search
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      const btnSearch = document.getElementById('btn-search');
+      if (btnSearch) btnSearch.click();
+    }
+    
+    // Cmd/Ctrl + P : Directory Explorer (File Search)
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      const btnDirExplorer = document.getElementById('btn-dir-explorer');
+      if (btnDirExplorer) btnDirExplorer.click();
+    }
   });
 
   // Directory filter logic
@@ -128,11 +146,6 @@ function setupModalsAndHeader() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
   });
-
-  // Init theme
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('theme-dark');
-  }
 }
 
 function processSearchQuery() {

@@ -14,6 +14,13 @@
 
 </head>
 <body class="theme-{{ theme | default('light') }}">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('theme-dark');
+    } else if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.remove('theme-dark');
+    }
+  </script>
   {% block body %}
   {% endblock %}
   <script src="/static/katex/katex-0-16-22.min.js"></script>
