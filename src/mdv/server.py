@@ -71,6 +71,7 @@ url_map = Map([
     Rule("/t/<path:filename>", endpoint="mdtext"),
     Rule("/api/tree", endpoint="dirtree"),
     Rule("/api/search", endpoint="search"),
+    Rule("/draw", endpoint="draw"),
 ])
 
 
@@ -192,6 +193,10 @@ class App:
     def on_mdtext(self, request, filename):
         raw_text = self.state.get_content(filename, raw=True)
         return Response(raw_text, mimetype="text/plain")
+
+    def on_draw(self, request):
+        html = env.get_template("draw.html").render(theme=self.theme)
+        return Response(html, mimetype="text/html")
 
     # NOTE:
     # on_static REMOVED — handled by SharedDataMiddleware
