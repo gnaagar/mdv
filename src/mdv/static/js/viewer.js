@@ -82,17 +82,21 @@ function setupModalsAndHeader() {
     // Escape to close modals
     if (e.key === 'Escape') {
       closeAllModals();
+      return;
     }
     
-    // Cmd/Ctrl + K : Global Content Search
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    const isInputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+    
+    // Cmd/Ctrl + Shift + F   OR  bare '/' (like GitHub) : Global Content Search
+    const isSearchHotKey = ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') || (!isInputFocused && e.key === '/');
+    if (isSearchHotKey) {
       e.preventDefault();
       const btnSearch = document.getElementById('btn-search');
       if (btnSearch) btnSearch.click();
     }
     
-    // Cmd/Ctrl + P : Directory Explorer (File Search)
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p') {
+    // Cmd/Ctrl + Shift + E : Directory Explorer
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
       e.preventDefault();
       const btnDirExplorer = document.getElementById('btn-dir-explorer');
       if (btnDirExplorer) btnDirExplorer.click();

@@ -28,8 +28,8 @@ class FuzzySearch:
                         'score': score
                     })
 
-        results.sort(key=lambda x: x['score'], reverse=True)
-        # Clean up score before returning
+        # Sort by: Score (Descending) -> File Path (A-Z) -> Line Number (Ascending)
+        results.sort(key=lambda x: (-x['score'], x['path'], x.get('lineno', 0)))
         for r in results:
             del r['score']
             
@@ -68,7 +68,8 @@ class FuzzySearch:
                 else:
                     i += 1
                     
-        results.sort(key=lambda x: x['score'], reverse=True)
+        # Sort by: Score (Desc) -> Path (Asc) -> Line (Asc)
+        results.sort(key=lambda x: (-x['score'], x['path'], x.get('lineno', 0)))
         for r in results:
             del r['score']
             
