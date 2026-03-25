@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block styles %}
-<link rel="stylesheet" href="/static/viewer.css?v=20260319b">
+<link rel="stylesheet" href="/static/viewer.css?v=20260325a">
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/viewer.js?v=20260319"></script>
+<script src="/static/js/viewer.js?v=20260325a"></script>
 {% endblock %}
 
 {% block body %}
@@ -54,7 +54,11 @@
   <!-- Search Modal -->
   <div id="search-modal" class="modal-box hidden">
     <div class="modal-header">
-      <input type="text" id="search-input" placeholder="Search markdown content..." autocomplete="off">
+      <input type="text" id="search-input" placeholder="Search headings..." autocomplete="off">
+      <div class="search-mode-toggle">
+        <button class="mode-btn active" data-mode="headings">Headings</button>
+        <button class="mode-btn" data-mode="content">Content</button>
+      </div>
     </div>
     <div id="search-results" class="modal-body">
       <div class="search-results-body">
