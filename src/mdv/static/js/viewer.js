@@ -41,12 +41,20 @@ function onPageLoad() {
         const h = document.getElementById(window.location.hash.substring(1));
         if (h) {
            h.scrollIntoView({ block: 'start', behavior: 'auto' });
+           addTempHighlight(h);
         }
      }
      
      // Force a scroll event to sync initial TOC highlights
      document.getElementById('section-main').dispatchEvent(new Event('scroll'));
   }, 100);
+}
+
+// Global modal close function (needs to be accessible from search handlers)
+let _closeAllModals = null;
+
+function closeAllModals() {
+  if (_closeAllModals) _closeAllModals();
 }
 
 function setupModalsAndHeader() {
@@ -61,17 +69,24 @@ function setupModalsAndHeader() {
   const dirFilterInput = document.getElementById('dir-filter-input');
   const searchInput = document.getElementById('search-input');
 
+  // Track which modal is open for keyboard navigation
+  let activeModal = null;
+
   function openModal(modal, focusInput) {
     overlay.classList.remove('hidden');
     modal.classList.remove('hidden');
+    activeModal = modal;
     setTimeout(() => { if (focusInput) focusInput.focus(); }, 100);
   }
 
-  function closeAllModals() {
+  _closeAllModals = function() {
     overlay.classList.add('hidden');
     dirModal.classList.add('hidden');
     searchModal.classList.add('hidden');
-  }
+    activeModal = null;
+    dirKeyboardIndex = -1;
+    searchKeyboardIndex = -1;
+  };
 
   btnDir.addEventListener('click', () => openModal(dirModal, dirFilterInput));
   btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
@@ -84,6 +99,18 @@ function setupModalsAndHeader() {
       closeAllModals();
       return;
     }
+
+    // Handle arrow keys & enter in modals
+    if (activeModal) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+        if (activeModal === dirModal) {
+          handleDirKeyboard(e);
+        } else if (activeModal === searchModal) {
+          handleSearchKeyboard(e);
+        }
+        return;
+      }
+    }
     
     const isInputFocused = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
     
@@ -91,20 +118,20 @@ function setupModalsAndHeader() {
     const isSearchHotKey = ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') || (!isInputFocused && e.key === '/');
     if (isSearchHotKey) {
       e.preventDefault();
-      const btnSearch = document.getElementById('btn-search');
       if (btnSearch) btnSearch.click();
     }
     
-    // Cmd/Ctrl + Shift + E : Directory Explorer
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
+    // Cmd/Ctrl + Shift + E   OR  bare '.' : Directory Explorer
+    const isDirHotKey = ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'e') || (!isInputFocused && e.key === '.');
+    if (isDirHotKey) {
       e.preventDefault();
-      const btnDirExplorer = document.getElementById('btn-dir-explorer');
-      if (btnDirExplorer) btnDirExplorer.click();
+      if (btnDir) btnDir.click();
     }
   });
 
   // Directory filter logic
   dirFilterInput.addEventListener('input', (e) => {
+    dirKeyboardIndex = -1; // Reset keyboard selection on filter change
     const q = e.target.value.trim().toLowerCase();
     const allLis = document.querySelectorAll('#dtree-container li');
     const entries = document.querySelectorAll('#dtree-container .tree-entry');
@@ -153,6 +180,92 @@ function setupModalsAndHeader() {
     document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
   });
 }
+
+// -----------------------------------------------------------------------------
+// KEYBOARD NAVIGATION FOR MODALS
+// -----------------------------------------------------------------------------
+
+let dirKeyboardIndex = -1;
+let searchKeyboardIndex = -1;
+
+function getVisibleDirEntries() {
+  const items = document.querySelectorAll('#dtree-container li');
+  return Array.from(items).filter(li => li.style.display !== 'none');
+}
+
+function handleDirKeyboard(e) {
+  const visible = getVisibleDirEntries();
+  if (visible.length === 0) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    dirKeyboardIndex = Math.min(dirKeyboardIndex + 1, visible.length - 1);
+    updateDirKeyboardHighlight(visible);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    dirKeyboardIndex = Math.max(dirKeyboardIndex - 1, 0);
+    updateDirKeyboardHighlight(visible);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
+      const entry = visible[dirKeyboardIndex].querySelector('.tree-entry');
+      if (entry && entry.href) {
+        window.location.href = entry.href;
+      }
+    }
+  }
+}
+
+function updateDirKeyboardHighlight(visible) {
+  visible.forEach(li => {
+    const entry = li.querySelector('.tree-entry');
+    if (entry) entry.classList.remove('keyboard-active');
+  });
+  if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
+    const entry = visible[dirKeyboardIndex].querySelector('.tree-entry');
+    if (entry) {
+      entry.classList.add('keyboard-active');
+      entry.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+}
+
+function getVisibleSearchItems() {
+  return Array.from(document.querySelectorAll('#search-results-content > li'));
+}
+
+function handleSearchKeyboard(e) {
+  const items = getVisibleSearchItems();
+  if (items.length === 0) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    searchKeyboardIndex = Math.min(searchKeyboardIndex + 1, items.length - 1);
+    updateSearchKeyboardHighlight(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    searchKeyboardIndex = Math.max(searchKeyboardIndex - 1, 0);
+    updateSearchKeyboardHighlight(items);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (searchKeyboardIndex >= 0 && searchKeyboardIndex < items.length) {
+      const a = items[searchKeyboardIndex].querySelector('a');
+      if (a && a.href) {
+        window.location.href = a.href;
+      }
+    }
+  }
+}
+
+function updateSearchKeyboardHighlight(items) {
+  items.forEach(li => li.classList.remove('keyboard-active'));
+  if (searchKeyboardIndex >= 0 && searchKeyboardIndex < items.length) {
+    items[searchKeyboardIndex].classList.add('keyboard-active');
+    items[searchKeyboardIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+// -----------------------------------------------------------------------------
 
 function processSearchQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -384,6 +497,9 @@ const elems = {
   contentResults: null,
 };
 
+let searchMode = 'headings'; // Default to headings
+let searchAbortController = null;
+
 function setupElems() {
   elems.input = document.getElementById('search-input');
   elems.resultsPanel = document.getElementById('search-results');
@@ -395,39 +511,132 @@ function prepareSearchPanel() {
   elems.resultsPanel.style.display = 'flex';
 }
 
-async function searchContent(query) {
-  const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
-  const results = await response.json();
-  if (results.length === 0) {
-    elems.contentResults.innerHTML = '<li style="color:#888;padding:0.5em;">No content found.</li>';
-    return;
+function scrollToSourceLine(lineno, highlightQuery) {
+  let targetLine = lineno;
+  let targetEl = null;
+  while (targetLine > 0) {
+    targetEl = document.querySelector(`[data-source-line="${targetLine}"]`);
+    if (targetEl) break;
+    targetLine--;
   }
-  results.forEach((item) => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.style.display = 'block';
-    a.style.textDecoration = 'none';
-    a.style.color = 'inherit';
-    // Fix undefined 'preview' bug by ensuring string access
-    const preview = item.preview || '';
-    a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
-    const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
-    a.innerHTML = `<div>
-      <strong>${highlightMatches(safePath, query)}</strong>
-      <pre style="font-size:smaller;color:#555;margin-top:2px;">${highlightMatches(
-        preview.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]),
-        query
-      )}</pre>
-    </div>`;
-    li.appendChild(a);
-    elems.contentResults.appendChild(li);
-  });
+  if (targetEl) {
+    isTocClickScrolling = true;
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    addTempHighlight(targetEl);
+    setTimeout(() => { isTocClickScrolling = false; }, 800);
+    if (highlightQuery) {
+      highlightTextInNode(targetEl, highlightQuery);
+    }
+  }
+}
+
+function getCurrentFilePath() {
+  const match = window.location.pathname.match(/\/v\/(.+)/);
+  return match ? match[1] : null;
+}
+
+async function searchHeadings(query) {
+  // Cancel any in-flight request
+  if (searchAbortController) searchAbortController.abort();
+  searchAbortController = new AbortController();
+
+  try {
+    const response = await fetch(
+      `/api/search?query=${encodeURIComponent(query)}&mode=headings`,
+      { signal: searchAbortController.signal }
+    );
+    const results = await response.json();
+
+    if (results.length === 0) {
+      elems.contentResults.innerHTML = '<li class="search-empty-msg">No headings found.</li>';
+      return;
+    }
+
+    const currentPath = getCurrentFilePath();
+
+    results.forEach((item) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.style.display = 'block';
+      a.style.textDecoration = 'none';
+      a.style.color = 'inherit';
+
+      // Use lineno-based navigation (works reliably, unlike anchor generation)
+      a.href = `/v/${item.path}?q=${encodeURIComponent(item.heading)}&l=${item.lineno}`;
+
+      // For same-page results: scroll directly + highlight + close modal
+      if (currentPath === item.path) {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          closeAllModals();
+          scrollToSourceLine(item.lineno, null);
+        });
+      }
+
+      const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+      const safeHeading = item.heading.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+      const levelLabel = `H${item.level}`;
+
+      a.innerHTML = `<div class="heading-result">
+        <span class="heading-level">${levelLabel}</span>
+        <span class="heading-text">${highlightMatches(safeHeading, query)}</span>
+        <span class="heading-path">${safePath}</span>
+      </div>`;
+
+      li.appendChild(a);
+      elems.contentResults.appendChild(li);
+    });
+  } catch (err) {
+    if (err.name !== 'AbortError') throw err;
+  }
+}
+
+async function searchContent(query) {
+  // Cancel any in-flight request
+  if (searchAbortController) searchAbortController.abort();
+  searchAbortController = new AbortController();
+
+  try {
+    const response = await fetch(
+      `/api/search?query=${encodeURIComponent(query)}&mode=content`,
+      { signal: searchAbortController.signal }
+    );
+    const results = await response.json();
+
+    if (results.length === 0) {
+      elems.contentResults.innerHTML = '<li class="search-empty-msg">No content found.</li>';
+      return;
+    }
+
+    results.forEach((item) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.style.display = 'block';
+      a.style.textDecoration = 'none';
+      a.style.color = 'inherit';
+      const preview = item.preview || '';
+      a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
+      const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+      a.innerHTML = `<div>
+        <strong>${highlightMatches(safePath, query)}</strong>
+        <pre style="font-size:smaller;color:#555;margin-top:2px;">${highlightMatches(
+          preview.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]),
+          query
+        )}</pre>
+      </div>`;
+      li.appendChild(a);
+      elems.contentResults.appendChild(li);
+    });
+  } catch (err) {
+    if (err.name !== 'AbortError') throw err;
+  }
 }
 
 async function search() {
   prepareSearchPanel();
 
   elems.contentResults.innerHTML = '';
+  searchKeyboardIndex = -1;
 
   const query = elems.input.value.trim();
 
@@ -436,7 +645,12 @@ async function search() {
     return;
   }
 
-  searchContent(query);
+
+  if (searchMode === 'headings') {
+    await searchHeadings(query);
+  } else {
+    await searchContent(query);
+  }
 }
 
 function setupSearch() {
@@ -444,7 +658,21 @@ function setupSearch() {
   let debounceTimer = null;
   elems.input.addEventListener('input', function () {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(search, 300);
+    debounceTimer = setTimeout(search, 200);
+  });
+
+  // Setup mode toggle buttons
+  const modeButtons = document.querySelectorAll('.search-mode-toggle .mode-btn');
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      modeButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      searchMode = btn.dataset.mode;
+      // Update placeholder
+      elems.input.placeholder = searchMode === 'headings' ? 'Search headings...' : 'Search content...';
+      // Re-run search with new mode
+      search();
+    });
   });
 }
 
@@ -482,7 +710,7 @@ function highlightCurrentFileInDirTree() {
     return;
   }
   const entry = dirTreeState.entryMap[id];
-  entry.classList.add(treeClasses.active);
+  entry.classList.add('current-file');
   setTimeout(() => entry.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100);
 }
 

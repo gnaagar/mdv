@@ -181,7 +181,8 @@ class App:
 
     def on_search(self, request):
         query = request.args.get("query")
-        result = self.state.search(query)
+        mode = request.args.get("mode", "headings")
+        result = self.state.search(query, mode=mode)
         return Response(json.dumps(result), mimetype="application/json")
 
     def on_mdplain(self, request, filename):

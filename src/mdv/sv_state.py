@@ -122,9 +122,10 @@ class MdViewerState:
         logger.debug(f'Returning cached content for {id} (length={length})')
         return result
 
-    def search(self, search_query):
-        results = self._fuzzy_search.context_search(search_query)
-        return results
+    def search(self, search_query, mode='headings'):
+        if mode == 'headings':
+            return self._fuzzy_search.heading_search(search_query)
+        return self._fuzzy_search.context_search(search_query)
 
     def get_tree(self):
         """

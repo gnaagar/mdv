@@ -271,25 +271,25 @@ body {
   pointer-events: none;
 }
 .modal-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color-light);
+  padding: 0;
 }
 .modal-header input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
   font-size: 1.1rem;
   background: transparent;
   color: var(--text-color);
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: none;
+  border-bottom: 1px solid var(--border-color-light);
+  border-radius: 0;
   outline: none;
 }
 .modal-header input:focus {
-  border-color: var(--search-hover-color);
-  background: var(--tree-active-bg);
+  border-bottom-color: var(--search-hover-color);
+  background: transparent;
 }
 .modal-body {
-  padding: 1rem;
+  padding: 0.5rem 0;
   overflow-y: auto;
   flex-grow: 1;
 }
@@ -552,6 +552,104 @@ body {
 #markdown-body h5,
 #markdown-body h6 {
   scroll-margin-top: 30px;
+}
+
+/* Search Mode Toggle */
+.search-mode-toggle {
+  display: flex;
+  gap: 0;
+  margin: 0.5rem 1.25rem;
+  border: 1px solid var(--border-color-light);
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+}
+.mode-btn {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  font-weight: 500;
+}
+.mode-btn:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.mode-btn.active {
+  background: var(--tree-active-bg);
+  color: var(--tree-active-color);
+  font-weight: 600;
+}
+
+/* Heading Search Results */
+.heading-result {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.heading-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  background: var(--tree-active-bg);
+  color: var(--tree-active-color);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.heading-text {
+  font-weight: 500;
+  color: var(--text-color);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.heading-path {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Current File Indicator (subtle, distinct from keyboard selection) */
+.tree .tree-entry.current-file {
+  color: var(--tree-active-color);
+  border-left: 2px solid var(--tree-active-color);
+  font-weight: 600;
+}
+
+/* Keyboard Navigation Highlight */
+.keyboard-active,
+.tree .tree-entry.keyboard-active {
+  background: var(--tree-active-bg) !important;
+  color: var(--tree-active-color) !important;
+}
+#search-results .search-results-body ul li.keyboard-active {
+  background: var(--tree-active-bg);
+  border-color: var(--tree-active-color);
+  color: var(--tree-active-color);
+}
+
+/* Search Empty Message */
+.search-empty-msg {
+  color: var(--text-muted);
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  list-style: none;
 }
 
 /*# sourceMappingURL=viewer.css.map */
