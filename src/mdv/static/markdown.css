@@ -321,18 +321,47 @@ body {
   margin: 2em 0;
 }
 #markdown-body .task-list-item {
-  list-style-type: none; /* Remove default bullet/number */
-  margin-left: -28px; /* Pull back to remove the gap left by the list padding */
+  list-style-type: none;
+  margin-left: -28px;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   border-radius: 4px;
 }
+
 #markdown-body .task-list-item input[type=checkbox] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-radius: 3px;
   margin-right: 0.5em;
+  pointer-events: none;
+  vertical-align: middle;
+  position: relative;
+  top: -1px; /* fine-tune vertical alignment */
 }
+
+#markdown-body .task-list-item input[type=checkbox]:checked {
+  background-color: #22c55e;
+  border-color: #22c55e;
+}
+
+#markdown-body .task-list-item input[type=checkbox]:checked::after {
+  content: "";
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 4px;
+  height: 7px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+}
+
 #markdown-body .task-completed {
   color: var(--task-completed-color);
-  background-color: var(--task-completed-bg);
+  /* Removed background-color */
   opacity: 0.8;
 }
 #markdown-body blockquote {
