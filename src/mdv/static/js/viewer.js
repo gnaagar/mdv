@@ -497,7 +497,6 @@ const elems = {
   contentResults: null,
 };
 
-let searchMode = 'headings'; // Default to headings
 let searchAbortController = null;
 
 function setupElems() {
@@ -507,7 +506,6 @@ function setupElems() {
 }
 
 function prepareSearchPanel() {
-  // Results natively shown in modal, no absolute positioning needed
   elems.resultsPanel.style.display = 'flex';
 }
 
@@ -535,20 +533,44 @@ function getCurrentFilePath() {
   return match ? match[1] : null;
 }
 
-async function searchHeadings(query) {
+function getTypeBadge(item) {
+  if (item.line_type === 'heading') {
+    return `H${item.level || 1}`;
+  }
+  const badges = { code: 'CODE', link: 'LINK', list: 'LIST', text: 'TXT' };
+  return badges[item.line_type] || 'TXT';
+}
+
+function getBadgeClass(item) {
+  if (item.line_type === 'heading') return 'badge-heading';
+  const classes = { code: 'badge-code', link: 'badge-link', list: 'badge-list', text: 'badge-text' };
+  return classes[item.line_type] || 'badge-text';
+}
+
+async function search() {
+  prepareSearchPanel();
+  elems.contentResults.innerHTML = '';
+  searchKeyboardIndex = -1;
+
+  const query = elems.input.value.trim();
+  if (!query) {
+    elems.contentResults.innerHTML = '';
+    return;
+  }
+
   // Cancel any in-flight request
   if (searchAbortController) searchAbortController.abort();
   searchAbortController = new AbortController();
 
   try {
     const response = await fetch(
-      `/api/search?query=${encodeURIComponent(query)}&mode=headings`,
+      `/api/search?query=${encodeURIComponent(query)}`,
       { signal: searchAbortController.signal }
     );
     const results = await response.json();
 
     if (results.length === 0) {
-      elems.contentResults.innerHTML = '<li class="search-empty-msg">No headings found.</li>';
+      elems.contentResults.innerHTML = '<li class="search-empty-msg">No results found.</li>';
       return;
     }
 
@@ -561,26 +583,26 @@ async function searchHeadings(query) {
       a.style.textDecoration = 'none';
       a.style.color = 'inherit';
 
-      // Use lineno-based navigation (works reliably, unlike anchor generation)
-      a.href = `/v/${item.path}?q=${encodeURIComponent(item.heading)}&l=${item.lineno}`;
+      a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
 
-      // For same-page results: scroll directly + highlight + close modal
+      // Same-page: scroll directly
       if (currentPath === item.path) {
         a.addEventListener('click', (e) => {
           e.preventDefault();
           closeAllModals();
-          scrollToSourceLine(item.lineno, null);
+          scrollToSourceLine(item.lineno, query);
         });
       }
 
+      const safeLine = (item.line || '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
       const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
-      const safeHeading = item.heading.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
-      const levelLabel = `H${item.level}`;
+      const badge = getTypeBadge(item);
+      const badgeClass = getBadgeClass(item);
 
-      a.innerHTML = `<div class="heading-result">
-        <span class="heading-level">${levelLabel}</span>
-        <span class="heading-text">${highlightMatches(safeHeading, query)}</span>
-        <span class="heading-path">${safePath}</span>
+      a.innerHTML = `<div class="search-result-item">
+        <span class="line-type-badge ${badgeClass}">${badge}</span>
+        <span class="search-result-line">${highlightMatches(safeLine, query)}</span>
+        <span class="search-result-path">${safePath}</span>
       </div>`;
 
       li.appendChild(a);
@@ -588,68 +610,6 @@ async function searchHeadings(query) {
     });
   } catch (err) {
     if (err.name !== 'AbortError') throw err;
-  }
-}
-
-async function searchContent(query) {
-  // Cancel any in-flight request
-  if (searchAbortController) searchAbortController.abort();
-  searchAbortController = new AbortController();
-
-  try {
-    const response = await fetch(
-      `/api/search?query=${encodeURIComponent(query)}&mode=content`,
-      { signal: searchAbortController.signal }
-    );
-    const results = await response.json();
-
-    if (results.length === 0) {
-      elems.contentResults.innerHTML = '<li class="search-empty-msg">No content found.</li>';
-      return;
-    }
-
-    results.forEach((item) => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.style.display = 'block';
-      a.style.textDecoration = 'none';
-      a.style.color = 'inherit';
-      const preview = item.preview || '';
-      a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
-      const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
-      a.innerHTML = `<div>
-        <strong>${highlightMatches(safePath, query)}</strong>
-        <pre style="font-size:smaller;color:#555;margin-top:2px;">${highlightMatches(
-          preview.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]),
-          query
-        )}</pre>
-      </div>`;
-      li.appendChild(a);
-      elems.contentResults.appendChild(li);
-    });
-  } catch (err) {
-    if (err.name !== 'AbortError') throw err;
-  }
-}
-
-async function search() {
-  prepareSearchPanel();
-
-  elems.contentResults.innerHTML = '';
-  searchKeyboardIndex = -1;
-
-  const query = elems.input.value.trim();
-
-  if (!query) {
-    elems.contentResults.innerHTML = '';
-    return;
-  }
-
-
-  if (searchMode === 'headings') {
-    await searchHeadings(query);
-  } else {
-    await searchContent(query);
   }
 }
 
@@ -659,20 +619,6 @@ function setupSearch() {
   elems.input.addEventListener('input', function () {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(search, 200);
-  });
-
-  // Setup mode toggle buttons
-  const modeButtons = document.querySelectorAll('.search-mode-toggle .mode-btn');
-  modeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      modeButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      searchMode = btn.dataset.mode;
-      // Update placeholder
-      elems.input.placeholder = searchMode === 'headings' ? 'Search headings...' : 'Search content...';
-      // Re-run search with new mode
-      search();
-    });
   });
 }
 

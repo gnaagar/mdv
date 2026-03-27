@@ -1,4 +1,4 @@
-from mdv.fuzzy_search import FuzzySearch
+from mdv.fuzzy_search import LineIndex
 from mdv.mdparser import MarkdownParser
 from mdv.logger import get_logger
 import os
@@ -29,11 +29,11 @@ class MdViewerState:
         self._precache = cfg.get('precache',None)
         self._node_map = {}
         self.refresh()
+        self._line_index = LineIndex()
         if self._precache:
             self._build_full_cache()
         else:
             threading.Thread(target=self._build_full_cache).start()
-        self._fuzzy_search = FuzzySearch(self._node_map)
 
     # Refresh the last updated time of the node and invalidate
     # content if required
@@ -85,6 +85,9 @@ class MdViewerState:
             time.sleep(0.05) # Sleep for 50ms to allow other processing
             self._refresh_node(node)
 
+        # Build search index after all content is loaded
+        self._line_index.build(self._node_map)
+
         # For stats
         size = 0
         for node in self._node_map.values():
@@ -122,10 +125,8 @@ class MdViewerState:
         logger.debug(f'Returning cached content for {id} (length={length})')
         return result
 
-    def search(self, search_query, mode='headings'):
-        if mode == 'headings':
-            return self._fuzzy_search.heading_search(search_query)
-        return self._fuzzy_search.context_search(search_query)
+    def search(self, search_query):
+        return self._line_index.search(search_query)
 
     def get_tree(self):
         """

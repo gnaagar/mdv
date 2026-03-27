@@ -554,58 +554,55 @@ body {
   scroll-margin-top: 30px;
 }
 
-/* Search Mode Toggle */
-.search-mode-toggle {
-  display: flex;
-  gap: 0;
-  margin: 0.5rem 1.25rem;
-  border: 1px solid var(--border-color-light);
-  border-radius: 6px;
-  overflow: hidden;
-  width: fit-content;
-}
-.mode-btn {
-  padding: 0.3rem 0.9rem;
-  font-size: 0.8rem;
-  font-family: inherit;
-  background: transparent;
-  color: var(--text-muted);
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-  font-weight: 500;
-}
-.mode-btn:hover {
-  background: var(--tree-entry-highlight-bg);
-  color: var(--tree-entry-highlight-color);
-}
-.mode-btn.active {
-  background: var(--tree-active-bg);
-  color: var(--tree-active-color);
-  font-weight: 600;
-}
-
-/* Heading Search Results */
-.heading-result {
+/* Search Result Items */
+.search-result-item {
   display: flex;
   align-items: center;
   gap: 0.6rem;
 }
-.heading-level {
+.line-type-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2rem;
+  min-width: 2.2rem;
   height: 1.5rem;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
   font-family: "JetBrains Mono", monospace;
-  background: var(--tree-active-bg);
-  color: var(--tree-active-color);
   border-radius: 4px;
   flex-shrink: 0;
+  letter-spacing: 0.02em;
 }
-.heading-text {
+.badge-heading {
+  background: var(--tree-active-bg);
+  color: var(--tree-active-color);
+}
+.badge-code {
+  background: var(--code-bg);
+  color: var(--code-color);
+  border: 1px solid var(--code-border);
+}
+.badge-link {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+body.theme-dark .badge-link {
+  background: #1a3350;
+  color: #4fc1ff;
+}
+.badge-list {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+body.theme-dark .badge-list {
+  background: #213221;
+  color: #89d185;
+}
+.badge-text {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--text-muted);
+}
+.search-result-line {
   font-weight: 500;
   color: var(--text-color);
   flex: 1;
@@ -614,7 +611,7 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.heading-path {
+.search-result-path {
   font-size: 0.8em;
   color: var(--text-muted);
   flex-shrink: 0;
