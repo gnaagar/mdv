@@ -15,7 +15,6 @@ dependencies = [
     "MarkupSafe==3.0.3",
     "mdit-py-plugins==0.4.2",
     "Pygments==2.19.1",
-    "rapidfuzz>=3.0.0",
     "soupsieve==2.7",
     "typing_extensions==4.14.0",
     "Werkzeug==3.1.3",

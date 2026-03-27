@@ -181,8 +181,7 @@ class App:
 
     def on_search(self, request):
         query = request.args.get("query")
-        mode = request.args.get("mode", "headings")
-        result = self.state.search(query, mode=mode)
+        result = self.state.search(query)
         return Response(json.dumps(result), mimetype="application/json")
 
     def on_mdplain(self, request, filename):
@@ -221,7 +220,7 @@ class App:
 
 def main():
     parser = argparse.ArgumentParser(description="Markdown viewer")
-    parser.add_argument("--port", "-p", type=int, default=5000)
+    parser.add_argument("--port", "-p", type=int, default=8000)
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     args = parser.parse_args()
