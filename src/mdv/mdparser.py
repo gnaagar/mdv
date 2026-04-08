@@ -13,14 +13,15 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+_html_formatter = HtmlFormatter(nowrap=True)
+
 # Highlighting function
 def highlight_code(code, lang, attrs):
     try:
         lexer = get_lexer_by_name(lang)
     except Exception:
         lexer = get_lexer_by_name("text")
-    formatter = HtmlFormatter(nowrap=True)
-    return highlight(code, lexer, formatter)
+    return highlight(code, lexer, _html_formatter)
 
 mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True).use(tasklists_plugin)
 
@@ -99,11 +100,15 @@ class MarkdownParser:
     def parse(mdcontent: str) -> str:
         mdcontent = MarkdownParser._clean_math(mdcontent)
         html = mdparser.render(mdcontent)
-        dom = BeautifulSoup(html, 'html.parser')
+        dom = BeautifulSoup(html, 'lxml')
         MarkdownParser._sanitize_html(dom)
         wrap_tables_and_images(dom)
         simplify_anchor_text(dom)
         MarkdownParser._post_process_tasklists(dom)
+        # lxml wraps in <html><body>; extract inner content only
+        body = dom.body
+        if body:
+            return ''.join(str(c) for c in body.children)
         return str(dom)
 
     @staticmethod

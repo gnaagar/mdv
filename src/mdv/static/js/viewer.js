@@ -9,6 +9,8 @@ const TOC_TREE = document.getElementById('toc-container')
 
 const dirTreeState = {
   entryMap: {},
+  cachedLis: null,
+  cachedEntries: null,
 };
 
 const commonClasses = Object.freeze({
@@ -142,14 +144,16 @@ function setupModalsAndHeader() {
   dirFilterInput.addEventListener('input', (e) => {
     dirKeyboardIndex = -1; // Reset keyboard selection on filter change
     const q = e.target.value.trim().toLowerCase();
-    const allLis = document.querySelectorAll('#dtree-container li');
-    const entries = document.querySelectorAll('#dtree-container .tree-entry');
+    // Use cached references instead of re-querying DOM each keystroke
+    const allLis = dirTreeState.cachedLis;
+    const entries = dirTreeState.cachedEntries;
+    if (!allLis || !entries) return;
     
     if (q === '') {
-      allLis.forEach(li => li.style.display = '');
-      entries.forEach(entry => {
-        if (entry.dataset.fullPath) entry.textContent = entry.dataset.fullPath;
-      });
+      for (let i = 0; i < allLis.length; i++) allLis[i].style.display = '';
+      for (let i = 0; i < entries.length; i++) {
+        if (entries[i].dataset.fullPath) entries[i].textContent = entries[i].dataset.fullPath;
+      }
       return;
     }
 
@@ -165,7 +169,8 @@ function setupModalsAndHeader() {
     };
 
     // Fast reveal for fuzzy matches without tree hierarchy calculations
-    entries.forEach(entry => {
+    for (let i = 0; i < entries.length; i++) {
+       const entry = entries[i];
        const pathName = entry.dataset.fullPath || '';
        if (fuzzyMatch(pathName, q)) {
           entry.parentElement.style.display = '';
@@ -178,7 +183,7 @@ function setupModalsAndHeader() {
           entry.parentElement.style.display = 'none';
           entry.textContent = pathName;
        }
-    });
+    }
   });
 
   // Theme Toggler
@@ -607,6 +612,8 @@ async function search() {
 
     const currentPath = getCurrentFilePath();
 
+    const frag = document.createDocumentFragment();
+
     results.forEach((item) => {
       const li = document.createElement('li');
       const a = document.createElement('a');
@@ -637,8 +644,9 @@ async function search() {
       </div>`;
 
       li.appendChild(a);
-      elems.contentResults.appendChild(li);
+      frag.appendChild(li);
     });
+    elems.contentResults.appendChild(frag);
   } catch (err) {
     if (err.name !== 'AbortError') throw err;
   }
@@ -720,6 +728,7 @@ function loadDirTree(container, callback) {
 }
 
 function renderFlatTree(container, flatFiles) {
+  const frag = document.createDocumentFragment();
   const ul = document.createElement('ul');
   ul.classList.add(treeClasses.tree);
   ul.style.listStyle = 'none';
@@ -743,8 +752,13 @@ function renderFlatTree(container, flatFiles) {
     ul.appendChild(li);
   });
 
+  frag.appendChild(ul);
   container.innerHTML = '';
-  container.appendChild(ul);
+  container.appendChild(frag);
+
+  // Cache DOM references for the filter handler
+  dirTreeState.cachedLis = Array.from(ul.querySelectorAll('li'));
+  dirTreeState.cachedEntries = Array.from(ul.querySelectorAll('.tree-entry'));
 }
 
 function renderTreeRecursive(tree, parentNode, depth = 0) {

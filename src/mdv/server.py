@@ -92,7 +92,8 @@ class App:
             self.wsgi_app,
             {
                 "/static": str(static_dir)
-            }
+            },
+            cache_timeout=86400,
         )
 
     # Dispatcher
@@ -182,6 +183,7 @@ class App:
 
     def on_search(self, request):
         query = request.args.get("query")
+        self.state.refresh()
         result = self.state.search(query)
         return Response(json.dumps(result), mimetype="application/json")
 
@@ -224,7 +226,8 @@ def main():
     parser.add_argument("--port", "-p", type=int, default=8000)
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
+    parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
     args = parser.parse_args()
 
-    app = App(config={"dir": os.getcwd(), "theme": args.theme})
+    app = App(config={"dir": os.getcwd(), "theme": args.theme, "ignore_dirs": args.ignore})
     run_simple(args.host, args.port, app, use_reloader=True)
