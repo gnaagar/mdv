@@ -8,8 +8,8 @@ import threading, time
 logger = get_logger(__name__)
 
 PATH_DELIMITER = '/'
-IGNORED_DIRS = {'.git'}
 MD_EXTENSION = '.md'
+REFRESH_DEBOUNCE_SECS = 2
 
 
 @dataclass
@@ -26,58 +26,85 @@ class FileNode:
 class MdViewerState:
     def __init__(self, cfg):
         self._root_dir = cfg['dir']
-        self._precache = cfg.get('precache',None)
+        self._precache = cfg.get('precache', None)
         self._node_map = {}
-        self.refresh()
+
+        # Build ignore set: all dot-directories by default, plus user-specified dirs
+        self._extra_ignore_dirs = set(cfg.get('ignore_dirs', []))
+
+        self._last_refresh_time = 0
+        self._search_index_dirty = True
+
+        self.refresh(force=True)
         self._line_index = LineIndex()
         if self._precache:
             self._build_full_cache()
         else:
-            threading.Thread(target=self._build_full_cache).start()
+            threading.Thread(target=self._build_full_cache, daemon=True).start()
+
+    def _should_ignore_dir(self, dirname):
+        """Ignore all dot-directories and any user-specified dirs."""
+        if dirname.startswith('.'):
+            return True
+        return dirname in self._extra_ignore_dirs
 
     # Refresh the last updated time of the node and invalidate
     # content if required
-    def _sync_node (self, node):
+    def _sync_node(self, node):
         full_path = os.path.join(self._root_dir, os.path.normpath(node.id))
         last_updated = os.stat(full_path).st_mtime
         if node.last_updated is None or node.last_updated < last_updated:
             if node.last_updated is not None:
-                logger.debug(f"Clearing stale content of node {id}")
+                logger.debug(f"Clearing stale content of node {node.id}")
             node.raw = None  # Invalidate raw content
             node.parsed = None
             node.last_updated = last_updated
+            return True  # Changed
+        return False  # Unchanged
 
     # Lightweight sync with file system.
     # It is a metadata refresh, which does not read file contents.
     # It adds/deletes nodes which are not in the cache (but there in the file system)
     # It also invalidates contents of nodes which are outdated.
-    def refresh(self):
+    def refresh(self, force=False):
+        now = time.monotonic()
+        if not force and (now - self._last_refresh_time) < REFRESH_DEBOUNCE_SECS:
+            return
+        self._last_refresh_time = now
+
+        changed = False
         # Assume that we will delete everything
         to_delete = set(self._node_map.keys())
 
         for root, dirs, files in os.walk(self._root_dir):
             # Modify 'dirs' in-place to skip ignored directories
-            dirs[:] = [d for d in dirs if d not in IGNORED_DIRS]
+            dirs[:] = [d for d in dirs if not self._should_ignore_dir(d)]
             for file in files:
-                if file.endswith(MD_EXTENSION) and not any(ignored in root for ignored in IGNORED_DIRS):
+                if file.endswith(MD_EXTENSION):
                     full_path = os.path.join(root, file)
                     id = os.path.relpath(full_path, self._root_dir).replace(os.path.sep, '/')
 
                     if id not in self._node_map:
                         logger.debug(f"Adding node: {id} to cache")
-                        # Create new bare node
                         node = FileNode(id=id)
                         self._node_map[node.id] = node
+                        changed = True
 
-                    self._sync_node(self._node_map[id])
+                    if self._sync_node(self._node_map[id]):
+                        changed = True
 
                     if id in to_delete:
                         to_delete.remove(id)
 
         # Remove nodes that are no longer in the file system
+        if to_delete:
+            changed = True
         for id in to_delete:
             logger.debug(f"Removing node: {id} from cache")
             self._node_map.pop(id, None)
+
+        if changed:
+            self._search_index_dirty = True
 
     def _build_full_cache(self):
         # Assuming bare map is already built
@@ -126,7 +153,19 @@ class MdViewerState:
         return result
 
     def search(self, search_query):
+        if self._search_index_dirty:
+            self._rebuild_search_index()
         return self._line_index.search(search_query)
+
+    def _rebuild_search_index(self):
+        """Rebuild the search index from current node map."""
+        # Ensure all nodes have content loaded
+        for node in self._node_map.values():
+            if node.raw is None:
+                self._refresh_node(node)
+        self._line_index.build(self._node_map)
+        self._search_index_dirty = False
+        logger.debug('Rebuilt search index')
 
     def get_tree(self):
         """

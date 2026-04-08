@@ -92,8 +92,8 @@
   --blockquote-bg: #f0f4f8;
   --blockquote-indicator-color: #7fa0c3;
   --blockquote-text-color: #2e3a46;
-  --task-completed-color: #2e7d32;
-  --task-completed-bg: #e8f5e9;
+  --task-completed-color: #999;
+  --task-completed-bg: #f5f5f5;
   --task-pending-color: var(--text-color);
   --highlight-bg: #fff59d;
   --search-hover-color: #1976d2;
@@ -141,8 +141,8 @@ body.theme-dark {
   --blockquote-bg: #2d2d2d;
   --blockquote-indicator-color: #4fc1ff;
   --blockquote-text-color: #d4d4d4;
-  --task-completed-color: #89d185;
-  --task-completed-bg: #213221;
+  --task-completed-color: #777;
+  --task-completed-bg: #2a2a2a;
   --task-pending-color: var(--text-color);
   --highlight-bg: #614a19;
   --search-hover-color: #4fc1ff;
@@ -343,8 +343,8 @@ body {
 }
 
 #markdown-body .task-list-item input[type=checkbox]:checked {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: #aaa;
+  border-color: #aaa;
 }
 
 #markdown-body .task-list-item input[type=checkbox]:checked::after {
@@ -361,8 +361,10 @@ body {
 
 #markdown-body .task-completed {
   color: var(--task-completed-color);
-  /* Removed background-color */
-  opacity: 0.8;
+  opacity: 0.6;
+}
+#markdown-body .task-completed * {
+  color: inherit !important;
 }
 #markdown-body blockquote {
   display: block;

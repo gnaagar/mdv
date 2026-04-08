@@ -9,6 +9,8 @@ const TOC_TREE = document.getElementById('toc-container')
 
 const dirTreeState = {
   entryMap: {},
+  cachedLis: null,
+  cachedEntries: null,
 };
 
 const commonClasses = Object.freeze({
@@ -25,6 +27,31 @@ const treeClasses = Object.freeze({
   nested: 'nested',
   active: 'active',
 });
+
+// Shared utilities
+const escapeHtml = (s) => s.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+function fuzzyMatch(str, query) {
+  let qIdx = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i].toLowerCase() === query[qIdx]) {
+      qIdx++;
+      if (qIdx === query.length) return true;
+    }
+  }
+  return false;
+}
+
+function createHighlighter(query) {
+  if (!query) return (text) => text;
+  const words = query
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (words.length === 0) return (text) => text;
+  const regex = new RegExp(`(${words.join('|')})`, 'gi');
+  return (text) => text.replace(regex, '<mark>$1</mark>');
+}
 
 // -----------------------------------------------------------------------------
 
@@ -86,9 +113,20 @@ function setupModalsAndHeader() {
     activeModal = null;
     dirKeyboardIndex = -1;
     searchKeyboardIndex = -1;
+    dirKeyboardActiveEntry = null;
+    searchKeyboardActiveItem = null;
   };
 
-  btnDir.addEventListener('click', () => openModal(dirModal, dirFilterInput));
+  btnDir.addEventListener('click', () => {
+    // Refresh the directory tree on every open to reflect latest file system state
+    dirTreeState.entryMap = {};
+    loadDirTree(DIR_TREE).then(() => {
+      // Re-apply filter if one is active
+      const q = dirFilterInput.value.trim().toLowerCase();
+      if (q) dirFilterInput.dispatchEvent(new Event('input'));
+    });
+    openModal(dirModal, dirFilterInput);
+  });
   btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
   overlay.addEventListener('click', closeAllModals);
 
@@ -133,35 +171,29 @@ function setupModalsAndHeader() {
   dirFilterInput.addEventListener('input', (e) => {
     dirKeyboardIndex = -1; // Reset keyboard selection on filter change
     const q = e.target.value.trim().toLowerCase();
-    const allLis = document.querySelectorAll('#dtree-container li');
-    const entries = document.querySelectorAll('#dtree-container .tree-entry');
+    // Use cached references instead of re-querying DOM each keystroke
+    const allLis = dirTreeState.cachedLis;
+    const entries = dirTreeState.cachedEntries;
+    if (!allLis || !entries) return;
     
     if (q === '') {
-      allLis.forEach(li => li.style.display = '');
-      entries.forEach(entry => {
-        if (entry.dataset.fullPath) entry.textContent = entry.dataset.fullPath;
-      });
+      for (let i = 0; i < allLis.length; i++) allLis[i].style.display = '';
+      for (let i = 0; i < entries.length; i++) {
+        if (entries[i].dataset.fullPath) entries[i].textContent = entries[i].dataset.fullPath;
+      }
       return;
     }
 
-    const fuzzyMatch = (str, query) => {
-       let qIdx = 0;
-       for (let i = 0; i < str.length; i++) {
-           if (str[i].toLowerCase() === query[qIdx]) {
-               qIdx++;
-               if (qIdx === query.length) return true;
-           }
-       }
-       return false;
-    };
+    const highlight = createHighlighter(q);
 
     // Fast reveal for fuzzy matches without tree hierarchy calculations
-    entries.forEach(entry => {
+    for (let i = 0; i < entries.length; i++) {
+       const entry = entries[i];
        const pathName = entry.dataset.fullPath || '';
        if (fuzzyMatch(pathName, q)) {
           entry.parentElement.style.display = '';
           if (pathName.toLowerCase().includes(q)) {
-              entry.innerHTML = highlightMatches(pathName.replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])), q);
+              entry.innerHTML = highlight(escapeHtml(pathName));
           } else {
               entry.textContent = pathName;
           }
@@ -169,7 +201,7 @@ function setupModalsAndHeader() {
           entry.parentElement.style.display = 'none';
           entry.textContent = pathName;
        }
-    });
+    }
   });
 
   // Theme Toggler
@@ -187,10 +219,12 @@ function setupModalsAndHeader() {
 
 let dirKeyboardIndex = -1;
 let searchKeyboardIndex = -1;
+let dirKeyboardActiveEntry = null;
+let searchKeyboardActiveItem = null;
 
 function getVisibleDirEntries() {
-  const items = document.querySelectorAll('#dtree-container li');
-  return Array.from(items).filter(li => li.style.display !== 'none');
+  if (!dirTreeState.cachedLis) return [];
+  return dirTreeState.cachedLis.filter(li => li.style.display !== 'none');
 }
 
 function handleDirKeyboard(e) {
@@ -217,15 +251,17 @@ function handleDirKeyboard(e) {
 }
 
 function updateDirKeyboardHighlight(visible) {
-  visible.forEach(li => {
-    const entry = li.querySelector('.tree-entry');
-    if (entry) entry.classList.remove('keyboard-active');
-  });
+  // O(1): clear only the previously active entry instead of iterating all
+  if (dirKeyboardActiveEntry) {
+    dirKeyboardActiveEntry.classList.remove('keyboard-active');
+    dirKeyboardActiveEntry = null;
+  }
   if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
     const entry = visible[dirKeyboardIndex].querySelector('.tree-entry');
     if (entry) {
       entry.classList.add('keyboard-active');
-      entry.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      entry.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      dirKeyboardActiveEntry = entry;
     }
   }
 }
@@ -258,10 +294,15 @@ function handleSearchKeyboard(e) {
 }
 
 function updateSearchKeyboardHighlight(items) {
-  items.forEach(li => li.classList.remove('keyboard-active'));
+  // O(1): clear only the previously active item instead of iterating all
+  if (searchKeyboardActiveItem) {
+    searchKeyboardActiveItem.classList.remove('keyboard-active');
+    searchKeyboardActiveItem = null;
+  }
   if (searchKeyboardIndex >= 0 && searchKeyboardIndex < items.length) {
     items[searchKeyboardIndex].classList.add('keyboard-active');
-    items[searchKeyboardIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    items[searchKeyboardIndex].scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    searchKeyboardActiveItem = items[searchKeyboardIndex];
   }
 }
 
@@ -273,26 +314,9 @@ function processSearchQuery() {
   const l = params.get('l');
   
   if (q && l) {
-    let targetLine = parseInt(l, 10);
-    if (!isNaN(targetLine)) {
-       let targetEl = null;
-       // Sweep backwards locally to find the bounding block
-       while (targetLine > 0) {
-          targetEl = document.querySelector(`[data-source-line="${targetLine}"]`);
-          if (targetEl) break;
-          targetLine--;
-       }
-       
-       if (targetEl) {
-          isTocClickScrolling = true;
-          
-          targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
-          
-          setTimeout(() => { isTocClickScrolling = false; }, 800);
-          
-          // Pure visual highlighting on isolated block node
-          highlightTextInNode(targetEl, q);
-       }
+    const lineno = parseInt(l, 10);
+    if (!isNaN(lineno)) {
+      scrollToSourceLine(lineno, q, { behavior: 'auto', block: 'center' });
     }
   }
 }
@@ -315,6 +339,8 @@ function highlightTextInNode(node, query) {
   }
   collectTextNodes(node);
   
+  const insertedSpans = [];
+
   textNodes.forEach((t) => {
     let text = t.text;
     let replaced = false;
@@ -331,7 +357,9 @@ function highlightTextInNode(node, query) {
       span.style.borderRadius = '3px';
       span.style.padding = '0 0.15rem';
       span.style.color = 'inherit';
+      span.dataset.searchHighlight = '1';
       addTempHighlight(span, 4000, 700);
+      insertedSpans.push(span);
       parts.push(span);
       lastIdx = regex.lastIndex;
       replaced = true;
@@ -345,6 +373,24 @@ function highlightTextInNode(node, query) {
       if (t.node.parentNode) t.node.parentNode.replaceChild(frag, t.node);
     }
   });
+
+  // After highlight fades, unwrap spans to restore original text nodes
+  if (insertedSpans.length > 0) {
+    const cleanupDelay = 4000 + 700 + 50; // duration + transitionMs + buffer
+    setTimeout(() => unwrapHighlightSpans(insertedSpans, node), cleanupDelay);
+  }
+}
+
+function unwrapHighlightSpans(spans, containerNode) {
+  spans.forEach(span => {
+    if (!span.parentNode) return;
+    const text = document.createTextNode(span.textContent);
+    span.parentNode.replaceChild(text, span);
+  });
+  // Merge adjacent text nodes to fully restore original DOM structure
+  if (containerNode && containerNode.normalize) {
+    containerNode.normalize();
+  }
 }
 
 // --------------------------------------------------------------------------------
@@ -376,7 +422,7 @@ function setupHeadingObserver() {
       const mainRect = mainSection.getBoundingClientRect();
       const activeIndices = [];
       const tops = Array.from(state.headings).map(h => h.getBoundingClientRect().top);
-      const mdBodyBottom = document.getElementById('markdown-body').getBoundingClientRect().bottom;
+      const mdBodyBottom = MD_BODY.getBoundingClientRect().bottom;
       
       const viewTop = Math.max(mainRect.top, 0);
       const viewBottom = Math.min(mainRect.bottom, window.innerHeight);
@@ -509,7 +555,7 @@ function prepareSearchPanel() {
   elems.resultsPanel.style.display = 'flex';
 }
 
-function scrollToSourceLine(lineno, highlightQuery) {
+function scrollToSourceLine(lineno, highlightQuery, { behavior = 'smooth', block = 'start' } = {}) {
   let targetLine = lineno;
   let targetEl = null;
   while (targetLine > 0) {
@@ -519,7 +565,7 @@ function scrollToSourceLine(lineno, highlightQuery) {
   }
   if (targetEl) {
     isTocClickScrolling = true;
-    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    targetEl.scrollIntoView({ behavior, block });
     addTempHighlight(targetEl);
     setTimeout(() => { isTocClickScrolling = false; }, 800);
     if (highlightQuery) {
@@ -575,6 +621,9 @@ async function search() {
     }
 
     const currentPath = getCurrentFilePath();
+    const highlight = createHighlighter(query);
+
+    const frag = document.createDocumentFragment();
 
     results.forEach((item) => {
       const li = document.createElement('li');
@@ -594,20 +643,21 @@ async function search() {
         });
       }
 
-      const safeLine = (item.line || '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
-      const safePath = item.path.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+      const safeLine = escapeHtml(item.line || '');
+      const safePath = escapeHtml(item.path);
       const badge = getTypeBadge(item);
       const badgeClass = getBadgeClass(item);
 
       a.innerHTML = `<div class="search-result-item">
         <span class="line-type-badge ${badgeClass}">${badge}</span>
-        <span class="search-result-line">${highlightMatches(safeLine, query)}</span>
+        <span class="search-result-line">${highlight(safeLine)}</span>
         <span class="search-result-path">${safePath}</span>
       </div>`;
 
       li.appendChild(a);
-      elems.contentResults.appendChild(li);
+      frag.appendChild(li);
     });
+    elems.contentResults.appendChild(frag);
   } catch (err) {
     if (err.name !== 'AbortError') throw err;
   }
@@ -622,16 +672,9 @@ function setupSearch() {
   });
 }
 
-// Utility to highlight all occurrences of query words (case-insensitive, partial matches)
+// highlightMatches kept as a convenience wrapper for one-off calls
 function highlightMatches(text, query) {
-  if (!query) return text;
-  const words = query
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  if (words.length === 0) return text;
-  const regex = new RegExp(`(${words.join('|')})`, 'gi');
-  return text.replace(regex, '<mark>$1</mark>');
+  return createHighlighter(query)(text);
 }
 
 // ------------------------------------------------------------------------------
@@ -689,6 +732,7 @@ function loadDirTree(container, callback) {
 }
 
 function renderFlatTree(container, flatFiles) {
+  const frag = document.createDocumentFragment();
   const ul = document.createElement('ul');
   ul.classList.add(treeClasses.tree);
   ul.style.listStyle = 'none';
@@ -712,8 +756,13 @@ function renderFlatTree(container, flatFiles) {
     ul.appendChild(li);
   });
 
+  frag.appendChild(ul);
   container.innerHTML = '';
-  container.appendChild(ul);
+  container.appendChild(frag);
+
+  // Cache DOM references for the filter handler
+  dirTreeState.cachedLis = Array.from(ul.querySelectorAll('li'));
+  dirTreeState.cachedEntries = Array.from(ul.querySelectorAll('.tree-entry'));
 }
 
 function renderTreeRecursive(tree, parentNode, depth = 0) {
