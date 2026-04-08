@@ -65,6 +65,14 @@ def hello_world():
 - [x] Task 1
 - [ ] Task 2
 
+Nested task list
+
+- [ ] task 1
+- [ ] task 2
+  - [ ] subtask 1
+  - [x] subtask 2
+  
+
 ## Emoji
 
 :smile: :rocket:
