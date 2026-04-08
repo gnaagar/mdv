@@ -174,6 +174,7 @@ class App:
 
     # JSON
     def on_dirtree(self, request):
+        self.state.refresh()
         return Response(
             json.dumps(self.state.get_tree()),
             mimetype="application/json"

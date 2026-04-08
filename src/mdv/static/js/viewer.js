@@ -88,7 +88,16 @@ function setupModalsAndHeader() {
     searchKeyboardIndex = -1;
   };
 
-  btnDir.addEventListener('click', () => openModal(dirModal, dirFilterInput));
+  btnDir.addEventListener('click', () => {
+    // Refresh the directory tree on every open to reflect latest file system state
+    dirTreeState.entryMap = {};
+    loadDirTree(DIR_TREE).then(() => {
+      // Re-apply filter if one is active
+      const q = dirFilterInput.value.trim().toLowerCase();
+      if (q) dirFilterInput.dispatchEvent(new Event('input'));
+    });
+    openModal(dirModal, dirFilterInput);
+  });
   btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
   overlay.addEventListener('click', closeAllModals);
 
@@ -315,6 +324,8 @@ function highlightTextInNode(node, query) {
   }
   collectTextNodes(node);
   
+  const insertedSpans = [];
+
   textNodes.forEach((t) => {
     let text = t.text;
     let replaced = false;
@@ -331,7 +342,9 @@ function highlightTextInNode(node, query) {
       span.style.borderRadius = '3px';
       span.style.padding = '0 0.15rem';
       span.style.color = 'inherit';
+      span.dataset.searchHighlight = '1';
       addTempHighlight(span, 4000, 700);
+      insertedSpans.push(span);
       parts.push(span);
       lastIdx = regex.lastIndex;
       replaced = true;
@@ -345,6 +358,24 @@ function highlightTextInNode(node, query) {
       if (t.node.parentNode) t.node.parentNode.replaceChild(frag, t.node);
     }
   });
+
+  // After highlight fades, unwrap spans to restore original text nodes
+  if (insertedSpans.length > 0) {
+    const cleanupDelay = 4000 + 700 + 50; // duration + transitionMs + buffer
+    setTimeout(() => unwrapHighlightSpans(insertedSpans, node), cleanupDelay);
+  }
+}
+
+function unwrapHighlightSpans(spans, containerNode) {
+  spans.forEach(span => {
+    if (!span.parentNode) return;
+    const text = document.createTextNode(span.textContent);
+    span.parentNode.replaceChild(text, span);
+  });
+  // Merge adjacent text nodes to fully restore original DOM structure
+  if (containerNode && containerNode.normalize) {
+    containerNode.normalize();
+  }
 }
 
 // --------------------------------------------------------------------------------
