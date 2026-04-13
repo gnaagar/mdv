@@ -150,10 +150,11 @@ class LineIndex:
 
         self._lines = lines
 
-    def search(self, query, limit=30):
+    def search(self, query, limit=30, types=None):
         """
         Search the line index.
         Returns list of {path, lineno, line, line_type, level?} dicts.
+        types: optional list of line_type strings to include (e.g. ['heading', 'code']).
         """
         query = query.strip()
         if not query:
@@ -162,9 +163,15 @@ class LineIndex:
         query_lower = query.lower()
         query_words = query_lower.split()
 
+        # Pre-compute type filter set for O(1) lookups
+        type_filter = frozenset(types) if types else None
+
         results = []
 
         for path, lineno, display, line_type, level, text_lower in self._lines:
+            # Category filter
+            if type_filter and line_type not in type_filter:
+                continue
             # Multi-word: all words must appear as substrings
             if len(query_words) > 1:
                 if not all(w in text_lower for w in query_words):

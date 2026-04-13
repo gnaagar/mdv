@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ workspace_name }} — mdv{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/viewer.css?v=20260413a">
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/viewer.js?v=20260413a"></script>
+<script>
+  // Format relative timestamps on dashboard
+  document.querySelectorAll('[data-mtime]').forEach(function(el) {
+    var mtime = parseFloat(el.dataset.mtime) * 1000;
+    var diff = Date.now() - mtime;
+    var secs = Math.floor(diff / 1000);
+    var text;
+    if (secs < 60) text = 'just now';
+    else if (secs < 3600) text = Math.floor(secs / 60) + 'm ago';
+    else if (secs < 86400) text = Math.floor(secs / 3600) + 'h ago';
+    else if (secs < 604800) text = Math.floor(secs / 86400) + 'd ago';
+    else text = new Date(mtime).toLocaleDateString();
+    el.textContent = text;
+  });
+</script>
+{% endblock %}
+
+{% block body %}
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="dash-header">
+      <div class="dash-header-content">
+        <h1 class="dash-title">{{ workspace_name }}</h1>
+        <p class="dash-subtitle">{{ workspace_path }}</p>
+      </div>
+      <div class="dash-header-actions">
+        <button id="btn-dir-explorer" class="header-btn" title="Directory Explorer">
+          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.543L5.903 1.222A.25.25 0 0 0 5.72 1.15H1.75Z"></path></svg>
+        </button>
+        <button id="btn-search" class="header-btn" title="Search">
+          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg>
+        </button>
+        <button id="btn-theme-toggle" class="header-btn" title="Toggle Theme">
+          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="dash-body">
+      <!-- README Preview -->
+      {% if readme_html %}
+      <section class="dash-card dash-readme">
+        <div class="dash-card-header">
+          <h2 class="dash-card-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"/></svg>
+            README
+          </h2>
+          <a href="/v/{{ readme_path }}" class="dash-card-link">Read more →</a>
+        </div>
+        <div class="dash-readme-content" id="markdown-body">
+          {{ readme_html | safe }}
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- Stats + Recent Files row -->
+      <div class="dash-row">
+        <!-- Stats -->
+        <section class="dash-card dash-stats">
+          <h2 class="dash-card-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 1.75V13.5h13.75a.75.75 0 010 1.5H.75a.75.75 0 01-.75-.75V1.75a.75.75 0 011.5 0zm14.28 2.53l-5.25 5.25a.75.75 0 01-1.06 0L7 7.06 4.28 9.78a.75.75 0 01-1.06-1.06l3.25-3.25a.75.75 0 011.06 0L10 7.94l4.72-4.72a.75.75 0 111.06 1.06z"/></svg>
+            Overview
+          </h2>
+          <div class="dash-stats-grid">
+            <div class="dash-stat">
+              <span class="dash-stat-value">{{ file_count }}</span>
+              <span class="dash-stat-label">Files</span>
+            </div>
+            <div class="dash-stat">
+              <span class="dash-stat-value">{{ heading_count }}</span>
+              <span class="dash-stat-label">Headings</span>
+            </div>
+            <div class="dash-stat">
+              <span class="dash-stat-value">
+                {%- if word_count >= 1000 -%}
+                  {{ "%.1f" | format(word_count / 1000) }}k
+                {%- else -%}
+                  {{ word_count }}
+                {%- endif -%}
+              </span>
+              <span class="dash-stat-label">Words</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Files -->
+        <section class="dash-card dash-recent">
+          <h2 class="dash-card-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.37.65l2.5 1.5a.75.75 0 10.76-1.3L8.5 7.94V4.75z"/></svg>
+            Recent Files
+          </h2>
+          <ul class="dash-recent-list">
+            {% for file in recent_files %}
+            <li>
+              <a href="/v/{{ file.path }}" class="dash-recent-entry">
+                <span class="dash-recent-name">{{ file.name }}</span>
+                <span class="dash-recent-path">{{ file.path }}</span>
+                <span class="dash-recent-time" data-mtime="{{ file.mtime }}">—</span>
+              </a>
+            </li>
+            {% endfor %}
+            {% if not recent_files %}
+            <li class="dash-empty">No files found.</li>
+            {% endif %}
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals (shared with viewer) -->
+  <div id="modal-overlay" class="modal-overlay hidden"></div>
+
+  <div id="dir-modal" class="modal-box hidden">
+    <div class="modal-header">
+      <input type="text" id="dir-filter-input" placeholder="Filter directories..." autocomplete="off">
+    </div>
+    <div id="dtree-container" class="modal-body"></div>
+  </div>
+
+  <div id="search-modal" class="modal-box hidden">
+    <div class="modal-header">
+      <input type="text" id="search-input" placeholder="Search content..." autocomplete="off">
+    </div>
+    <div id="search-category-bar" class="search-category-bar">
+      <button class="search-cat-pill active" data-category="heading" title="Headings">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h2v5h6V2h2v12h-2V9H5v5H3V2z"/></svg>
+        <span>Headings</span>
+      </button>
+      <button class="search-cat-pill active" data-category="code" title="Code blocks">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M4.708 5.578L2.061 8.224l2.647 2.646-.708.708L.293 7.87l.354-.354 3.354-3.354.707.708zm6.584 0l2.647 2.646-2.647 2.646.708.708L15.707 7.87l-.354-.354-3.354-3.354-.707.708zM8.956 3.26l-2 10 .976.194 2-10-.976-.194z"/></svg>
+        <span>Code</span>
+      </button>
+      <button class="search-cat-pill active" data-category="text" title="Paragraphs">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1H2V3zm0 3h10v1H2V6zm0 3h12v1H2V9zm0 3h8v1H2v-1z"/></svg>
+        <span>Text</span>
+      </button>
+      <button class="search-cat-pill active" data-category="link" title="Links">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-.025 9.45a.75.75 0 01-1.06-1.06l-1.25 1.25a2 2 0 11-2.83-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25z"/></svg>
+        <span>Links</span>
+      </button>
+      <button class="search-cat-pill active" data-category="list" title="Lists">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4a1 1 0 100-2 1 1 0 000 2zm3.75-1.5a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5zm0 5a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5zm0 5a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5zM3 8a1 1 0 11-2 0 1 1 0 012 0zm-1 6a1 1 0 100-2 1 1 0 000 2z"/></svg>
+        <span>Lists</span>
+      </button>
+      <button id="search-cat-invert" class="search-cat-invert" title="Invert selection">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M5.22 14.78a.75.75 0 001.06-1.06L4.56 12h8.69a.75.75 0 000-1.5H4.56l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3a.75.75 0 000 1.06l3 3zm5.56-6.5a.75.75 0 11-1.06-1.06l1.72-1.72H2.75a.75.75 0 010-1.5h8.69L9.72 2.28a.75.75 0 011.06-1.06l3 3a.75.75 0 010 1.06l-3 3z"/></svg>
+      </button>
+    </div>
+    <div id="search-results" class="modal-body">
+      <div class="search-results-body">
+        <ul class="search-column-content" id="search-results-content" style="width: 100%;"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden elements that viewer.js expects -->
+  <div id="toc-container" style="display:none;"></div>
+{% endblock %}

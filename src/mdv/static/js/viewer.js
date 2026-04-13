@@ -58,7 +58,7 @@ function createHighlighter(query) {
 function onPageLoad() {
   loadDirTree(DIR_TREE);
   setupSearch();
-  generateTOC(MD_BODY, TOC_TREE);
+  if (MD_BODY && TOC_TREE) generateTOC(MD_BODY, TOC_TREE);
   processSearchQuery();
   setupModalsAndHeader();
   setupHeadingObserver();
@@ -73,7 +73,8 @@ function onPageLoad() {
      }
      
      // Force a scroll event to sync initial TOC highlights
-     document.getElementById('section-main').dispatchEvent(new Event('scroll'));
+     const mainSection = document.getElementById('section-main');
+     if (mainSection) mainSection.dispatchEvent(new Event('scroll'));
   }, 100);
 }
 
@@ -117,13 +118,21 @@ function setupModalsAndHeader() {
     searchKeyboardActiveItem = null;
   };
 
+  // Auto-select first dir entry after tree loads
+  const origBtnDirClick = btnDir.onclick;
+
   btnDir.addEventListener('click', () => {
     // Refresh the directory tree on every open to reflect latest file system state
     dirTreeState.entryMap = {};
     loadDirTree(DIR_TREE).then(() => {
       // Re-apply filter if one is active
       const q = dirFilterInput.value.trim().toLowerCase();
-      if (q) dirFilterInput.dispatchEvent(new Event('input'));
+      if (q) {
+        dirFilterInput.dispatchEvent(new Event('input'));
+      } else {
+        // Auto-select first entry
+        autoSelectFirstDirEntry();
+      }
     });
     openModal(dirModal, dirFilterInput);
   });
@@ -181,6 +190,7 @@ function setupModalsAndHeader() {
       for (let i = 0; i < entries.length; i++) {
         if (entries[i].dataset.fullPath) entries[i].textContent = entries[i].dataset.fullPath;
       }
+      autoSelectFirstDirEntry();
       return;
     }
 
@@ -202,6 +212,8 @@ function setupModalsAndHeader() {
           entry.textContent = pathName;
        }
     }
+    // Auto-select first visible dir entry after filtering
+    autoSelectFirstDirEntry();
   });
 
   // Theme Toggler
@@ -221,6 +233,22 @@ let dirKeyboardIndex = -1;
 let searchKeyboardIndex = -1;
 let dirKeyboardActiveEntry = null;
 let searchKeyboardActiveItem = null;
+
+function autoSelectFirstDirEntry() {
+  const visible = getVisibleDirEntries();
+  if (visible.length > 0) {
+    dirKeyboardIndex = 0;
+    updateDirKeyboardHighlight(visible);
+  }
+}
+
+function autoSelectFirstSearchResult() {
+  const items = getVisibleSearchItems();
+  if (items.length > 0) {
+    searchKeyboardIndex = 0;
+    updateSearchKeyboardHighlight(items);
+  }
+}
 
 function getVisibleDirEntries() {
   if (!dirTreeState.cachedLis) return [];
@@ -413,6 +441,7 @@ function setupHeadingObserver() {
 
   let animFrame = null;
   const mainSection = document.getElementById('section-main');
+  if (!mainSection) return;
   
   const handleScroll = () => {
     if (isTocClickScrolling) return;
@@ -543,7 +572,20 @@ const elems = {
   contentResults: null,
 };
 
+// Search category filters — all active by default
+const searchCategories = {
+  heading: true,
+  code: true,
+  text: true,
+  link: true,
+  list: true,
+};
+
 let searchAbortController = null;
+
+function getActiveCategories() {
+  return Object.keys(searchCategories).filter(k => searchCategories[k]);
+}
 
 function setupElems() {
   elems.input = document.getElementById('search-input');
@@ -609,10 +651,14 @@ async function search() {
   searchAbortController = new AbortController();
 
   try {
-    const response = await fetch(
-      `/api/search?query=${encodeURIComponent(query)}`,
-      { signal: searchAbortController.signal }
-    );
+    // Build search URL with active category types
+    const activeTypes = getActiveCategories();
+    let searchUrl = `/api/search?query=${encodeURIComponent(query)}`;
+    if (activeTypes.length > 0 && activeTypes.length < 5) {
+      searchUrl += `&types=${activeTypes.join(',')}`;
+    }
+
+    const response = await fetch(searchUrl, { signal: searchAbortController.signal });
     const results = await response.json();
 
     if (results.length === 0) {
@@ -658,6 +704,9 @@ async function search() {
       frag.appendChild(li);
     });
     elems.contentResults.appendChild(frag);
+
+    // Auto-select first result
+    autoSelectFirstSearchResult();
   } catch (err) {
     if (err.name !== 'AbortError') throw err;
   }
@@ -670,6 +719,66 @@ function setupSearch() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(search, 200);
   });
+
+  // Setup category filter pills
+  const categoryBar = document.getElementById('search-category-bar');
+  if (categoryBar) {
+    categoryBar.addEventListener('click', (e) => {
+      const pill = e.target.closest('.search-cat-pill');
+      if (!pill) return;
+      const cat = pill.dataset.category;
+      if (!cat) return;
+
+      // Toggle this category
+      searchCategories[cat] = !searchCategories[cat];
+      pill.classList.toggle('active', searchCategories[cat]);
+
+      // Ensure at least one category is active
+      const anyActive = Object.values(searchCategories).some(v => v);
+      if (!anyActive) {
+        searchCategories[cat] = true;
+        pill.classList.add('active');
+        return;
+      }
+
+      // Re-trigger search with current input
+      if (elems.input.value.trim()) {
+        clearTimeout(debounceTimer);
+        search();
+      }
+    });
+
+    // Invert selection button
+    const invertBtn = document.getElementById('search-cat-invert');
+    if (invertBtn) {
+      invertBtn.addEventListener('click', () => {
+        const pills = categoryBar.querySelectorAll('.search-cat-pill');
+        // Compute what the inverted state would look like
+        const willBeActive = {};
+        for (const key of Object.keys(searchCategories)) {
+          willBeActive[key] = !searchCategories[key];
+        }
+        // Only invert if at least one category would remain active
+        const anyWouldBeActive = Object.values(willBeActive).some(v => v);
+        if (!anyWouldBeActive) return;
+
+        // Apply the inversion
+        for (const key of Object.keys(searchCategories)) {
+          searchCategories[key] = willBeActive[key];
+        }
+        pills.forEach(pill => {
+          const cat = pill.dataset.category;
+          if (cat) pill.classList.toggle('active', searchCategories[cat]);
+        });
+
+        // Re-trigger search
+        if (elems.input.value.trim()) {
+          clearTimeout(debounceTimer);
+          search();
+        }
+      });
+    }
+  }
 }
 
 // highlightMatches kept as a convenience wrapper for one-off calls

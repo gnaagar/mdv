@@ -15,11 +15,20 @@
 </head>
 <body class="theme-{{ theme | default('light') }}">
   <script>
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('theme-dark');
-    } else if (localStorage.getItem('theme') === 'light') {
-      document.body.classList.remove('theme-dark');
-    }
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var themeParam = params.get('theme');
+      var theme = themeParam || localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.body.classList.add('theme-dark');
+      } else if (theme === 'light') {
+        document.body.classList.remove('theme-dark');
+      }
+      // Persist query param choice to localStorage for future visits
+      if (themeParam) {
+        localStorage.setItem('theme', themeParam);
+      }
+    })();
   </script>
   {% block body %}
   {% endblock %}
