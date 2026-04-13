@@ -152,10 +152,10 @@ class MdViewerState:
         logger.debug(f'Returning cached content for {id} (length={length})')
         return result
 
-    def search(self, search_query):
+    def search(self, search_query, types=None):
         if self._search_index_dirty:
             self._rebuild_search_index()
-        return self._line_index.search(search_query)
+        return self._line_index.search(search_query, types=types)
 
     def _rebuild_search_index(self):
         """Rebuild the search index from current node map."""
@@ -166,6 +166,73 @@ class MdViewerState:
         self._line_index.build(self._node_map)
         self._search_index_dirty = False
         logger.debug('Rebuilt search index')
+
+    def get_dashboard_data(self):
+        """Return data needed for the dashboard landing page."""
+        import re
+
+        workspace_name = os.path.basename(self._root_dir) or self._root_dir
+        workspace_path = self._root_dir
+
+        # --- Stats ---
+        file_count = len(self._node_map)
+        heading_count = 0
+        word_count = 0
+
+        for node in self._node_map.values():
+            if node.raw:
+                # Count headings (lines starting with #)
+                for line in node.raw.splitlines():
+                    stripped = line.strip()
+                    if re.match(r'^#{1,6}\s+', stripped):
+                        heading_count += 1
+                # Word count (simple split)
+                word_count += len(node.raw.split())
+
+        # --- Recent files (top 8 by mtime) ---
+        nodes_with_time = [
+            n for n in self._node_map.values() if n.last_updated is not None
+        ]
+        nodes_with_time.sort(key=lambda n: n.last_updated, reverse=True)
+        recent_files = []
+        for n in nodes_with_time[:8]:
+            recent_files.append({
+                'name': n.id.split('/')[-1],
+                'path': n.id,
+                'mtime': n.last_updated,
+            })
+
+        # --- README preview ---
+        readme_html = None
+        readme_path = None
+        # Check common README filenames
+        for candidate in ['README.md', 'readme.md', 'Readme.md']:
+            if candidate in self._node_map:
+                node = self._node_map[candidate]
+                self._refresh_node(node)
+                if node.raw:
+                    # Take first 15 non-empty lines
+                    lines = node.raw.splitlines()
+                    preview_lines = []
+                    for line in lines:
+                        preview_lines.append(line)
+                        if len(preview_lines) >= 15:
+                            break
+                    preview_md = '\n'.join(preview_lines)
+                    readme_html = MarkdownParser.parse(preview_md)
+                    readme_path = candidate
+                break
+
+        return {
+            'workspace_name': workspace_name,
+            'workspace_path': workspace_path,
+            'file_count': file_count,
+            'heading_count': heading_count,
+            'word_count': word_count,
+            'recent_files': recent_files,
+            'readme_html': readme_html,
+            'readme_path': readme_path,
+        }
 
     def get_tree(self):
         """

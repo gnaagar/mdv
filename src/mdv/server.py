@@ -147,15 +147,10 @@ class App:
 
     def on_index(self, request):
         self.state.refresh()
-        tree = self.state.get_tree()
-        tree_md = env.get_template("tree.md").render(
-            tree=tree,
-            path="v",
-            root="/"
-        )
-        html = env.get_template("viewer.html").render(
-            content=MarkdownParser.parse(tree_md),
-            theme=self.theme
+        data = self.state.get_dashboard_data()
+        html = env.get_template("dashboard.html").render(
+            theme=self.theme,
+            **data
         )
         return Response(html, mimetype="text/html")
 
@@ -183,8 +178,10 @@ class App:
 
     def on_search(self, request):
         query = request.args.get("query")
+        types = request.args.get("types")  # comma-separated category filter
         self.state.refresh()
-        result = self.state.search(query)
+        type_list = [t.strip() for t in types.split(",") if t.strip()] if types else None
+        result = self.state.search(query, types=type_list)
         return Response(json.dumps(result), mimetype="application/json")
 
     def on_mdplain(self, request, filename):
