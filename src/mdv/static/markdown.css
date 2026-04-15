@@ -361,10 +361,53 @@ body {
 
 #markdown-body .task-completed {
   color: var(--task-completed-color);
-  opacity: 0.6;
 }
 #markdown-body .task-completed * {
   color: inherit !important;
+}
+
+/* ===== Tree visualization for nested task sublists ===== */
+
+/* Container for nested sublists within task items */
+#markdown-body .task-list-item > ul {
+  position: relative;
+  padding-left: 28px;
+  margin-top: 4px;
+  list-style: none;
+}
+
+/* Reset the negative margin so tree connectors have room */
+#markdown-body .task-list-item > ul > .task-list-item {
+  margin-left: 0;
+  position: relative;
+}
+
+/* Horizontal branch connector (the ── part of ├── and └──) */
+#markdown-body .task-list-item > ul > .task-list-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 12px;
+  width: 14px;
+  height: 0;
+  border-top: 1.5px solid var(--tree-indent-line-color);
+}
+
+/* Vertical line segment connecting siblings (the │ part) */
+#markdown-body .task-list-item > ul > .task-list-item::after {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  bottom: -11px;
+  width: 0;
+  border-left: 1.5px solid var(--tree-indent-line-color);
+}
+
+/* Last child: vertical line stops at connector point (└ shape) */
+#markdown-body .task-list-item > ul > .task-list-item:last-child::after {
+  bottom: auto;
+  height: 13px;
 }
 #markdown-body blockquote {
   display: block;
