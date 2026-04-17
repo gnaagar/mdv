@@ -52,7 +52,10 @@ class MdViewerState:
     # content if required
     def _sync_node(self, node):
         full_path = os.path.join(self._root_dir, os.path.normpath(node.id))
-        last_updated = os.stat(full_path).st_mtime
+        try:
+            last_updated = os.stat(full_path).st_mtime
+        except OSError:
+            return False
         if node.last_updated is None or node.last_updated < last_updated:
             if node.last_updated is not None:
                 logger.debug(f"Clearing stale content of node {node.id}")
@@ -107,20 +110,25 @@ class MdViewerState:
             self._search_index_dirty = True
 
     def _build_full_cache(self):
-        # Assuming bare map is already built
-        for node in self._node_map.values():
-            time.sleep(0.05) # Sleep for 50ms to allow other processing
-            self._refresh_node(node)
+        try:
+            # Snapshot to avoid RuntimeError if refresh() modifies dict concurrently
+            nodes = list(self._node_map.values())
+            for node in nodes:
+                time.sleep(0.05) # Sleep for 50ms to allow other processing
+                self._refresh_node(node)
 
-        # Build search index after all content is loaded
-        self._line_index.build(self._node_map)
+            # Build search index after all content is loaded
+            self._line_index.build(self._node_map)
+            self._search_index_dirty = False
 
-        # For stats
-        size = 0
-        for node in self._node_map.values():
-            size += len(node.raw)
-            size += len(node.parsed)
-        logger.debug(f'Built full cache of {size} bytes worth of content')
+            # For stats
+            size = 0
+            for node in list(self._node_map.values()):
+                size += len(node.raw or '')
+                size += len(node.parsed or '')
+            logger.debug(f'Built full cache of {size} bytes worth of content')
+        except Exception as e:
+            logger.error(f'Error building full cache: {e}')
 
     def _refresh_node(self, node):
         self._sync_node(node)
@@ -148,6 +156,8 @@ class MdViewerState:
         node = self._node_map[id]
         self._refresh_node(node)
         result = node.raw if raw else node.parsed
+        if result is None:
+            raise FileNotFoundError(f"File '{id}' could not be loaded")
         length = len(result)
         logger.debug(f'Returning cached content for {id} (length={length})')
         return result
@@ -159,8 +169,8 @@ class MdViewerState:
 
     def _rebuild_search_index(self):
         """Rebuild the search index from current node map."""
-        # Ensure all nodes have content loaded
-        for node in self._node_map.values():
+        # Snapshot to avoid RuntimeError from concurrent dict modification
+        for node in list(self._node_map.values()):
             if node.raw is None:
                 self._refresh_node(node)
         self._line_index.build(self._node_map)
@@ -179,7 +189,7 @@ class MdViewerState:
         heading_count = 0
         word_count = 0
 
-        for node in self._node_map.values():
+        for node in list(self._node_map.values()):
             if node.raw:
                 # Count headings (lines starting with #)
                 for line in node.raw.splitlines():
@@ -191,7 +201,7 @@ class MdViewerState:
 
         # --- Recent files (top 8 by mtime) ---
         nodes_with_time = [
-            n for n in self._node_map.values() if n.last_updated is not None
+            n for n in list(self._node_map.values()) if n.last_updated is not None
         ]
         nodes_with_time.sort(key=lambda n: n.last_updated, reverse=True)
         recent_files = []
@@ -248,7 +258,7 @@ class MdViewerState:
 
         tree = {}
 
-        for node in self._node_map.values():
+        for node in list(self._node_map.values()):
             parts = node.id.split(PATH_DELIMITER)
             current_level = tree
 
