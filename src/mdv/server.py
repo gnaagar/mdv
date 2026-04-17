@@ -227,4 +227,4 @@ def main():
     args = parser.parse_args()
 
     app = App(config={"dir": os.getcwd(), "theme": args.theme, "ignore_dirs": args.ignore})
-    run_simple(args.host, args.port, app, use_reloader=True)
+    run_simple(args.host, args.port, app, use_reloader=True, threaded=True)
