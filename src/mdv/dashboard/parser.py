@@ -78,6 +78,7 @@ class Task:
 @dataclass
 class Day:
     date: date
+    line_no: int = 0
     tasks: list[Task] = field(default_factory=list)
 
     @property
@@ -285,16 +286,18 @@ def _build_task_tree(
 
         stack.append((level, task))
 
-    # ── Post-parse: warn about time on non-leaf nodes ─────────────────
-    _warn_time_on_parents(root_tasks, warns)
+    # ── Post-parse: validate task tree consistency ────────────────────
+    _validate_task_tree(root_tasks, warns)
 
     return root_tasks, warns
 
 
-def _warn_time_on_parents(
+def _validate_task_tree(
     tasks: list[Task], warns: list[ParseWarning]
 ) -> None:
+    """Recursively validate task tree: time-on-parent, done-blocked, done-parent-with-incomplete-children."""
     for t in tasks:
+        # Time annotation on a non-leaf node will be ignored
         if t.children and t.time_min > 0:
             warns.append(ParseWarning(
                 line_no=t.line_no,
@@ -305,7 +308,37 @@ def _warn_time_on_parents(
                 ),
                 severity="warning",
             ))
-        _warn_time_on_parents(t.children, warns)
+
+        # Rule 3: blocked + done is contradictory
+        if t.blocked and t.done:
+            warns.append(ParseWarning(
+                line_no=t.line_no,
+                message=(
+                    f"Task '{t.text[:60]}' is marked done [x] but also "
+                    f"annotated as (blocked) — these are contradictory."
+                ),
+                severity="error",
+                line="",
+            ))
+
+        # Rule 2: parent done but has incomplete children
+        if t.done and t.children:
+            incomplete = [
+                c for c in t.children
+                if not c.done and not c.cancelled
+            ]
+            if incomplete:
+                sample = ", ".join(f"'{c.text[:30]}'" for c in incomplete[:3])
+                warns.append(ParseWarning(
+                    line_no=t.line_no,
+                    message=(
+                        f"Task '{t.text[:60]}' is marked done but has "
+                        f"{len(incomplete)} incomplete subtask(s): {sample}."
+                    ),
+                    severity="error",
+                ))
+
+        _validate_task_tree(t.children, warns)
 
 
 def _parse_config_table(lines: list[str]) -> WorklogConfig:
@@ -396,7 +429,10 @@ def parse(path: str | Path) -> Worklog:
             m_day = RE_DAY.match(line)
             if m_day:
                 flush_day()
-                current_day = Day(date=date.fromisoformat(m_day.group(1)))
+                current_day = Day(
+                    date=date.fromisoformat(m_day.group(1)),
+                    line_no=line_no,
+                )
                 continue
 
             # Accumulate task lines (at any indent level)
@@ -413,6 +449,29 @@ def parse(path: str | Path) -> Worklog:
 
     if config_lines:
         config = _parse_config_table(config_lines)
+
+    # ── Rule 1: all past days must be fully complete ───────────────────
+    today_date = date.today()
+    for week in weeks:
+        for day in week.days:
+            if day.date >= today_date:
+                continue
+            incomplete = [
+                t for t in _iter_leaves(day.tasks)
+                if not t.done and not t.cancelled
+            ]
+            if incomplete:
+                sample = ", ".join(f"'{t.text[:30]}'" for t in incomplete[:3])
+                suffix = f" (and {len(incomplete) - 3} more)" if len(incomplete) > 3 else ""
+                all_warnings.append(ParseWarning(
+                    line_no=day.line_no,
+                    message=(
+                        f"Past day {day.date.isoformat()} has {len(incomplete)} "
+                        f"incomplete task(s): {sample}{suffix}. "
+                        f"All tasks in past days should be marked done or cancelled."
+                    ),
+                    severity="warning",
+                ))
 
     return Worklog(
         title=title or "Work Log",
