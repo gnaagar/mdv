@@ -72,6 +72,8 @@ url_map = Map([
     Rule("/api/tree", endpoint="dirtree"),
     Rule("/api/search", endpoint="search"),
     Rule("/draw", endpoint="draw"),
+    Rule("/worklog", endpoint="worklog"),
+    Rule("/worklog/data", endpoint="worklog_data"),
 ])
 
 
@@ -84,6 +86,17 @@ class App:
         self.url_map = url_map
         self.state = MdViewerState(config)
         self.theme = config.get("theme", "light")
+
+        # Optionally attach worklog dashboard
+        worklog_file = config.get("worklog")
+        if worklog_file:
+            from mdv.dashboard.routes import WorklogRoutes
+            _wl = WorklogRoutes(worklog_file)
+            self.on_worklog      = lambda req, **kw: _wl.on_worklog(req)
+            self.on_worklog_data = lambda req, **kw: _wl.on_worklog_data(req)
+        else:
+            self.on_worklog      = lambda req, **kw: Response("Worklog not configured. Pass --worklog <file>", status=404, mimetype="text/plain")
+            self.on_worklog_data = self.on_worklog
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -224,7 +237,13 @@ def main():
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
+    parser.add_argument("--worklog", "-w", default=None, help="Path to worklog markdown file (enables /worklog dashboard)")
     args = parser.parse_args()
 
-    app = App(config={"dir": os.getcwd(), "theme": args.theme, "ignore_dirs": args.ignore})
+    app = App(config={
+        "dir": os.getcwd(),
+        "theme": args.theme,
+        "ignore_dirs": args.ignore,
+        "worklog": args.worklog,
+    })
     run_simple(args.host, args.port, app, use_reloader=True, threaded=True)

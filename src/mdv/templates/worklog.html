@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }} · Worklog</title>
+  <script src="/static/js/chart.umd.min.js"></script>
+  <style>
+    /* ── Reset & tokens ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @font-face {
+      font-family: 'Roboto';
+      src: url('/static/fonts/Roboto-Regular.ttf') format('truetype');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'Roboto';
+      src: url('/static/fonts/Roboto-SemiBold.ttf') format('truetype');
+      font-weight: 600; font-style: normal;
+    }
+    @font-face {
+      font-family: 'Roboto';
+      src: url('/static/fonts/Roboto-Bold.ttf') format('truetype');
+      font-weight: 700; font-style: normal;
+    }
+    @font-face {
+      font-family: 'JetBrains Mono';
+      src: url('/static/fonts/JetBrainsMono-Regular.ttf') format('truetype');
+      font-weight: 400; font-style: normal;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0d0f14;
+      --surface:    #151820;
+      --surface2:   #1c2030;
+      --border:     #262c3e;
+      --accent:     #6c8ef5;
+      --accent2:    #a78bfa;
+      --success:    #34d399;
+      --warn:       #fb923c;
+      --danger:     #f87171;
+      --text:       #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim:   #94a3b8;
+      --radius:     12px;
+      --radius-sm:  8px;
+      --shadow:     0 4px 24px rgba(0,0,0,.4);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+    .header .subtitle {
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+    .header .badge {
+      margin-left: auto;
+      font-size: .75rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+      background: rgba(108,142,245,.12);
+      border: 1px solid rgba(108,142,245,.25);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    /* ── Today banner ─────────────────────────────────────────────── */
+    .today-banner {
+      background: linear-gradient(135deg, rgba(108,142,245,.13), rgba(167,139,250,.08));
+      border: 1px solid rgba(108,142,245,.25);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .today-banner .label {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .today-banner .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .today-banner .value.warn { color: var(--warn); }
+    .today-banner .value.success { color: var(--success); }
+    .today-banner .sep {
+      width: 1px;
+      height: 40px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .blocked-list {
+      flex: 1;
+      min-width: 200px;
+    }
+    .blocked-list .label { margin-bottom: 6px; }
+    .blocked-tag {
+      display: inline-block;
+      font-size: .78rem;
+      color: var(--danger);
+      background: rgba(248,113,113,.1);
+      border: 1px solid rgba(248,113,113,.2);
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin: 2px 4px 2px 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .no-today {
+      color: var(--text-muted);
+      font-size: .9rem;
+      font-style: italic;
+    }
+
+    /* ── Stat cards ───────────────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover {
+      border-color: rgba(108,142,245,.4);
+      transform: translateY(-2px);
+    }
+    .stat-card .label {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .stat-card .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+    .stat-card .sub {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .stat-card.accent .value  { color: var(--accent); }
+    .stat-card.success .value { color: var(--success); }
+    .stat-card.purple .value  { color: var(--accent2); }
+
+    /* ── Chart card ───────────────────────────────────────────────── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .chart-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .range-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+    }
+    .range-tab {
+      font-size: .78rem;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .range-tab.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+    .chart-wrap {
+      position: relative;
+      height: 280px;
+    }
+
+    /* ── Weekly breakdown ─────────────────────────────────────────── */
+    .weeks-section h2 {
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .week-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 20px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      transition: border-color .15s;
+    }
+    .week-row:hover { border-color: rgba(108,142,245,.3); }
+    .week-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .82rem;
+      color: var(--text-dim);
+      min-width: 90px;
+    }
+    .week-bar-wrap {
+      flex: 1;
+      min-width: 120px;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .week-bar {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+    .week-bar.below-baseline {
+      background: linear-gradient(90deg, var(--danger), #f87171cc);
+    }
+    .week-bar.below-target {
+      background: linear-gradient(90deg, var(--warn), #fb923ccc);
+    }
+    .week-bar.above-target {
+      background: linear-gradient(90deg, var(--success), #34d399cc);
+    }
+    /* Baseline tick marker on the bar track */
+    .week-bar-wrap {
+      position: relative;
+    }
+    .baseline-tick {
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: 12px;
+      background: rgba(167,139,250,0.6);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+    .week-time {
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 60px;
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .week-days {
+      font-size: .78rem;
+      color: var(--text-muted);
+      min-width: 70px;
+      text-align: right;
+    }
+
+    /* ── Warnings panel ───────────────────────────────────────── */
+    .warnings-panel {
+      border: 1px solid rgba(251,146,60,.35);
+      border-radius: var(--radius-sm);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .warnings-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: rgba(251,146,60,.08);
+      cursor: pointer;
+      user-select: none;
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--warn);
+    }
+    .warnings-header:hover { background: rgba(251,146,60,.13); }
+    .warn-count {
+      margin-left: auto;
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+    .warn-chevron {
+      font-size: .7rem;
+      transition: transform .2s;
+    }
+    .warn-chevron.open { transform: rotate(90deg); }
+    .warnings-list {
+      border-top: 1px solid rgba(251,146,60,.2);
+    }
+    .warning-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: .82rem;
+    }
+    .warning-item:last-child { border-bottom: none; }
+    .warning-item.error  { border-left: 3px solid var(--danger); }
+    .warning-item.warning { border-left: 3px solid var(--warn); }
+    .warn-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .warn-lineno {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+      color: var(--text-muted);
+      background: var(--surface2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .warn-severity {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .error  .warn-severity { color: var(--danger); }
+    .warning .warn-severity { color: var(--warn); }
+    .warn-msg { color: var(--text-dim); line-height: 1.5; }
+    .warn-code {
+      display: block;
+      margin-top: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem;
+      color: var(--text-muted);
+      background: var(--surface2);
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <h1>{{ title }}</h1>
+    <span class="subtitle">worklog dashboard</span>
+    <span class="badge">{{ target_hours }}h/day · {{ weekly_target_h }}h/wk target{% if has_baseline %} · {{ baseline_hours }}h/day baseline{% endif %}</span>
+  </div>
+
+  <!-- ── Warnings panel (shown only when parsing issues exist) ── -->
+  {% if warnings %}
+  <div class="warnings-panel" id="warnings-panel">
+    <div class="warnings-header" onclick="toggleWarnings()" id="warn-header">
+      <span>⚠️  Parsing issues detected</span>
+      <span class="warn-count">{{ warnings | length }} {{ 'issue' if warnings | length == 1 else 'issues' }}</span>
+      <span class="warn-chevron" id="warn-chevron">▸</span>
+    </div>
+    <div class="warnings-list" id="warnings-list" style="display:none">
+      {% for w in warnings %}
+      <div class="warning-item {{ w.severity }}">
+        <div class="warn-meta">
+          {% if w.line_no %}<span class="warn-lineno">line {{ w.line_no }}</span>{% endif %}
+          <span class="warn-severity">{{ w.severity }}</span>
+        </div>
+        <div class="warn-msg">{{ w.message }}</div>
+        {% if w.line %}<code class="warn-code">{{ w.line }}</code>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Today Banner ── -->
+  {% if today %}
+  <div class="today-banner" id="today-banner">
+    <div>
+      <div class="label">Today</div>
+      <div class="value {% if today.time_h >= target_hours %}success{% elif today.time_h >= target_hours * 0.5 %}{% else %}warn{% endif %}">
+        {{ (today.time_min // 60) }}h {{ (today.time_min % 60) }}m
+      </div>
+    </div>
+    {% if today.blocked %}
+    <div class="sep"></div>
+    <div class="blocked-list">
+      <div class="label">Blocked</div>
+      {% for b in today.blocked %}
+      <span class="blocked-tag">{{ b }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if today.pending and not today.blocked %}
+    <div class="sep"></div>
+    <div class="blocked-list">
+      <div class="label">Pending</div>
+      {% for p in today.pending %}
+      <span class="blocked-tag" style="color:var(--warn);background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.2)">{{ p }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="today-banner" style="padding:16px 24px">
+    <span class="no-today">No entry logged for today yet.</span>
+  </div>
+  {% endif %}
+
+  <!-- ── Line Graph ── -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <h2>Daily Time Logged</h2>
+      <div class="range-tabs">
+        <button class="range-tab" id="tab-2w" onclick="setRange(14)">2W</button>
+        <button class="range-tab active" id="tab-4w" onclick="setRange(28)">4W</button>
+        <button class="range-tab" id="tab-all" onclick="setRange(null)">All</button>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="timeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Weekly Breakdown ── -->
+  <div class="weeks-section">
+    <h2>Weekly Breakdown</h2>
+    <div id="week-rows"></div>
+  </div>
+
+  <!-- ── Stat Cards ── -->
+  <div class="stats" style="margin-top: 32px;">
+    <div class="stat-card accent">
+      <div class="label">Daily Average</div>
+      <div class="value" id="stat-avg">{{ avg_h }}h</div>
+      <div class="sub">across {{ total_days_logged }} logged days</div>
+    </div>
+    <div class="stat-card success">
+      <div class="label">Best Day</div>
+      <div class="value">{{ best_h }}h</div>
+      <div class="sub">single day record</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="label">Target</div>
+      <div class="value">{{ target_hours }}h</div>
+      <div class="sub">
+        {% set pct = (avg_h / target_hours * 100) | round | int %}
+        {{ pct }}% of target on average
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Days Logged</div>
+      <div class="value">{{ total_days_logged }}</div>
+      <div class="sub">total entries</div>
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+/* ── Data injected from server ─────────────────────────────────── */
+const ALL_DAYS         = {{ days | tojson }};
+const TARGET_MIN       = {{ target_min }};
+const TARGET_H         = {{ target_hours }};
+const BASELINE_H       = {{ baseline_hours }};
+const BASELINE_MIN     = {{ baseline_min }};
+const WEEKLY_TARGET_H  = {{ weekly_target_h }};
+const WEEKLY_BASELINE_H= {{ weekly_baseline_h }};
+const HAS_BASELINE     = {{ 'true' if has_baseline else 'false' }};
+
+/* ── Helpers ───────────────────────────────────────────────────── */
+function fmtTime(minutes) {
+  if (!minutes) return '0m';
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/* ── Weekly rollup ─────────────────────────────────────────────── */
+function buildWeeks(days) {
+  const map = {};
+  days.forEach(d => {
+    if (!map[d.week]) map[d.week] = { week: d.week, total_min: 0, days: 0 };
+    map[d.week].total_min += d.time_min;
+    if (d.time_min > 0) map[d.week].days++;
+  });
+  return Object.values(map).sort((a, b) => b.week.localeCompare(a.week));
+}
+
+function renderWeeks() {
+  const weeks = buildWeeks(ALL_DAYS);
+  const maxMin = Math.max(...weeks.map(w => w.total_min), TARGET_MIN * 5);
+  const container = document.getElementById('week-rows');
+  container.innerHTML = '';
+  weeks.forEach(w => {
+    const pct     = Math.min(100, (w.total_min / maxMin) * 100).toFixed(1);
+    const weekH   = w.total_min / 60;
+
+    // Color tier
+    let barClass = 'week-bar';
+    if (HAS_BASELINE) {
+      if (weekH < WEEKLY_BASELINE_H)     barClass += ' below-baseline';
+      else if (weekH < WEEKLY_TARGET_H)  barClass += ' below-target';
+      else                               barClass += ' above-target';
+    }
+
+    // Baseline tick position (% of track)
+    const baselinePct = HAS_BASELINE
+      ? Math.min(100, (WEEKLY_BASELINE_H * 60 / maxMin) * 100).toFixed(1)
+      : null;
+
+    const row = document.createElement('div');
+    row.className = 'week-row';
+    row.innerHTML = `
+      <span class="week-label">${w.week}</span>
+      <div class="week-bar-wrap">
+        <div class="${barClass}" style="width:${pct}%"></div>
+        ${baselinePct !== null ? `<div class="baseline-tick" style="left:${baselinePct}%" title="Weekly baseline: ${WEEKLY_BASELINE_H}h"></div>` : ''}
+      </div>
+      <span class="week-time">${fmtTime(w.total_min)}</span>
+      <span class="week-days">${w.days} day${w.days !== 1 ? 's' : ''}</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+/* ── Chart ─────────────────────────────────────────────────────── */
+let chart = null;
+let currentRange = 28;
+
+function buildChartData(range) {
+  let days = [...ALL_DAYS].sort((a, b) => a.date.localeCompare(b.date));
+  if (range !== null) days = days.slice(-range);
+
+  const labels   = days.map(d => fmtDate(d.date));
+  const values   = days.map(d => +(d.time_min / 60).toFixed(2));
+  const target   = days.map(() => TARGET_H);
+  const baseline = HAS_BASELINE ? days.map(() => BASELINE_H) : null;
+
+  return { labels, values, target, baseline };
+}
+
+function initChart() {
+  const ctx = document.getElementById('timeChart').getContext('2d');
+  const { labels, values, target, baseline } = buildChartData(currentRange);
+
+  const gradFill = ctx.createLinearGradient(0, 0, 0, 280);
+  gradFill.addColorStop(0,   'rgba(108,142,245,0.25)');
+  gradFill.addColorStop(1,   'rgba(108,142,245,0.01)');
+
+  const datasets = [
+    {
+      label: 'Hours logged',
+      data: values,
+      borderColor: '#6c8ef5',
+      backgroundColor: gradFill,
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#6c8ef5',
+      pointBorderColor: '#0d0f14',
+      pointBorderWidth: 2,
+      fill: true,
+      tension: 0.35,
+    },
+    {
+      label: `Target (${TARGET_H}h)`,
+      data: target,
+      borderColor: 'rgba(167,139,250,0.4)',
+      borderWidth: 1.5,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      fill: false,
+      tension: 0,
+    },
+  ];
+
+  if (baseline) {
+    datasets.push({
+      label: `Baseline (${BASELINE_H}h)`,
+      data: baseline,
+      borderColor: 'rgba(251,146,60,0.35)',
+      borderWidth: 1.5,
+      borderDash: [3, 5],
+      pointRadius: 0,
+      fill: false,
+      tension: 0,
+    });
+  }
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#64748b',
+            font: { family: 'Inter', size: 12 },
+            boxWidth: 12,
+            padding: 20,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#1c2030',
+          borderColor: '#262c3e',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          padding: 12,
+          callbacks: {
+            label: ctx => {
+              const h   = ctx.parsed.y;
+              const min = Math.round(h * 60);
+              return ` ${fmtTime(min)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(38,44,62,.6)' },
+          ticks: {
+            color: '#64748b',
+            font: { family: 'Inter', size: 11 },
+            maxTicksLimit: 10,
+          }
+        },
+        y: {
+          min: 0,
+          grid: { color: 'rgba(38,44,62,.6)' },
+          ticks: {
+            color: '#64748b',
+            font: { family: 'Inter', size: 11 },
+            callback: v => `${v}h`,
+          }
+        }
+      }
+    }
+  });
+}
+
+function setRange(n) {
+  currentRange = n;
+  document.querySelectorAll('.range-tab').forEach(t => t.classList.remove('active'));
+  const id = n === 14 ? 'tab-2w' : n === 28 ? 'tab-4w' : 'tab-all';
+  document.getElementById(id).classList.add('active');
+
+  const { labels, values, target, baseline } = buildChartData(n);
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = values;
+  chart.data.datasets[1].data = target;
+  if (baseline && chart.data.datasets[2]) {
+    chart.data.datasets[2].data = baseline;
+  }
+  chart.update('active');
+}
+
+/* ── Warnings toggle ───────────────────────────────────────────── */
+function toggleWarnings() {
+  const list    = document.getElementById('warnings-list');
+  const chevron = document.getElementById('warn-chevron');
+  const open    = list.style.display === 'none';
+  list.style.display = open ? 'block' : 'none';
+  chevron.classList.toggle('open', open);
+}
+
+/* ── Boot ──────────────────────────────────────────────────────── */
+renderWeeks();
+initChart();
+</script>
+</body>
+</html>
