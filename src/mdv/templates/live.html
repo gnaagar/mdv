@@ -10,6 +10,7 @@
     overflow: hidden;
     position: relative;
   }
+
   .live-editor-pane {
     flex: 1;
     display: flex;
@@ -18,6 +19,7 @@
     background-color: var(--main-bg);
     transition: width 0.3s ease, flex 0.3s ease;
   }
+
   .live-editor-pane.collapsed {
     flex: 0;
     width: 0;
@@ -25,12 +27,14 @@
     border-right: none;
     opacity: 0;
   }
+
   .live-preview-pane {
     flex: 1;
     background-color: var(--main-bg);
     position: relative;
     padding: 0;
   }
+
   .live-header {
     display: flex;
     justify-content: space-between;
@@ -40,6 +44,7 @@
     background-color: var(--code-bg);
     color: var(--text-color);
   }
+
   #live-editor {
     flex: 1;
     width: 100%;
@@ -52,6 +57,7 @@
     background-color: transparent;
     color: var(--text-color);
   }
+
   .floating-tools {
     position: sticky;
     top: 10px;
@@ -69,27 +75,39 @@
       <span>Live Editor (Auto-saved)</span>
       <div style="display: flex; gap: 5px; flex-direction: row;">
         <button id="btn-theme-toggle" class="header-btn" title="Toggle Theme">
-          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path></svg>
+          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18">
+            <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path>
+          </svg>
         </button>
         <button id="btn-copy" class="header-btn" title="Copy Markdown">
-          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2zm1-1c.55 0 1 .45 1 1s-.45 1-1 1H6c-.55 0-1-.45-1-1s.45-1 1-1zm8 14H3V3.5h10V14z"/></svg>
+          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18">
+            <path
+              d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2zm1-1c.55 0 1 .45 1 1s-.45 1-1 1H6c-.55 0-1-.45-1-1s.45-1 1-1zm8 14H3V3.5h10V14z" />
+          </svg>
         </button>
       </div>
     </div>
     <textarea id="live-editor" placeholder="Type markdown here..."></textarea>
   </div>
   <div class="live-preview-pane" style="display: flex;">
-    <div id="live-toc-sidebar" style="width: 250px; display: none; flex-direction: column; flex-shrink: 0; border-right: 1px solid var(--border-color-light); padding: 1rem 1.5rem; overflow: hidden; background: var(--main-bg);">
+    <div id="live-toc-sidebar"
+      style="width: 320px; display: none; flex-direction: column; flex-shrink: 0; border-right: 1px solid var(--border-color-light); padding: 1rem 1.5rem; overflow: hidden; background: var(--main-bg);">
       <div id="toc-container"></div>
     </div>
     <div id="section-main" class="section-main" style="flex: 1; position: relative; overflow-y: auto; padding: 20px;">
       <div class="floating-tools">
-        <button id="btn-toggle-editor" class="header-btn" title="Toggle Editor" style="background: var(--code-bg); border: 1px solid var(--border-color-light);">
-          <svg id="icon-expand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line>
+        <button id="btn-toggle-editor" class="header-btn" title="Toggle Editor"
+          style="background: var(--code-bg); border: 1px solid var(--border-color-light);">
+          <svg id="icon-expand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
           </svg>
-          <svg id="icon-collapse" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+          <svg id="icon-collapse" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
           </svg>
         </button>
       </div>
@@ -100,7 +118,7 @@
 
 <script src="/static/js/viewer.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     const editor = document.getElementById('live-editor');
     const preview = document.getElementById('markdown-body');
     const copyBtn = document.getElementById('btn-copy');
@@ -116,86 +134,87 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load from local storage
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
-        editor.value = saved;
+      editor.value = saved;
     }
 
     // Toggle editor visibility
     const isEditorCollapsed = localStorage.getItem('mdv_live_collapsed') === 'true';
     if (isEditorCollapsed) {
-        editorPane.classList.add('collapsed');
-        if (tocSidebar) tocSidebar.style.display = 'flex';
-        if (iconExpand) iconExpand.style.display = 'none';
-        if (iconCollapse) iconCollapse.style.display = 'block';
+      editorPane.classList.add('collapsed');
+      if (tocSidebar) tocSidebar.style.display = 'flex';
+      if (iconExpand) iconExpand.style.display = 'none';
+      if (iconCollapse) iconCollapse.style.display = 'block';
     }
 
     toggleEditorBtn.addEventListener('click', () => {
-        editorPane.classList.toggle('collapsed');
-        const isCollapsed = editorPane.classList.contains('collapsed');
-        localStorage.setItem('mdv_live_collapsed', isCollapsed);
-        if (tocSidebar) tocSidebar.style.display = isCollapsed ? 'flex' : 'none';
-        if (iconExpand) iconExpand.style.display = isCollapsed ? 'none' : 'block';
-        if (iconCollapse) iconCollapse.style.display = isCollapsed ? 'block' : 'none';
+      editorPane.classList.toggle('collapsed');
+      const isCollapsed = editorPane.classList.contains('collapsed');
+      localStorage.setItem('mdv_live_collapsed', isCollapsed);
+      if (tocSidebar) tocSidebar.style.display = isCollapsed ? 'flex' : 'none';
+      if (iconExpand) iconExpand.style.display = isCollapsed ? 'none' : 'block';
+      if (iconCollapse) iconCollapse.style.display = isCollapsed ? 'block' : 'none';
     });
 
     let timeoutId;
 
     async function renderMarkdown() {
-        const text = editor.value;
-        localStorage.setItem(LOCAL_STORAGE_KEY, text);
+      const text = editor.value;
+      localStorage.setItem(LOCAL_STORAGE_KEY, text);
 
-        try {
-            const response = await fetch('/api/render', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: text
-            });
-            if (response.ok) {
-                const html = await response.text();
-                preview.innerHTML = html;
-                if (window.renderMath) window.renderMath(preview);
-                if (window.renderMermaidDiagrams) window.renderMermaidDiagrams();
-                if (window.genCopyButtons) window.genCopyButtons(preview);
-                if (window.generateTOC) {
-                    const tocC = document.getElementById('toc-container');
-                    if (tocC) {
-                        tocC.innerHTML = '';
-                        window.generateTOC(preview, tocC);
-                    }
-                }
-            } else {
-                console.error("Failed to render markdown", response.status);
+      try {
+        const response = await fetch('/api/render', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+          body: text
+        });
+        if (response.ok) {
+          const html = await response.text();
+          preview.innerHTML = html;
+          if (window.renderMath) window.renderMath(preview);
+          if (window.renderMermaidDiagrams) window.renderMermaidDiagrams();
+          if (window.genCopyButtons) window.genCopyButtons(preview);
+          if (window.generateTOC) {
+            const tocC = document.getElementById('toc-container');
+            if (tocC) {
+              tocC.innerHTML = '';
+              window.generateTOC(preview, tocC);
+              if (window.setupHeadingObserver) window.setupHeadingObserver();
             }
-        } catch (e) {
-            console.error("Error connecting to /api/render API", e);
+          }
+        } else {
+          console.error("Failed to render markdown", response.status);
         }
+      } catch (e) {
+        console.error("Error connecting to /api/render API", e);
+      }
     }
 
     editor.addEventListener('input', () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(renderMarkdown, 300);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(renderMarkdown, 300);
     });
 
     copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(editor.value).then(() => {
-            alert('Copied to clipboard!');
-        });
+      navigator.clipboard.writeText(editor.value).then(() => {
+        alert('Copied to clipboard!');
+      });
     });
 
     themeBtn.addEventListener('click', () => {
-        const isDark = document.body.classList.contains('theme-dark');
-        if (isDark) {
-            document.body.classList.remove('theme-dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            document.body.classList.add('theme-dark');
-            localStorage.setItem('theme', 'dark');
-        }
+      const isDark = document.body.classList.contains('theme-dark');
+      if (isDark) {
+        document.body.classList.remove('theme-dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.body.classList.add('theme-dark');
+        localStorage.setItem('theme', 'dark');
+      }
     });
 
     // Initial render
     renderMarkdown();
-});
+  });
 </script>
 {% endblock %}
