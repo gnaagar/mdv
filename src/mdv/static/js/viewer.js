@@ -97,10 +97,13 @@ function setupModalsAndHeader() {
   const dirFilterInput = document.getElementById('dir-filter-input');
   const searchInput = document.getElementById('search-input');
 
+  if (!overlay || !btnTheme) return; // fail gracefully
+
   // Track which modal is open for keyboard navigation
   let activeModal = null;
 
   function openModal(modal, focusInput) {
+    if (!modal) return;
     overlay.classList.remove('hidden');
     modal.classList.remove('hidden');
     activeModal = modal;
@@ -109,8 +112,8 @@ function setupModalsAndHeader() {
 
   _closeAllModals = function() {
     overlay.classList.add('hidden');
-    dirModal.classList.add('hidden');
-    searchModal.classList.add('hidden');
+    if (dirModal) dirModal.classList.add('hidden');
+    if (searchModal) searchModal.classList.add('hidden');
     activeModal = null;
     dirKeyboardIndex = -1;
     searchKeyboardIndex = -1;
@@ -119,24 +122,25 @@ function setupModalsAndHeader() {
   };
 
   // Auto-select first dir entry after tree loads
-  const origBtnDirClick = btnDir.onclick;
-
-  btnDir.addEventListener('click', () => {
-    // Refresh the directory tree on every open to reflect latest file system state
-    dirTreeState.entryMap = {};
-    loadDirTree(DIR_TREE).then(() => {
-      // Re-apply filter if one is active
-      const q = dirFilterInput.value.trim().toLowerCase();
-      if (q) {
-        dirFilterInput.dispatchEvent(new Event('input'));
-      } else {
-        // Auto-select first entry
-        autoSelectFirstDirEntry();
-      }
-    });
-    openModal(dirModal, dirFilterInput);
-  });
-  btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
+  if (btnDir) {
+      btnDir.addEventListener('click', () => {
+        // Refresh the directory tree on every open to reflect latest file system state
+        dirTreeState.entryMap = {};
+        loadDirTree(DIR_TREE).then(() => {
+          // Re-apply filter if one is active
+          const q = dirFilterInput.value.trim().toLowerCase();
+          if (q) {
+            dirFilterInput.dispatchEvent(new Event('input'));
+          } else {
+            // Auto-select first entry
+            autoSelectFirstDirEntry();
+          }
+        });
+        openModal(dirModal, dirFilterInput);
+      });
+  }
+  
+  if (btnSearch) btnSearch.addEventListener('click', () => openModal(searchModal, searchInput));
   overlay.addEventListener('click', closeAllModals);
 
   // Global Keyboard Shortcuts
@@ -177,46 +181,52 @@ function setupModalsAndHeader() {
   });
 
   // Directory filter logic
-  dirFilterInput.addEventListener('input', (e) => {
-    dirKeyboardIndex = -1; // Reset keyboard selection on filter change
-    const q = e.target.value.trim().toLowerCase();
-    // Use cached references instead of re-querying DOM each keystroke
-    const allLis = dirTreeState.cachedLis;
-    const entries = dirTreeState.cachedEntries;
-    if (!allLis || !entries) return;
-    
-    if (q === '') {
-      for (let i = 0; i < allLis.length; i++) allLis[i].style.display = '';
-      for (let i = 0; i < entries.length; i++) {
-        if (entries[i].dataset.fullPath) entries[i].textContent = entries[i].dataset.fullPath;
-      }
-      autoSelectFirstDirEntry();
-      return;
-    }
-
-    const highlight = createHighlighter(q);
-
-    // Fast reveal for fuzzy matches without tree hierarchy calculations
-    for (let i = 0; i < entries.length; i++) {
-       const entry = entries[i];
-       const pathName = entry.dataset.fullPath || '';
-       if (fuzzyMatch(pathName, q)) {
-          entry.parentElement.style.display = '';
-          if (pathName.toLowerCase().includes(q)) {
-              entry.innerHTML = highlight(escapeHtml(pathName));
-          } else {
-              entry.textContent = pathName;
+  if (dirFilterInput) {
+      dirFilterInput.addEventListener('input', (e) => {
+        dirKeyboardIndex = -1; // Reset keyboard selection on filter change
+        const q = e.target.value.trim().toLowerCase();
+        // Use cached references instead of re-querying DOM each keystroke
+        const allLis = dirTreeState.cachedLis;
+        const entries = dirTreeState.cachedEntries;
+        if (!allLis || !entries) return;
+        
+        if (q === '') {
+          for (let i = 0; i < allLis.length; i++) allLis[i].style.display = '';
+          for (let i = 0; i < entries.length; i++) {
+            if (entries[i].dataset.fullPath) entries[i].textContent = entries[i].dataset.fullPath;
           }
-       } else {
-          entry.parentElement.style.display = 'none';
-          entry.textContent = pathName;
-       }
-    }
-    // Auto-select first visible dir entry after filtering
-    autoSelectFirstDirEntry();
-  });
+          autoSelectFirstDirEntry();
+          return;
+        }
 
-  // Theme Toggler
+        const highlight = createHighlighter(q);
+
+        // Fast reveal for fuzzy matches without tree hierarchy calculations
+        for (let i = 0; i < entries.length; i++) {
+           const entry = entries[i];
+           const pathName = entry.dataset.fullPath || '';
+           if (fuzzyMatch(pathName, q)) {
+              entry.parentElement.style.display = '';
+              if (pathName.toLowerCase().includes(q)) {
+                  entry.innerHTML = highlight(escapeHtml(pathName));
+              } else {
+                  entry.textContent = pathName;
+              }
+           } else {
+              entry.parentElement.style.display = 'none';
+              entry.textContent = pathName;
+           }
+        }
+        // Auto-select first visible dir entry after filtering
+        autoSelectFirstDirEntry();
+      });
+  }
+
+  // Theme Toggler is already handled in live.html but here it binds globally
+  // We can leave this but `live.html` binds it differently. Wait, if we use `viewer.js` in `live.html`, 
+  // we should remove the redundant binding from `live.html` or just let it bind twice (it uses `classList.toggle`, twice means it undoes itself!).
+  // So we MUST NOT double-bind. `live.html` should just let `viewer.js` handle it, or we check if it is already bound.
+  // Actually, I'll remove it from `live.html`.
   btnTheme.addEventListener('click', () => {
     document.body.classList.toggle('theme-dark');
     const isDark = document.body.classList.contains('theme-dark');
@@ -436,45 +446,55 @@ const state = {
 
 let isTocClickScrolling = false;
 
+let isHeadingObserverSetup = false;
+let animFrame = null;
+
 function setupHeadingObserver() {
   if (!state.headings || !state.headings.length) return;
 
-  let animFrame = null;
   const mainSection = document.getElementById('section-main');
   if (!mainSection) return;
   
-  const handleScroll = () => {
-    if (isTocClickScrolling) return;
-    
-    if (animFrame) cancelAnimationFrame(animFrame);
-    animFrame = requestAnimationFrame(() => {
-      const mainRect = mainSection.getBoundingClientRect();
-      const activeIndices = [];
-      const tops = Array.from(state.headings).map(h => h.getBoundingClientRect().top);
-      const mdBodyBottom = MD_BODY.getBoundingClientRect().bottom;
+  if (!isHeadingObserverSetup) {
+    isHeadingObserverSetup = true;
+    window._mdv_global_scroll_handler = () => {
+      if (isTocClickScrolling || !state.headings || !state.headings.length) return;
+      const ms = document.getElementById('section-main');
+      if (!ms) return;
       
-      const viewTop = Math.max(mainRect.top, 0);
-      const viewBottom = Math.min(mainRect.bottom, window.innerHeight);
+      if (animFrame) cancelAnimationFrame(animFrame);
+      animFrame = requestAnimationFrame(() => {
+        const tops = Array.from(state.headings).map(h => h.getBoundingClientRect().top);
+        const mdBodyBottom = MD_BODY && MD_BODY.getBoundingClientRect ? MD_BODY.getBoundingClientRect().bottom : window.innerHeight;
+        
+        const mainRect = ms.getBoundingClientRect();
+        const viewTop = Math.max(mainRect.top, 0);
+        const viewBottom = Math.min(mainRect.bottom, window.innerHeight);
 
-      for (let i = 0; i < state.headings.length; i++) {
-         const top = tops[i];
-         const bottom = (i + 1 < state.headings.length) ? tops[i+1] : mdBodyBottom;
-         
-         if (top < viewBottom - 10 && bottom > viewTop + 10) {
-           activeIndices.push(i);
-         }
-      }
-      
-      if (activeIndices.length === 0 && state.headings.length > 0) {
-        activeIndices.push(0);
-      }
-      
-      updateActiveTocItems(activeIndices);
-    });
-  };
+        const activeIndices = [];
+        for (let i = 0; i < state.headings.length; i++) {
+           const top = tops[i];
+           const bottom = (i + 1 < state.headings.length) ? tops[i+1] : mdBodyBottom;
+           
+           if (top < viewBottom - 10 && bottom > viewTop + 10) {
+             activeIndices.push(i);
+           }
+        }
+        
+        if (activeIndices.length === 0 && state.headings.length > 0) {
+          activeIndices.push(0);
+        }
+        
+        updateActiveTocItems(activeIndices);
+      });
+    };
 
-  mainSection.addEventListener('scroll', handleScroll, { passive: true });
-  window.addEventListener('scroll', handleScroll, { passive: true });
+    mainSection.addEventListener('scroll', window._mdv_global_scroll_handler, { passive: true });
+    window.addEventListener('scroll', window._mdv_global_scroll_handler, { passive: true });
+  } else if (window._mdv_global_scroll_handler) {
+    // When re-rendering, just trigger an immediate update
+    window._mdv_global_scroll_handler();
+  }
 }
 
 function updateActiveTocItems(indices) {
@@ -522,6 +542,8 @@ function generateTOC(contentContainer, treeContainer) {
   state.headings = contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
   state.curHeadings = null;
   state.headingEntries = new Array(state.headings.length);
+  state.activeIndices = []; // Reset this to force re-highlighting of new DOM nodes
+
 
   const root = [];
   const stack = [{ level: 0, children: root }];
@@ -714,6 +736,7 @@ async function search() {
 
 function setupSearch() {
   setupElems();
+  if (!elems.input) return;
   let debounceTimer = null;
   elems.input.addEventListener('input', function () {
     clearTimeout(debounceTimer);

@@ -238,83 +238,222 @@
       height: 280px;
     }
 
-    /* ── Weekly breakdown ─────────────────────────────────────────── */
-    .weeks-section h2 {
+    /* ── Rolling Calendar ─────────────────────────────────────────── */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .calendar-section h2 {
       font-size: .85rem;
       font-weight: 600;
       letter-spacing: .08em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 16px;
+      margin-bottom: 0;
     }
-    .week-row {
+    .cal-nav {
+      display: flex;
+      gap: 4px;
+    }
+    .cal-nav-btn {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 14px 20px;
-      margin-bottom: 8px;
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: .7rem;
+      transition: all .15s;
+    }
+    .cal-nav-btn:hover:not(:disabled) {
+      background: var(--surface2);
+      color: var(--text);
+    }
+    .cal-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: 48px repeat(7, 1fr);
+      gap: 4px;
+    }
+    /* header row */
+    .cal-head {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 4px 2px 8px;
+    }
+    .cal-week-label {
+      font-size: .7rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      transition: border-color .15s;
+      justify-content: flex-end;
+      padding-right: 8px;
+      white-space: nowrap;
     }
-    .week-row:hover { border-color: rgba(108,142,245,.3); }
-    .week-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .82rem;
-      color: var(--text-dim);
-      min-width: 90px;
-    }
-    .week-bar-wrap {
-      flex: 1;
-      min-width: 120px;
-      height: 6px;
-      background: var(--surface2);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .week-bar {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      transition: width .6s cubic-bezier(.4,0,.2,1);
-    }
-    .week-bar.below-baseline {
-      background: linear-gradient(90deg, var(--danger), #f87171cc);
-    }
-    .week-bar.below-target {
-      background: linear-gradient(90deg, var(--warn), #fb923ccc);
-    }
-    .week-bar.above-target {
-      background: linear-gradient(90deg, var(--success), #34d399cc);
-    }
-    /* Baseline tick marker on the bar track */
-    .week-bar-wrap {
+    /* individual day cell */
+    .cal-cell {
       position: relative;
+      border-radius: 10px;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      transition: transform .15s, box-shadow .15s;
+      border: 1.5px solid transparent;
+      user-select: none;
     }
-    .baseline-tick {
-      position: absolute;
-      top: -3px;
-      width: 2px;
-      height: 12px;
-      background: rgba(167,139,250,0.6);
-      border-radius: 1px;
-      pointer-events: none;
+    .cal-cell:not(.cal-empty):hover {
+      transform: scale(1.08);
+      z-index: 10;
     }
-    .week-time {
-      font-size: .88rem;
+    .cal-cell.cal-empty {
+      background: var(--surface);
+      border-color: var(--border);
+      opacity: .35;
+    }
+    .cal-cell.cal-no-entry {
+      background: var(--surface);
+      border-color: var(--border);
+    }
+    .cal-cell.cal-above-target {
+      background: rgba(52,211,153,.15);
+      border-color: rgba(52,211,153,.35);
+    }
+    .cal-cell.cal-below-target {
+      background: rgba(251,146,60,.12);
+      border-color: rgba(251,146,60,.3);
+    }
+    .cal-cell.cal-below-baseline {
+      background: rgba(248,113,113,.12);
+      border-color: rgba(248,113,113,.3);
+    }
+    .cal-cell.cal-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(108,142,245,.25);
+    }
+    .cal-day-num {
+      font-size: .8rem;
       font-weight: 600;
       color: var(--text);
-      min-width: 60px;
-      text-align: right;
-      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
     }
-    .week-days {
-      font-size: .78rem;
+    .cal-cell.cal-empty .cal-day-num,
+    .cal-cell.cal-no-entry .cal-day-num {
       color: var(--text-muted);
-      min-width: 70px;
-      text-align: right;
+    }
+    .cal-time-chip {
+      font-size: .6rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      margin-top: 3px;
+      line-height: 1;
+    }
+    .cal-cell.cal-above-target  .cal-time-chip { color: var(--success); }
+    .cal-cell.cal-below-target  .cal-time-chip { color: var(--warn); }
+    .cal-cell.cal-below-baseline .cal-time-chip { color: var(--danger); }
+    .cal-cell.cal-active .cal-time-chip { color: var(--accent); }
+
+    /* ── Calendar tooltip ─────────────────────────────────────────── */
+    #cal-tooltip {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity .15s, transform .15s;
+      max-width: 300px;
+      min-width: 200px;
+    }
+    #cal-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .cal-tip-inner {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      padding: 14px 16px;
+    }
+    .cal-tip-date {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .cal-tip-time {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 10px;
+    }
+    .cal-tip-time.tip-success { color: var(--success); }
+    .cal-tip-time.tip-warn    { color: var(--warn); }
+    .cal-tip-time.tip-danger  { color: var(--danger); }
+    .cal-tip-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+    }
+    .cal-tip-task {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: .78rem;
+      padding: 2px 0;
+      line-height: 1.4;
+    }
+    .cal-tip-task .glyph {
+      font-size: .7rem;
+      flex-shrink: 0;
+      width: 14px;
+      text-align: center;
+    }
+    .cal-tip-task.t-done      { color: var(--text-muted); }
+    .cal-tip-task.t-done .glyph { color: var(--success); }
+    .cal-tip-task.t-progress  { color: var(--accent); }
+    .cal-tip-task.t-progress .glyph { color: var(--accent); }
+    .cal-tip-task.t-cancelled { color: var(--text-muted); opacity: .6; }
+    .cal-tip-task.t-cancelled .glyph { color: var(--text-muted); }
+    .cal-tip-task.t-pending   { color: var(--text-dim); }
+    .cal-tip-task.t-pending .glyph { color: var(--text-muted); }
+    .tip-time-capsule {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .65em;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 99px;
+      padding: 1px 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .cal-tip-more {
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-style: italic;
+    }
+    .cal-tip-no-entry {
+      font-size: .82rem;
+      color: var(--text-muted);
+      font-style: italic;
     }
 
     /* ── Warnings panel ───────────────────────────────────────── */
@@ -463,6 +602,23 @@
   </div>
   {% endif %}
 
+  <!-- ── Calendar ── -->
+  <div class="calendar-section">
+    <div class="calendar-header">
+      <h2>Calendar</h2>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="scrollCal(-1)" title="Previous week">▲ Up</button>
+        <button class="cal-nav-btn" onclick="scrollCal(1)" id="cal-nav-next" title="Next week" disabled>▼ Down</button>
+      </div>
+    </div>
+    <div class="chart-card" style="padding: 20px 24px;">
+      <div class="calendar-grid" id="cal-grid"></div>
+    </div>
+  </div>
+
+  <!-- Floating tooltip -->
+  <div id="cal-tooltip"><div class="cal-tip-inner" id="cal-tip-inner"></div></div>
+
   <!-- ── Line Graph ── -->
   <div class="chart-card">
     <div class="chart-header">
@@ -476,12 +632,6 @@
     <div class="chart-wrap">
       <canvas id="timeChart"></canvas>
     </div>
-  </div>
-
-  <!-- ── Weekly Breakdown ── -->
-  <div class="weeks-section">
-    <h2>Weekly Breakdown</h2>
-    <div id="week-rows"></div>
   </div>
 
   <!-- ── Stat Cards ── -->
@@ -540,52 +690,209 @@ function fmtDate(iso) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-/* ── Weekly rollup ─────────────────────────────────────────────── */
-function buildWeeks(days) {
-  const map = {};
-  days.forEach(d => {
-    if (!map[d.week]) map[d.week] = { week: d.week, total_min: 0, days: 0 };
-    map[d.week].total_min += d.time_min;
-    if (d.time_min > 0) map[d.week].days++;
-  });
-  return Object.values(map).sort((a, b) => b.week.localeCompare(a.week));
+/* ── Rolling 2-week calendar ───────────────────────────────────── */
+const TODAY_DATA = {{ today | tojson }};
+
+// Build a lookup: ISO-date-string → day entry
+function buildDayMap() {
+  const m = {};
+  ALL_DAYS.forEach(d => { m[d.date] = d; });
+  if (TODAY_DATA) m[TODAY_DATA.date] = TODAY_DATA;
+  return m;
 }
 
-function renderWeeks() {
-  const weeks = buildWeeks(ALL_DAYS);
-  const maxMin = Math.max(...weeks.map(w => w.total_min), TARGET_MIN * 5);
-  const container = document.getElementById('week-rows');
-  container.innerHTML = '';
-  weeks.forEach(w => {
-    const pct     = Math.min(100, (w.total_min / maxMin) * 100).toFixed(1);
-    const weekH   = w.total_min / 60;
+function mondayOf(d) {
+  // Returns the Monday of the week containing d (a Date object)
+  const day = d.getDay(); // 0=Sun…6=Sat
+  const diff = (day === 0) ? -6 : 1 - day;
+  const mon = new Date(d);
+  mon.setDate(d.getDate() + diff);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
 
-    // Color tier
-    let barClass = 'week-bar';
-    if (HAS_BASELINE) {
-      if (weekH < WEEKLY_BASELINE_H)     barClass += ' below-baseline';
-      else if (weekH < WEEKLY_TARGET_H)  barClass += ' below-target';
-      else                               barClass += ' above-target';
+function isoDate(d) {
+  // Returns YYYY-MM-DD from a Date object in local time
+  const y = d.getFullYear();
+  const mo = String(d.getMonth()+1).padStart(2,'0');
+  const da = String(d.getDate()).padStart(2,'0');
+  return `${y}-${mo}-${da}`;
+}
+
+function calColorClass(entry, isActive) {
+  if (isActive) return 'cal-active';
+  if (!entry || entry.time_min === 0) return 'cal-no-entry';
+  const h = entry.time_min / 60;
+  if (HAS_BASELINE && h < BASELINE_H)  return 'cal-below-baseline';
+  if (h < TARGET_H)                    return 'cal-below-target';
+  return 'cal-above-target';
+}
+
+function tipTimeClass(entry) {
+  if (!entry || entry.time_min === 0) return '';
+  const h = entry.time_min / 60;
+  if (HAS_BASELINE && h < BASELINE_H) return 'tip-danger';
+  if (h < TARGET_H)                   return 'tip-warn';
+  return 'tip-success';
+}
+
+const GLYPHS = { done: '✓', in_progress: '◷', cancelled: '✕', pending: '·' };
+
+function renderTaskList(tasks, maxItems) {
+  let out = '';
+  let count = 0;
+  function walk(list) {
+    for (const t of list) {
+      if (count >= maxItems) break;
+      let cls = 't-pending', glyph = GLYPHS.pending;
+      if (t.done)        { cls = 't-done';      glyph = GLYPHS.done; }
+      else if (t.cancelled) { cls = 't-cancelled'; glyph = GLYPHS.cancelled; }
+      else if (t.in_progress) { cls = 't-progress'; glyph = GLYPHS.in_progress; }
+      const timeStr = t.time_min > 0 ? `<span class="tip-time-capsule">${fmtTime(t.time_min)}</span>` : '';
+      out += `<div class="cal-tip-task ${cls}"><span class="glyph">${glyph}</span><span>${t.text}${timeStr}</span></div>`;
+      count++;
+      if (t.children && t.children.length && count < maxItems) walk(t.children);
     }
+  }
+  walk(tasks);
+  return out;
+}
 
-    // Baseline tick position (% of track)
-    const baselinePct = HAS_BASELINE
-      ? Math.min(100, (WEEKLY_BASELINE_H * 60 / maxMin) * 100).toFixed(1)
-      : null;
+function buildTooltip(entry, dateIso, isActive) {
+  const label = new Date(dateIso + 'T00:00:00').toLocaleDateString('en-US',
+    { weekday: 'long', month: 'short', day: 'numeric' });
+  let html = `<div class="cal-tip-date">${label}</div>`;
 
-    const row = document.createElement('div');
-    row.className = 'week-row';
-    row.innerHTML = `
-      <span class="week-label">${w.week}</span>
-      <div class="week-bar-wrap">
-        <div class="${barClass}" style="width:${pct}%"></div>
-        ${baselinePct !== null ? `<div class="baseline-tick" style="left:${baselinePct}%" title="Weekly baseline: ${WEEKLY_BASELINE_H}h"></div>` : ''}
-      </div>
-      <span class="week-time">${fmtTime(w.total_min)}</span>
-      <span class="week-days">${w.days} day${w.days !== 1 ? 's' : ''}</span>
-    `;
-    container.appendChild(row);
+  if (!entry || entry.time_min === 0) {
+    html += `<div class="cal-tip-no-entry">No time logged</div>`;
+    return html;
+  }
+
+  const tClass = tipTimeClass(entry);
+  html += `<div class="cal-tip-time ${tClass}">${fmtTime(entry.time_min)}</div>`;
+
+  const tasks = entry.tasks || [];
+  if (tasks.length) {
+    html += `<div class="cal-tip-divider"></div>`;
+    const MAX = 8;
+    html += renderTaskList(tasks, MAX);
+    // count total leaf tasks
+    function countAll(list) { return list.reduce((s,t)=> s + (t.children&&t.children.length?countAll(t.children):1), 0); }
+    const total = countAll(tasks);
+    if (total > MAX) html += `<div class="cal-tip-more">+${total - MAX} more…</div>`;
+  }
+  return html;
+}
+
+let calOffsetWeeks = 0;
+
+function scrollCal(delta) {
+  calOffsetWeeks += delta;
+  if (calOffsetWeeks > 0) calOffsetWeeks = 0;
+  
+  const nextBtn = document.getElementById('cal-nav-next');
+  if (nextBtn) {
+    nextBtn.disabled = (calOffsetWeeks === 0);
+  }
+  
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const dayMap = buildDayMap();
+  const activeDate = TODAY_DATA ? TODAY_DATA.date : null;
+
+  // Anchor the calendar to the active (latest) date + offset weeks
+  const anchor = activeDate ? new Date(activeDate + 'T00:00:00') : new Date();
+  anchor.setDate(anchor.getDate() + (calOffsetWeeks * 7));
+  
+  const thisMon = mondayOf(anchor);
+  const prevMon = new Date(thisMon);
+  prevMon.setDate(thisMon.getDate() - 7);
+
+  const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // ── Header row ──────────────────────────────────────────────────
+  grid.appendChild(Object.assign(document.createElement('div'), { className:'cal-head' })); // empty corner
+  DAY_NAMES.forEach(n => {
+    const h = document.createElement('div');
+    h.className = 'cal-head';
+    h.textContent = n;
+    grid.appendChild(h);
   });
+
+  // ── Two week rows ────────────────────────────────────────────────
+  [prevMon, thisMon].forEach(weekStart => {
+    // Week label: show the ISO week tag
+    const weekIso = isoDate(weekStart);
+    const d = new Date(weekStart + 'T00:00:00') || weekStart;
+    const iso = weekStart.toISOString().slice(0,10);
+    const yr  = weekStart.getFullYear();
+    const wk  = weekStart.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const label = document.createElement('div');
+    label.className = 'cal-week-label';
+    // compute ISO week number from the Monday
+    const jan4 = new Date(yr, 0, 4);
+    const startOfWeek1 = mondayOf(jan4);
+    const wNum = Math.round((weekStart - startOfWeek1) / (7*86400000)) + 1;
+    label.textContent = `W${String(wNum).padStart(2,'0')}`;
+    grid.appendChild(label);
+
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      const dayIso = isoDate(day);
+      const entry  = dayMap[dayIso] || null;
+      const isActive = dayIso === activeDate;
+
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell ' + calColorClass(entry, isActive);
+
+      const numEl = document.createElement('div');
+      numEl.className = 'cal-day-num';
+      numEl.textContent = day.getDate();
+      cell.appendChild(numEl);
+
+      if (entry && entry.time_min > 0) {
+        const chip = document.createElement('div');
+        chip.className = 'cal-time-chip';
+        chip.textContent = fmtTime(entry.time_min);
+        cell.appendChild(chip);
+      }
+
+      // Attach tooltip
+      cell.addEventListener('mouseenter', e => showTip(entry, dayIso, isActive, e));
+      cell.addEventListener('mousemove',  e => moveTip(e));
+      cell.addEventListener('mouseleave', hideTip);
+
+      grid.appendChild(cell);
+    }
+  });
+}
+
+/* ── Tooltip positioning ────────────────────────────────────────── */
+const TIP = document.getElementById('cal-tooltip');
+const TIP_INNER = document.getElementById('cal-tip-inner');
+
+function showTip(entry, dateIso, isActive, e) {
+  TIP_INNER.innerHTML = buildTooltip(entry, dateIso, isActive);
+  TIP.classList.add('visible');
+  moveTip(e);
+}
+function moveTip(e) {
+  const W = TIP.offsetWidth || 240;
+  const H = TIP.offsetHeight || 160;
+  let x = e.clientX + 14;
+  let y = e.clientY + 14;
+  if (x + W > window.innerWidth  - 8) x = e.clientX - W - 14;
+  if (y + H > window.innerHeight - 8) y = e.clientY - H - 14;
+  TIP.style.left = x + 'px';
+  TIP.style.top  = y + 'px';
+}
+function hideTip() {
+  TIP.classList.remove('visible');
 }
 
 /* ── Chart ─────────────────────────────────────────────────────── */
@@ -733,7 +1040,7 @@ function toggleWarnings() {
 }
 
 /* ── Boot ──────────────────────────────────────────────────────── */
-renderWeeks();
+renderCalendar();
 initChart();
 </script>
 </body>

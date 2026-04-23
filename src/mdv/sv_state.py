@@ -25,6 +25,7 @@ class FileNode:
 
 class MdViewerState:
     def __init__(self, cfg):
+        self._cfg = cfg
         self._root_dir = cfg['dir']
         self._precache = cfg.get('precache', None)
         self._node_map = {}
@@ -65,10 +66,6 @@ class MdViewerState:
             return True  # Changed
         return False  # Unchanged
 
-    # Lightweight sync with file system.
-    # It is a metadata refresh, which does not read file contents.
-    # It adds/deletes nodes which are not in the cache (but there in the file system)
-    # It also invalidates contents of nodes which are outdated.
     def refresh(self, force=False):
         now = time.monotonic()
         if not force and (now - self._last_refresh_time) < REFRESH_DEBOUNCE_SECS:
@@ -76,28 +73,44 @@ class MdViewerState:
         self._last_refresh_time = now
 
         changed = False
-        # Assume that we will delete everything
         to_delete = set(self._node_map.keys())
 
-        for root, dirs, files in os.walk(self._root_dir):
-            # Modify 'dirs' in-place to skip ignored directories
-            dirs[:] = [d for d in dirs if not self._should_ignore_dir(d)]
-            for file in files:
-                if file.endswith(MD_EXTENSION):
-                    full_path = os.path.join(root, file)
-                    id = os.path.relpath(full_path, self._root_dir).replace(os.path.sep, '/')
+        lite_file = self._cfg.get('lite_file')
+        if lite_file:
+            # Lite mode: only track the specific file
+            id = lite_file
+            if id not in self._node_map:
+                logger.debug(f"Adding node: {id} to cache (Lite Mode)")
+                node = FileNode(id=id)
+                self._node_map[node.id] = node
+                changed = True
 
-                    if id not in self._node_map:
-                        logger.debug(f"Adding node: {id} to cache")
-                        node = FileNode(id=id)
-                        self._node_map[node.id] = node
-                        changed = True
+            if self._sync_node(self._node_map[id]):
+                changed = True
 
-                    if self._sync_node(self._node_map[id]):
-                        changed = True
+            if id in to_delete:
+                to_delete.remove(id)
+        else:
+            # Normal mode: walk directory
+            for root, dirs, files in os.walk(self._root_dir):
+                # Modify 'dirs' in-place to skip ignored directories
+                dirs[:] = [d for d in dirs if not self._should_ignore_dir(d)]
+                for file in files:
+                    if file.endswith(MD_EXTENSION):
+                        full_path = os.path.join(root, file)
+                        id = os.path.relpath(full_path, self._root_dir).replace(os.path.sep, '/')
 
-                    if id in to_delete:
-                        to_delete.remove(id)
+                        if id not in self._node_map:
+                            logger.debug(f"Adding node: {id} to cache")
+                            node = FileNode(id=id)
+                            self._node_map[node.id] = node
+                            changed = True
+
+                        if self._sync_node(self._node_map[id]):
+                            changed = True
+
+                        if id in to_delete:
+                            to_delete.remove(id)
 
         # Remove nodes that are no longer in the file system
         if to_delete:
@@ -108,6 +121,7 @@ class MdViewerState:
 
         if changed:
             self._search_index_dirty = True
+
 
     def _build_full_cache(self):
         try:
