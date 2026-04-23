@@ -1,3 +1,4 @@
+<!-- worklog=true;target_hours=6;baseline_hours=4 -->
 # Work Log
 
 ## Week 2026-W16
@@ -6,6 +7,11 @@
 
 - [x] Design worklog dashboard schema -- t:2h
 - [x] Brainstorm format conventions with team -- t:45m
+- [ ] Something -- t:1h
+- [ ] Review PR: auth module refactor
+  - [ ] Read through diff -- t:30m
+  - [ ] Leave comments -- t:20m
+  - [x] Approve and merge -- t:10m
 - [ ] Implement parser skeleton -- t:0m (blocked)
 
 ### 2026-04-17
@@ -142,9 +148,3 @@
 - [x] Implement directory tree caching -- t:3h30m
 - [x] Fix infinite loop in tree walker -- t:2h30m
 - [x] Write regression test -- t:45m
-
-
-## Config
-
-| target hours | 6 |
-| baseline hours | 4 |

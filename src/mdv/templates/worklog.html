@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ title }} · Worklog</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
   <script src="/static/js/chart.umd.min.js"></script>
   <style>
     /* ── Reset & tokens ───────────────────────────────────────────── */
@@ -424,21 +425,30 @@
       width: 14px;
       text-align: center;
     }
-    .cal-tip-task.t-done      { color: var(--text-muted); }
-    .cal-tip-task.t-done .glyph { color: var(--success); }
+    .cal-tip-task.t-done      { color: #6a9c82; }
+    .cal-tip-task.t-done .glyph { color: #6a9c82; }
     .cal-tip-task.t-progress  { color: var(--accent); }
     .cal-tip-task.t-progress .glyph { color: var(--accent); }
-    .cal-tip-task.t-cancelled { color: var(--text-muted); opacity: .6; }
+    .cal-tip-task.t-cancelled { color: var(--text-muted); opacity: .5; }
     .cal-tip-task.t-cancelled .glyph { color: var(--text-muted); }
     .cal-tip-task.t-pending   { color: var(--text-dim); }
     .cal-tip-task.t-pending .glyph { color: var(--text-muted); }
+    .cal-tip-task.t-blocked   { color: #b68b5e; }
+    .cal-tip-task.t-blocked .glyph { color: #b68b5e; }
+    .cal-tip-task .task-txt {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
     .tip-time-capsule {
       display: inline-block;
       font-family: 'JetBrains Mono', monospace;
       font-size: .65em;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-dim);
       border-radius: 99px;
       padding: 1px 6px;
       margin-left: 6px;
@@ -542,7 +552,6 @@
   <div class="header">
     <h1>{{ title }}</h1>
     <span class="subtitle">worklog dashboard</span>
-    <span class="badge">{{ target_hours }}h/day · {{ weekly_target_h }}h/wk target{% if has_baseline %} · {{ baseline_hours }}h/day baseline{% endif %}</span>
   </div>
 
   <!-- ── Warnings panel (shown only when parsing issues exist) ── -->
@@ -568,33 +577,46 @@
   </div>
   {% endif %}
 
-  <!-- ── Today Banner ── -->
   {% if today %}
-  <div class="today-banner" id="today-banner">
-    <div>
-      <div class="label">Today</div>
-      <div class="value {% if today.time_h >= target_hours %}success{% elif today.time_h >= target_hours * 0.5 %}{% else %}warn{% endif %}">
-        {{ (today.time_min // 60) }}h {{ (today.time_min % 60) }}m
+  <div class="today-banner" id="today-banner" style="align-items: stretch;">
+    <div style="flex-shrink: 0; min-width: 250px;">
+      <div class="label" style="display: flex; justify-content: space-between; align-items: baseline;">
+        <span>Today</span>
+        <span class="value {% if today.completed_time_h >= target_hours %}success{% elif today.completed_time_h >= target_hours * 0.5 %}{% else %}warn{% endif %}" style="font-size: 1.1rem; text-transform:none;">
+          {{ (today.completed_time_min // 60) }}h {% if today.completed_time_min % 60 > 0 %}{{ (today.completed_time_min % 60) }}m{% else %}0m{% endif %}
+          <span style="font-size: 0.65em; font-weight: normal; color: var(--text-dim); margin-left: 2px;">(planned {{ (today.time_min // 60) }}h {% if today.time_min % 60 > 0 %}{{ (today.time_min % 60) }}m{% else %}0m{% endif %})</span>
+        </span>
+      </div>
+      
+      <div style="margin-top: 12px; font-size: .65rem; color: var(--text-dim); display: flex; justify-content: space-between; letter-spacing: .05em; text-transform: uppercase;">
+        <span>Day</span>
+      </div>
+      <div style="height: 6px; background: rgba(255,255,255,.05); border-radius: 4px; margin-top: 4px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.05);">
+        <div id="pb-day-plan" style="position: absolute; top:0; bottom:0; left:0; border-radius: 4px; background: rgba(108,142,245,.25); transition: width .5s; width: 0%; z-index: 0;"></div>
+        <div id="pb-day" style="position: absolute; top:0; bottom:0; left:0; border-radius: 4px; background: var(--accent); transition: width .5s; width: 0%; z-index: 1;"></div>
+        <div id="marker-day-baseline" style="position: absolute; top:0; bottom:0; width: 2px; background: var(--warn); left: 0%; opacity: 0; title: 'Baseline'; z-index: 2;"></div>
+        <div id="marker-day-target" style="position: absolute; top:0; bottom:0; width: 2px; background: var(--success); left: 0%; opacity: 0; title: 'Target'; z-index: 2;"></div>
+      </div>
+      
+      <div style="margin-top: 16px; font-size: .65rem; color: var(--text-dim); display: flex; justify-content: space-between; letter-spacing: .05em; text-transform: uppercase;">
+        <span>Week Progress</span>
+        <span id="week-time-label" style="font-family: 'JetBrains Mono', monospace; font-size: .6rem; font-weight: normal; text-transform: none;">--</span>
+      </div>
+      <div style="height: 6px; background: rgba(255,255,255,.05); border-radius: 4px; margin-top: 4px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.05);">
+        <div id="pb-week" style="position: absolute; top:0; bottom:0; left:0; border-radius: 4px; background: var(--accent); transition: width .5s; width: 0%; z-index: 1;"></div>
+        <div id="marker-week-baseline" style="position: absolute; top:0; bottom:0; width: 2px; background: var(--warn); left: 0%; opacity: 0; z-index: 2;"></div>
+        <div id="marker-week-target" style="position: absolute; top:0; bottom:0; width: 2px; background: var(--success); left: 0%; opacity: 0; z-index: 2;"></div>
       </div>
     </div>
-    {% if today.blocked %}
-    <div class="sep"></div>
-    <div class="blocked-list">
-      <div class="label">Blocked</div>
-      {% for b in today.blocked %}
-      <span class="blocked-tag">{{ b }}</span>
-      {% endfor %}
+    
+    <div class="sep" style="height: auto;"></div>
+    
+    <div class="blocked-list" style="flex: 1; min-width: 0; align-self: start;">
+      <div class="label" style="margin-bottom: 8px;">Tasks</div>
+      <div id="today-tasks-out" style="padding-right: 8px; font-size: .85em;">
+        <!-- JS renders this -->
+      </div>
     </div>
-    {% endif %}
-    {% if today.pending and not today.blocked %}
-    <div class="sep"></div>
-    <div class="blocked-list">
-      <div class="label">Pending</div>
-      {% for p in today.pending %}
-      <span class="blocked-tag" style="color:var(--warn);background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.2)">{{ p }}</span>
-      {% endfor %}
-    </div>
-    {% endif %}
   </div>
   {% else %}
   <div class="today-banner" style="padding:16px 24px">
@@ -738,23 +760,27 @@ function tipTimeClass(entry) {
 
 const GLYPHS = { done: '✓', in_progress: '◷', cancelled: '✕', pending: '·' };
 
-function renderTaskList(tasks, maxItems) {
+function renderTaskList(tasks, maxItems, indent = 0) {
   let out = '';
   let count = 0;
-  function walk(list) {
+  function walk(list, level) {
     for (const t of list) {
-      if (count >= maxItems) break;
+      if (maxItems && count >= maxItems) break;
       let cls = 't-pending', glyph = GLYPHS.pending;
       if (t.done)        { cls = 't-done';      glyph = GLYPHS.done; }
       else if (t.cancelled) { cls = 't-cancelled'; glyph = GLYPHS.cancelled; }
       else if (t.in_progress) { cls = 't-progress'; glyph = GLYPHS.in_progress; }
+      
+      if (!t.done && !t.cancelled && t.blocked) { cls = 't-blocked'; glyph = '⊘'; }
+      
       const timeStr = t.time_min > 0 ? `<span class="tip-time-capsule">${fmtTime(t.time_min)}</span>` : '';
-      out += `<div class="cal-tip-task ${cls}"><span class="glyph">${glyph}</span><span>${t.text}${timeStr}</span></div>`;
+      const pad = level * 14;
+      out += `<div class="cal-tip-task ${cls}" style="padding-left: ${pad}px"><span class="glyph">${glyph}</span><span class="task-txt" title="${t.text.replace(/"/g, '&quot;')}">${t.text}${timeStr}</span></div>`;
       count++;
-      if (t.children && t.children.length && count < maxItems) walk(t.children);
+      if (t.children && t.children.length && (!maxItems || count < maxItems)) walk(t.children, level + 1);
     }
   }
-  walk(tasks);
+  walk(tasks, indent);
   return out;
 }
 
@@ -912,6 +938,9 @@ function buildChartData(range) {
 }
 
 function initChart() {
+  Chart.defaults.font.family = "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";
+  Chart.defaults.color = 'rgba(255, 255, 255, 0.5)';
+  
   const ctx = document.getElementById('timeChart').getContext('2d');
   const { labels, values, target, baseline } = buildChartData(currentRange);
 
@@ -970,7 +999,6 @@ function initChart() {
         legend: {
           labels: {
             color: '#64748b',
-            font: { family: 'Inter', size: 12 },
             boxWidth: 12,
             padding: 20,
           }
@@ -996,7 +1024,6 @@ function initChart() {
           grid: { color: 'rgba(38,44,62,.6)' },
           ticks: {
             color: '#64748b',
-            font: { family: 'Inter', size: 11 },
             maxTicksLimit: 10,
           }
         },
@@ -1005,7 +1032,6 @@ function initChart() {
           grid: { color: 'rgba(38,44,62,.6)' },
           ticks: {
             color: '#64748b',
-            font: { family: 'Inter', size: 11 },
             callback: v => `${v}h`,
           }
         }
@@ -1042,6 +1068,55 @@ function toggleWarnings() {
 /* ── Boot ──────────────────────────────────────────────────────── */
 renderCalendar();
 initChart();
+
+if (TODAY_DATA) {
+  const tasksOut = document.getElementById('today-tasks-out');
+  if (tasksOut && TODAY_DATA.tasks) {
+    tasksOut.innerHTML = renderTaskList(TODAY_DATA.tasks, null, 0);
+  }
+  
+  const dCur = TODAY_DATA.completed_time_min;
+  const dPlan = TODAY_DATA.time_min;
+  const dMax = Math.max(dPlan, TARGET_MIN * 1.1, BASELINE_MIN * 1.1) || 1;
+  const dPct = (v) => `${Math.min(100, (v / dMax) * 100)}%`;
+  
+  setTimeout(() => {
+    document.getElementById('pb-day-plan').style.width = dPct(dPlan);
+    document.getElementById('pb-day').style.width = dPct(dCur);
+    if (BASELINE_MIN > 0) {
+      const mb = document.getElementById('marker-day-baseline');
+      mb.style.left = dPct(BASELINE_MIN);
+      mb.style.opacity = '1';
+    }
+    if (TARGET_MIN > 0) {
+      const mt = document.getElementById('marker-day-target');
+      mt.style.left = dPct(TARGET_MIN);
+      mt.style.opacity = '1';
+    }
+    
+    const weekDays = [...ALL_DAYS.filter(d => d.week === TODAY_DATA.week), TODAY_DATA];
+    const wCur = weekDays.reduce((sum, d) => sum + d.time_min, 0);
+    const wTarget = WEEKLY_TARGET_H * 60;
+    const wBaseline = WEEKLY_BASELINE_H * 60 || 0;
+    
+    const wMax = Math.max(wCur, wTarget * 1.1, wBaseline * 1.1) || 1;
+    const wPct = (v) => `${Math.min(100, (v / wMax) * 100)}%`;
+    
+    document.getElementById('week-time-label').innerText = fmtTime(wCur);
+    document.getElementById('pb-week').style.width = wPct(wCur);
+    
+    if (wBaseline > 0) {
+      const mbw = document.getElementById('marker-week-baseline');
+      mbw.style.left = wPct(wBaseline);
+      mbw.style.opacity = '1';
+    }
+    if (wTarget > 0) {
+      const mtw = document.getElementById('marker-week-target');
+      mtw.style.left = wPct(wTarget);
+      mtw.style.opacity = '1';
+    }
+  }, 100);
+}
 </script>
 </body>
 </html>
