@@ -451,10 +451,13 @@ def parse(path: str | Path) -> Worklog:
         config = _parse_config_table(config_lines)
 
     # ── Rule 1: all past days must be fully complete ───────────────────
-    today_date = date.today()
+    # Use the latest entry date as the boundary — the most recent logged day
+    # is the "active" day and should not be validated for completeness.
+    all_day_dates = [day.date for week in weeks for day in week.days]
+    latest_entry_date = max(all_day_dates) if all_day_dates else date.today()
     for week in weeks:
         for day in week.days:
-            if day.date >= today_date:
+            if day.date >= latest_entry_date:
                 continue
             incomplete = [
                 t for t in _iter_leaves(day.tasks)
@@ -486,7 +489,13 @@ def parse(path: str | Path) -> Worklog:
 # ---------------------------------------------------------------------------
 
 def to_json(worklog: Worklog) -> dict:
-    today = date.today()
+    # Use the latest logged entry as "today" regardless of wall-clock date.
+    # This means the most-recent entry is always treated as the current/active
+    # day and all earlier entries are treated as history.
+    all_days_flat = [
+        day for week in worklog.weeks for day in week.days
+    ]
+    latest_date = max((d.date for d in all_days_flat), default=None)
 
     days_data: list[dict] = []
     today_data: Optional[dict] = None
@@ -498,8 +507,9 @@ def to_json(worklog: Worklog) -> dict:
                 "week":        _iso_week(day.date),
                 "time_min":    day.total_time_min,
                 "time_h":      round(day.total_time_min / 60, 2),
+                "tasks":       _serialize_tasks(day.tasks),
             }
-            if day.date == today:
+            if day.date == latest_date:
                 today_data = {
                     **entry,
                     "blocked": [t.text for t in day.blocked_tasks],
@@ -556,3 +566,18 @@ def to_json(worklog: Worklog) -> dict:
 def _iso_week(d: date) -> str:
     iso = d.isocalendar()
     return f"{iso.year}-W{iso.week:02d}"
+
+
+def _serialize_tasks(tasks: list[Task]) -> list[dict]:
+    """Serialize root-level tasks for JSON (used in calendar tooltip)."""
+    result = []
+    for t in tasks:
+        result.append({
+            "text":        t.text,
+            "done":        t.done,
+            "in_progress": t.in_progress,
+            "cancelled":   t.cancelled,
+            "time_min":    t.total_time_min,
+            "children":    _serialize_tasks(t.children),
+        })
+    return result
