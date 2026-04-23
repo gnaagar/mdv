@@ -36,12 +36,6 @@ RE_TASK       = re.compile(
     re.IGNORECASE,
 )
 RE_DURATION   = re.compile(r"t:(?=\d)(?:(?P<hours>\d+)h)?(?:(?P<mins>\d+)m)?")
-RE_CONFIG_ROW = re.compile(r"^\|\s*(.+?)\s*\|\s*(.+?)\s*\|")
-
-
-# ---------------------------------------------------------------------------
-# Data classes
-# ---------------------------------------------------------------------------
 
 @dataclass
 class ParseWarning:
@@ -74,6 +68,13 @@ class Task:
             return self.time_min
         return sum(c.total_time_min for c in self.children)
 
+    @property
+    def completed_time_min(self) -> int:
+        """Leaf: own time if done. Non-leaf: sum of completed children."""
+        if self.is_leaf:
+            return self.time_min if self.done else 0
+        return sum(c.completed_time_min for c in self.children)
+
 
 @dataclass
 class Day:
@@ -84,6 +85,10 @@ class Day:
     @property
     def total_time_min(self) -> int:
         return sum(t.total_time_min for t in self.tasks)
+
+    @property
+    def completed_time_min(self) -> int:
+        return sum(t.completed_time_min for t in self.tasks)
 
     @property
     def done_count(self) -> int:
@@ -341,29 +346,6 @@ def _validate_task_tree(
         _validate_task_tree(t.children, warns)
 
 
-def _parse_config_table(lines: list[str]) -> WorklogConfig:
-    cfg = WorklogConfig()
-    for line in lines:
-        m = RE_CONFIG_ROW.match(line.strip())
-        if not m:
-            continue
-        key   = m.group(1).strip().lower()
-        value = m.group(2).strip()
-
-        if key == "target hours":
-            try:
-                cfg.target_hours = float(value)
-            except ValueError:
-                pass
-        elif key == "baseline hours":
-            try:
-                cfg.baseline_hours = float(value)
-            except ValueError:
-                pass
-
-    return cfg
-
-
 # ---------------------------------------------------------------------------
 # Main parser
 # ---------------------------------------------------------------------------
@@ -377,11 +359,26 @@ def parse(path: str | Path) -> Worklog:
     config  = WorklogConfig()
     all_warnings: list[ParseWarning] = []
 
-    current_section = None          # "week" | "config" | None
+    if text.startswith("<!--") and "worklog=true" in text[:500]:
+        end_idx = text.find("-->")
+        if end_idx != -1:
+            comment_content = text[4:end_idx]
+            for part in comment_content.split(";"):
+                if "=" in part:
+                    k, v = part.split("=", 1)
+                    k = k.strip().lower()
+                    v = v.strip()
+                    if k == "target_hours":
+                        try: config.target_hours = float(v)
+                        except ValueError: pass
+                    elif k == "baseline_hours":
+                        try: config.baseline_hours = float(v)
+                        except ValueError: pass
+
+    current_section = None          # "week" | None
     current_week: Optional[Week]  = None
     current_day:  Optional[Day]   = None
     pending_task_lines: list[tuple[int, str]] = []
-    config_lines: list[str] = []
 
     def flush_day() -> None:
         """Finalize the current day: build its task tree and append to week."""
@@ -419,8 +416,7 @@ def parse(path: str | Path) -> Worklog:
         if m_sec:
             flush_day()
             current_day = None
-            sec_name = m_sec.group(1).strip().lower()
-            current_section = "config" if sec_name == "config" else None
+            current_section = None
             current_week = None
             continue
 
@@ -440,15 +436,8 @@ def parse(path: str | Path) -> Worklog:
                 pending_task_lines.append((line_no, line))
             continue
 
-        # ── Config section lines ──────────────────────────────────────
-        if current_section == "config":
-            config_lines.append(line)
-
     # Final flush
     flush_day()
-
-    if config_lines:
-        config = _parse_config_table(config_lines)
 
     # ── Rule 1: all past days must be fully complete ───────────────────
     # Use the latest entry date as the boundary — the most recent logged day
@@ -507,6 +496,8 @@ def to_json(worklog: Worklog) -> dict:
                 "week":        _iso_week(day.date),
                 "time_min":    day.total_time_min,
                 "time_h":      round(day.total_time_min / 60, 2),
+                "completed_time_min": day.completed_time_min,
+                "completed_time_h":   round(day.completed_time_min / 60, 2),
                 "tasks":       _serialize_tasks(day.tasks),
             }
             if day.date == latest_date:
@@ -577,7 +568,9 @@ def _serialize_tasks(tasks: list[Task]) -> list[dict]:
             "done":        t.done,
             "in_progress": t.in_progress,
             "cancelled":   t.cancelled,
+            "blocked":     t.blocked,
             "time_min":    t.total_time_min,
+            "completed_time_min": t.completed_time_min,
             "children":    _serialize_tasks(t.children),
         })
     return result

@@ -76,6 +76,7 @@ url_map = Map([
     Rule("/api/search", endpoint="search"),
     Rule("/api/render", endpoint="api_render", methods=["POST"]),
     Rule("/live", endpoint="live"),
+    Rule("/favicon.ico", endpoint="favicon"),
 ])
 
 
@@ -216,6 +217,14 @@ class App:
         html = env.get_template("live.html").render(theme=self.theme)
         return Response(html, mimetype="text/html")
 
+    def on_favicon(self, request):
+        # Redirect explicit browser requests for /favicon.ico correctly to new internal svg
+        return Response(status=302, headers={"Location": "/static/favicon.svg"})
+
+    def on_static(self, request, filename):
+        # Graceful fallback, will usually be intercepted by SharedDataMiddleware successfully
+        return Response("Not found", status=404, mimetype="text/plain")
+
     # -----------------------------------------------------
     # WSGI plumbing
     # -----------------------------------------------------
@@ -240,7 +249,6 @@ def main():
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
-    parser.add_argument("--worklog", "-w", default=None, help="Path to worklog markdown file (enables /worklog dashboard)")
     parser.add_argument("--plugins", default="draw,worklog", help="Comma-separated list of plugins to load")
     args = parser.parse_args()
 
@@ -251,7 +259,6 @@ def main():
         "dir": str(target_path.parent) if lite_mode else str(target_path),
         "theme": args.theme,
         "ignore_dirs": args.ignore,
-        "worklog": args.worklog,
         "plugins": args.plugins,
         "lite_file": target_path.name if lite_mode else None
     }
