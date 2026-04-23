@@ -4,15 +4,18 @@ import argparse
 import json
 import mimetypes
 import os
+import threading
+import webbrowser
 from importlib.resources import files
 from pathlib import Path
 
 from mdv.logger import get_logger
 from mdv.mdparser import MarkdownParser
 from mdv.sv_state import MdViewerState
+from mdv.plugins import load_plugins
 
 from jinja2 import Environment, PackageLoader, select_autoescape
-from werkzeug.serving import run_simple
+from werkzeug.serving import run_simple, make_server
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound
@@ -71,9 +74,8 @@ url_map = Map([
     Rule("/t/<path:filename>", endpoint="mdtext"),
     Rule("/api/tree", endpoint="dirtree"),
     Rule("/api/search", endpoint="search"),
-    Rule("/draw", endpoint="draw"),
-    Rule("/worklog", endpoint="worklog"),
-    Rule("/worklog/data", endpoint="worklog_data"),
+    Rule("/api/render", endpoint="api_render", methods=["POST"]),
+    Rule("/live", endpoint="live"),
 ])
 
 
@@ -84,19 +86,12 @@ url_map = Map([
 class App:
     def __init__(self, config):
         self.url_map = url_map
+        self.config = config
         self.state = MdViewerState(config)
         self.theme = config.get("theme", "light")
 
-        # Optionally attach worklog dashboard
-        worklog_file = config.get("worklog")
-        if worklog_file:
-            from mdv.dashboard.routes import WorklogRoutes
-            _wl = WorklogRoutes(worklog_file)
-            self.on_worklog      = lambda req, **kw: _wl.on_worklog(req)
-            self.on_worklog_data = lambda req, **kw: _wl.on_worklog_data(req)
-        else:
-            self.on_worklog      = lambda req, **kw: Response("Worklog not configured. Pass --worklog <file>", status=404, mimetype="text/plain")
-            self.on_worklog_data = self.on_worklog
+        # Load plugins
+        load_plugins(self, config.get("plugins"))
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -143,6 +138,7 @@ class App:
         return self.render_markdown(template, parsed)
 
     def render_file(self, template, filename):
+        # Always read fresh in lite_mode to avoid caching delays
         md_html = self.state.get_content(filename)
         return self.render_markdown(template, md_html)
 
@@ -156,6 +152,10 @@ class App:
     # -----------------------------------------------------
 
     def on_home(self, request):
+        # In lite mode, go directly to the file view
+        lite_file = self.config.get("lite_file")
+        if lite_file:
+            return Response(status=302, headers={"Location": f"/v/{lite_file}"})
         return Response(status=302, headers={"Location": "/v"})
 
     def on_index(self, request):
@@ -207,12 +207,14 @@ class App:
         raw_text = self.state.get_content(filename, raw=True)
         return Response(raw_text, mimetype="text/plain")
 
-    def on_draw(self, request):
-        html = env.get_template("draw.html").render(theme=self.theme)
+    def on_api_render(self, request):
+        raw_md = request.get_data(as_text=True)
+        html = MarkdownParser.parse(raw_md)
         return Response(html, mimetype="text/html")
 
-    # NOTE:
-    # on_static REMOVED — handled by SharedDataMiddleware
+    def on_live(self, request):
+        html = env.get_template("live.html").render(theme=self.theme)
+        return Response(html, mimetype="text/html")
 
     # -----------------------------------------------------
     # WSGI plumbing
@@ -233,17 +235,36 @@ class App:
 
 def main():
     parser = argparse.ArgumentParser(description="Markdown viewer")
+    parser.add_argument("target", nargs="?", default=".", help="Target directory or file to view")
     parser.add_argument("--port", "-p", type=int, default=8000)
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
     parser.add_argument("--worklog", "-w", default=None, help="Path to worklog markdown file (enables /worklog dashboard)")
+    parser.add_argument("--plugins", default="draw,worklog", help="Comma-separated list of plugins to load")
     args = parser.parse_args()
 
-    app = App(config={
-        "dir": os.getcwd(),
+    target_path = Path(args.target).resolve()
+    lite_mode = target_path.is_file()
+
+    config = {
+        "dir": str(target_path.parent) if lite_mode else str(target_path),
         "theme": args.theme,
         "ignore_dirs": args.ignore,
         "worklog": args.worklog,
-    })
-    run_simple(args.host, args.port, app, use_reloader=True, threaded=True)
+        "plugins": args.plugins,
+        "lite_file": target_path.name if lite_mode else None
+    }
+
+    app = App(config=config)
+
+    if lite_mode:
+        port = 0
+        srv = make_server(args.host, port, app, threaded=True)
+        actual_port = srv.port
+        url = f"http://{args.host}:{actual_port}/v/{config['lite_file']}"
+        print(f"Lite mode: serving {target_path} on {url}")
+        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+        srv.serve_forever()
+    else:
+        run_simple(args.host, args.port, app, use_reloader=True, threaded=True)

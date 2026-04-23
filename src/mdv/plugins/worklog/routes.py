@@ -6,7 +6,7 @@ Registered onto the main App when --worklog <file> is given.
 import json
 from pathlib import Path
 
-from mdv.dashboard.parser import parse, to_json
+from mdv.plugins.worklog.parser import parse, to_json
 
 
 class WorklogRoutes:
