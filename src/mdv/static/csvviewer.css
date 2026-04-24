@@ -1,25 +1,25 @@
 /* Premium CSV Viewer Styles */
 body.theme-light {
-    --csv-bg-main: #ffffff;
+    --csv-bg-main: var(--main-bg);
     --csv-bg-panel: #f8fafc;
-    --csv-bg-hover: #f1f5f9;
-    --csv-border: #e2e8f0;
-    --csv-text-main: #0f172a;
-    --csv-text-muted: #64748b;
-    --csv-accent: #3b82f6;
-    --csv-accent-hover: #2563eb;
+    --csv-bg-hover: var(--markdown-table-hover-bg);
+    --csv-border: var(--markdown-table-border);
+    --csv-text-main: var(--text-color);
+    --csv-text-muted: var(--text-muted);
+    --csv-accent: var(--link-color);
+    --csv-accent-hover: var(--link-hover-color);
     --csv-error: #ef4444;
 }
 
 body.theme-dark {
-    --csv-bg-main: #1e1e1e;
-    --csv-bg-panel: #2d2d2d;
-    --csv-bg-hover: #333333;
-    --csv-border: #444444;
-    --csv-text-main: #d4d4d4;
-    --csv-text-muted: #858585;
-    --csv-accent: #4fc1ff;
-    --csv-accent-hover: #60a5fa;
+    --csv-bg-main: var(--main-bg);
+    --csv-bg-panel: var(--markdown-table-header-bg);
+    --csv-bg-hover: var(--markdown-table-hover-bg);
+    --csv-border: var(--markdown-table-border);
+    --csv-text-main: var(--text-color);
+    --csv-text-muted: var(--text-muted);
+    --csv-accent: var(--link-color);
+    --csv-accent-hover: var(--link-hover-color);
     --csv-error: #f87171;
 }
 
@@ -174,19 +174,20 @@ textarea#sql-input:focus {
 }
 
 .execute-btn {
-    background-color: var(--csv-accent);
+    background-color: #10b981;
     color: #fff;
     border: none;
     border-radius: 4px;
-    padding: 6px 14px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    padding: 6px 10px;
     cursor: pointer;
     transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .execute-btn:hover {
-    background-color: var(--csv-accent-hover);
+    background-color: #059669;
 }
 
 /* History List */
