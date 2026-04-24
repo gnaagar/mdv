@@ -1,0 +1,275 @@
+/* Premium CSV Viewer Styles */
+body.theme-light {
+    --csv-bg-main: #ffffff;
+    --csv-bg-panel: #f8fafc;
+    --csv-bg-hover: #f1f5f9;
+    --csv-border: #e2e8f0;
+    --csv-text-main: #0f172a;
+    --csv-text-muted: #64748b;
+    --csv-accent: #3b82f6;
+    --csv-accent-hover: #2563eb;
+    --csv-error: #ef4444;
+}
+
+body.theme-dark {
+    --csv-bg-main: #1e1e1e;
+    --csv-bg-panel: #2d2d2d;
+    --csv-bg-hover: #333333;
+    --csv-border: #444444;
+    --csv-text-main: #d4d4d4;
+    --csv-text-muted: #858585;
+    --csv-accent: #4fc1ff;
+    --csv-accent-hover: #60a5fa;
+    --csv-error: #f87171;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent body scroll */
+}
+
+.csv-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--csv-bg-main);
+    color: var(--csv-text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* Header */
+.csv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1.5rem;
+    background-color: var(--csv-bg-panel);
+    border-bottom: 1px solid var(--csv-border);
+    flex-shrink: 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.app-logo {
+    border-radius: 4px;
+}
+
+.workspace-name {
+    font-weight: 600;
+}
+
+.file-name {
+    color: var(--csv-text-muted);
+}
+
+.header-btn {
+    background: transparent;
+    border: none;
+    color: var(--csv-text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.header-btn:hover {
+    background-color: var(--csv-bg-hover);
+    color: var(--csv-text-main);
+}
+
+/* Layout Panels */
+.csv-top-panel {
+    flex: 1 1 60vh;
+    overflow: auto;
+    background-color: var(--csv-bg-main);
+    padding: 0 1.5rem;
+}
+
+.csv-resize-handle {
+    height: 8px;
+    background-color: var(--csv-bg-panel);
+    cursor: row-resize;
+    border-top: 1px solid var(--csv-border);
+    border-bottom: 1px solid var(--csv-border);
+    flex-shrink: 0;
+    transition: background-color 0.2s;
+}
+
+.csv-resize-handle:hover {
+    background-color: var(--csv-accent);
+}
+
+.csv-bottom-panel {
+    flex: 0 0 35vh;
+    display: flex;
+    background-color: var(--csv-bg-panel);
+}
+
+/* Inside Bottom Panel */
+.query-editor {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--csv-border);
+    padding: 1rem;
+}
+
+.query-history {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.panel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--csv-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--csv-bg-hover);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--csv-accent);
+}
+
+textarea#sql-input {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    background-color: var(--csv-bg-main);
+    color: var(--csv-text-main);
+    border: 1px solid var(--csv-border);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    box-sizing: border-box;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+textarea#sql-input:focus {
+    outline: none;
+    border-color: var(--csv-accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.execute-btn {
+    background-color: var(--csv-accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.execute-btn:hover {
+    background-color: var(--csv-accent-hover);
+}
+
+/* History List */
+#history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#history-list li {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.8rem;
+    padding: 0.75rem;
+    background-color: var(--csv-bg-main);
+    border: 1px solid var(--csv-border);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.1s ease;
+}
+
+#history-list li:hover {
+    border-color: var(--csv-accent);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Table Design */
+.csv-data-table {
+    width: max-content;
+    max-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.csv-data-table th, 
+.csv-data-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--csv-border);
+    border-right: 1px solid var(--csv-border);
+    white-space: nowrap;
+}
+
+.csv-data-table th {
+    background-color: var(--csv-bg-panel);
+    font-weight: 600;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--csv-border);
+}
+
+.csv-data-table th:first-child,
+.csv-data-table td:first-child {
+    border-left: 1px solid var(--csv-border);
+}
+
+.csv-data-table tr:hover td {
+    background-color: var(--csv-bg-hover);
+}
+
+.null-cell {
+    color: var(--csv-text-muted);
+    font-weight: 700;
+    opacity: 0.6;
+}
+
+/* States */
+.loading-state, .error-msg, .empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--csv-text-muted);
+}
+
+.error-msg {
+    color: var(--csv-error);
+    background-color: rgba(239, 68, 68, 0.1);
+    border-radius: 6px;
+    margin: 1rem;
+}

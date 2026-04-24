@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/csvviewer.css">
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/csvviewer.js"></script>
+{% endblock %}
+
+{% block body %}
+  <div class="csv-container">
+    <div class="csv-header">
+      <div class="header-left">
+        <a href="/" class="header-btn" title="Home">
+          <img src="/static/logo.png" alt="Logo" class="app-logo" width="24" height="24">
+        </a>
+        <span class="workspace-name">{{ workspace_name }}</span>
+        <span class="file-name">/ {{ filename }}</span>
+      </div>
+      <div class="header-right">
+        <button id="btn-theme-toggle" class="header-btn" title="Toggle Theme">
+          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path></svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="csv-top-panel">
+      <div id="csv-table-container">
+        <div class="loading-state">Loading data...</div>
+      </div>
+    </div>
+    
+    <div class="csv-resize-handle"></div>
+    
+    <div class="csv-bottom-panel">
+      <div class="query-editor">
+        <div class="panel-title">
+          <span>SQL Query (table: <code>data</code>)</span>
+          <button id="btn-execute" class="execute-btn">Execute</button>
+        </div>
+        <textarea id="sql-input" placeholder="SELECT * FROM data LIMIT 100&#10;&#10;-- Tips:&#10;-- You can use WHERE, ORDER BY, GROUP BY, and aggregates like COUNT()&#10;-- Numeric columns are auto-cast! Try: SELECT * WHERE age > 20" autocomplete="off" spellcheck="false"></textarea>
+      </div>
+      
+      <div class="query-history">
+        <div class="panel-title">Recent Queries</div>
+        <ul id="history-list">
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <input type="hidden" id="csv-filename" value="{{ filename }}">
+{% endblock %}
