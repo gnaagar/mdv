@@ -37,9 +37,14 @@
       <div class="query-editor">
         <div class="panel-title">
           <span>SQL Query (table: <code>data</code>)</span>
-          <button id="btn-execute" class="execute-btn">Execute</button>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="opacity: 0.5; font-size: 0.65rem; text-transform: lowercase;">ctrl + enter</span>
+            <button id="btn-execute" class="execute-btn" title="Execute Query">
+              <svg fill="currentColor" viewBox="0 0 24 24" width="18" height="18"><path d="M8 5.14v14l11-7-11-7z"></path></svg>
+            </button>
+          </div>
         </div>
-        <textarea id="sql-input" placeholder="SELECT * FROM data LIMIT 100&#10;&#10;-- Tips:&#10;-- You can use WHERE, ORDER BY, GROUP BY, and aggregates like COUNT()&#10;-- Numeric columns are auto-cast! Try: SELECT * WHERE age > 20" autocomplete="off" spellcheck="false"></textarea>
+        <textarea id="sql-input" placeholder="SELECT * FROM data LIMIT 10&#10;&#10;-- Tips:&#10;-- You can use WHERE, ORDER BY, GROUP BY, and aggregates like COUNT()&#10;-- Numeric columns are auto-cast! Try: SELECT * WHERE age > 20" autocomplete="off" spellcheck="false"></textarea>
       </div>
       
       <div class="query-history">

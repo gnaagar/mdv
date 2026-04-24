@@ -32,7 +32,7 @@ def setup_plugin(app):
         try:
             payload = json.loads(request.get_data(as_text=True))
             filename = payload.get("filename")
-            query = payload.get("query", "SELECT * FROM data LIMIT 100")
+            query = payload.get("query", "SELECT * FROM data LIMIT 10")
             
             q_upper = query.strip().upper()
             if not q_upper.startswith("SELECT") and not q_upper.startswith("WITH") and not q_upper.startswith("EXPLAIN"):

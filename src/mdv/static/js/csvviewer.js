@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sqlInput = document.getElementById('sql-input');
     const btnExecute = document.getElementById('btn-execute');
     const historyList = document.getElementById('history-list');
-    
+
     const btnThemeToggle = document.getElementById('btn-theme-toggle');
     if (btnThemeToggle) {
         btnThemeToggle.addEventListener('click', () => {
@@ -27,52 +27,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function executeQuery(query, addToHistory = true) {
         tableContainer.innerHTML = '<div class="loading-state">Executing query...</div>';
-        
+
         try {
             const response = await fetch('/api/csv/query', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ filename, query })
             });
-            
+
             const result = await response.json();
-            
+
             if (!result.success) {
                 tableContainer.innerHTML = `<div class="error-msg">Error: ${result.error}</div>`;
                 return;
             }
-            
+
             if (isFirstLoad && result.headers && result.headers.length > 0) {
                 isFirstLoad = false;
                 if (!sqlInput.value.trim()) {
-                    sqlInput.value = `SELECT ${result.headers.join(', ')} FROM data LIMIT 100`;
+                    sqlInput.value = `SELECT * FROM data LIMIT 10`;
                 }
             }
-            
-            if (addToHistory && !query.trim().toUpperCase().startsWith("SELECT * FROM DATA LIMIT 100")) {
+
+            if (addToHistory && !query.trim().toUpperCase().startsWith("SELECT * FROM DATA LIMIT 10")) {
                 if (!history.includes(query)) {
                     history.unshift(query);
                     if (history.length > 20) history.pop();
                     renderHistory();
                 }
             }
-            
+
             renderTable(result.headers, result.data);
-            
+
         } catch (e) {
             tableContainer.innerHTML = `<div class="error-msg">Network error: ${e.message}</div>`;
         }
     }
-    
+
     function renderTable(headers, data) {
         if (!data || data.length === 0) {
             tableContainer.innerHTML = '<div class="empty-state">No results found</div>';
             return;
         }
-        
+
         const table = document.createElement('table');
         table.className = 'csv-data-table';
-        
+
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         headers.forEach(h => {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         thead.appendChild(headerRow);
         table.appendChild(thead);
-        
+
         const tbody = document.createElement('tbody');
         data.forEach(row => {
             const tr = document.createElement('tr');
@@ -95,11 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         });
         table.appendChild(tbody);
-        
+
         tableContainer.innerHTML = '';
         tableContainer.appendChild(table);
     }
-    
+
     function renderHistory() {
         historyList.innerHTML = '';
         history.forEach(q => {
@@ -115,11 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnExecute) {
         btnExecute.addEventListener('click', () => {
-            const query = sqlInput.value.trim() || 'SELECT * FROM data LIMIT 100';
+            const query = sqlInput.value.trim() || 'SELECT * FROM data LIMIT 10';
             executeQuery(query);
         });
     }
-    
+
     if (sqlInput) {
         sqlInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -136,32 +136,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const resizeHandle = document.querySelector('.csv-resize-handle');
 
     if (resizeHandle) {
-        resizeHandle.addEventListener('mousedown', function(e) {
+        resizeHandle.addEventListener('mousedown', function (e) {
             isResizing = true;
             document.body.style.cursor = 'row-resize';
             e.preventDefault();
         });
 
-        window.addEventListener('mousemove', function(e) {
+        window.addEventListener('mousemove', function (e) {
             if (!isResizing) return;
             const containerOffsetTop = document.querySelector('.csv-container').offsetTop;
             const headerHeight = document.querySelector('.csv-header').offsetHeight;
-            
+
             // Pointer position relative to the flexible area
             const pointerY = e.clientY - containerOffsetTop - headerHeight;
             const totalHeight = window.innerHeight - headerHeight;
-            
+
             // Limit bounds
             if (pointerY > 100 && pointerY < totalHeight - 100) {
                 const topPct = (pointerY / totalHeight) * 100;
                 const bottomPct = 100 - topPct;
-                
+
                 topPanel.style.flex = `0 0 ${topPct}%`;
                 bottomPanel.style.flex = `0 0 ${bottomPct}%`;
             }
         });
 
-        window.addEventListener('mouseup', function(e) {
+        window.addEventListener('mouseup', function (e) {
             if (isResizing) {
                 isResizing = false;
                 document.body.style.cursor = '';
@@ -171,6 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     if (filename) {
-        executeQuery('SELECT * FROM data LIMIT 100', false);
+        executeQuery('SELECT * FROM data LIMIT 10', false);
     }
 });
