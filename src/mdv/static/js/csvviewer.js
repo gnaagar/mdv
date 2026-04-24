@@ -14,10 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.classList.remove('theme-dark');
                 document.body.classList.add('theme-light');
                 localStorage.setItem('theme', 'light');
+                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: false } }));
             } else {
                 document.body.classList.remove('theme-light');
                 document.body.classList.add('theme-dark');
                 localStorage.setItem('theme', 'dark');
+                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: true } }));
             }
         });
     }

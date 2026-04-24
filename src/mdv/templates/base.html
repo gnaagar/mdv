@@ -19,14 +19,31 @@
       var params = new URLSearchParams(window.location.search);
       var themeParam = params.get('theme');
       var theme = themeParam || localStorage.getItem('theme');
+      if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        theme = 'dark';
+      }
       if (theme === 'dark') {
+        document.body.classList.remove('theme-light');
         document.body.classList.add('theme-dark');
       } else if (theme === 'light') {
         document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
       }
       // Persist query param choice to localStorage for future visits
       if (themeParam) {
         localStorage.setItem('theme', themeParam);
+      }
+
+      // Live listen to system theme changes if no manual preference is set
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+          if (!localStorage.getItem('theme')) {
+            var newTheme = e.matches ? 'dark' : 'light';
+            document.body.classList.remove('theme-light', 'theme-dark');
+            document.body.classList.add('theme-' + newTheme);
+            window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: e.matches } }));
+          }
+        });
       }
     })();
   </script>
