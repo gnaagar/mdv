@@ -1,3 +1,8 @@
+/* ================================================================
+   MDV CSV Viewer
+   Depends on: shared.js (must be loaded before this script)
+   ================================================================ */
+
 document.addEventListener('DOMContentLoaded', () => {
     const filenameInput = document.getElementById('csv-filename');
     const filename = filenameInput ? filenameInput.value : '';
@@ -6,22 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExecute = document.getElementById('btn-execute');
     const historyList = document.getElementById('history-list');
 
+    // Use shared theme toggle from shared.js (replaces 15 lines of duplicate code)
     const btnThemeToggle = document.getElementById('btn-theme-toggle');
     if (btnThemeToggle) {
-        btnThemeToggle.addEventListener('click', () => {
-            const isDark = document.body.classList.contains('theme-dark');
-            if (isDark) {
-                document.body.classList.remove('theme-dark');
-                document.body.classList.add('theme-light');
-                localStorage.setItem('theme', 'light');
-                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: false } }));
-            } else {
-                document.body.classList.remove('theme-light');
-                document.body.classList.add('theme-dark');
-                localStorage.setItem('theme', 'dark');
-                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: true } }));
-            }
-        });
+        btnThemeToggle.addEventListener('click', () => mdvToggleTheme());
     }
 
     let history = [];
