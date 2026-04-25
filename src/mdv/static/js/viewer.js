@@ -1,4 +1,16 @@
+/* ================================================================
+   MDV Viewer
+   Depends on: shared.js (must be loaded before this script)
+   ================================================================ */
+
 document.addEventListener('DOMContentLoaded', onPageLoad);
+
+// Uses shared utilities from shared.js:
+// - MDV_TIMING
+// - MDV_CLASSES
+// - mdvEscapeHtml, mdvFuzzyMatch, mdvCreateHighlighter
+// - mdvAddTempHighlight
+// - mdvIsInputFocused, mdvIsModKey
 
 // -----------------------------------------------------------------------------
 // PAGE STATE AND VARIABLES
@@ -13,12 +25,8 @@ const dirTreeState = {
   cachedEntries: null,
 };
 
-const commonClasses = Object.freeze({
-  scrollableWrapper: 'scrollable-wrapper',
-  mdCodeCopiedHighlight: 'copied',
-  tempHighlight: 'temp-highlight',
-  hidden: 'hidden',
-});
+// Use shared classes instead of local definitions
+const commonClasses = MDV_CLASSES;
 
 const treeClasses = Object.freeze({
   tree: 'tree',
@@ -28,30 +36,10 @@ const treeClasses = Object.freeze({
   active: 'active',
 });
 
-// Shared utilities
-const escapeHtml = (s) => s.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-
-function fuzzyMatch(str, query) {
-  let qIdx = 0;
-  for (let i = 0; i < str.length; i++) {
-    if (str[i].toLowerCase() === query[qIdx]) {
-      qIdx++;
-      if (qIdx === query.length) return true;
-    }
-  }
-  return false;
-}
-
-function createHighlighter(query) {
-  if (!query) return (text) => text;
-  const words = query
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  if (words.length === 0) return (text) => text;
-  const regex = new RegExp(`(${words.join('|')})`, 'gi');
-  return (text) => text.replace(regex, '<mark>$1</mark>');
-}
+// Shared utilities from shared.js
+const escapeHtml = mdvEscapeHtml;
+const fuzzyMatch = mdvFuzzyMatch;
+const createHighlighter = mdvCreateHighlighter;
 
 // -----------------------------------------------------------------------------
 
@@ -228,10 +216,7 @@ function setupModalsAndHeader() {
   // So we MUST NOT double-bind. `live.html` should just let `viewer.js` handle it, or we check if it is already bound.
   // Actually, I'll remove it from `live.html`.
   btnTheme.addEventListener('click', () => {
-    document.body.classList.toggle('theme-dark');
-    const isDark = document.body.classList.contains('theme-dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
+    mdvToggleTheme(); // Use shared function from shared.js
   });
 }
 
@@ -433,10 +418,8 @@ function unwrapHighlightSpans(spans, containerNode) {
 
 // --------------------------------------------------------------------------------
 
-const constants = Object.freeze({
-  debounceDelay: 100, // ms
-  headingSwitchBuffer: 36, // px
-});
+// Use timing constants from shared.js
+const constants = MDV_TIMING;
 
 const state = {
   activeIndices: [],
@@ -951,16 +934,6 @@ function renderTree(container, tree) {
   container.appendChild(ul);
 }
 
-function addTempHighlight(el, duration = 1000, transitionMs = 500) {
-  if (!el) return;
-  el.classList.add(commonClasses.tempHighlight);
-  // Ensure transition is set (in case CSS is missing/overridden)
-  el.style.transition = `background ${transitionMs}ms, box-shadow ${transitionMs}ms`;
-  setTimeout(() => {
-    el.classList.add('fading');
-    setTimeout(() => {
-      el.classList.remove(commonClasses.tempHighlight, 'fading');
-      el.style.transition = ''; // Clean up inline style
-    }, transitionMs);
-  }, duration);
+function addTempHighlight(el, duration, transitionMs) {
+  mdvAddTempHighlight(el, duration, transitionMs);
 }

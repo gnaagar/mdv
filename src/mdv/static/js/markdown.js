@@ -1,3 +1,8 @@
+/* ================================================================
+   MDV Markdown
+   Depends on: shared.js (must be loaded before this script)
+   ================================================================ */
+
 document.addEventListener('DOMContentLoaded', async () => {
   const mdbody = document.getElementById('markdown-body')
 
