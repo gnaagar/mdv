@@ -6,6 +6,26 @@
   <title>{% block title %}mdv{% endblock %}</title>
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <style>
+    @font-face {
+      font-family: 'Noto Serif';
+      src: url('/static/fonts/NotoSerif-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Noto Serif';
+      src: url('/static/fonts/NotoSerif-Italic.ttf') format('truetype');
+      font-weight: 400;
+      font-style: italic;
+    }
+    @font-face {
+      font-family: 'Noto Serif';
+      src: url('/static/fonts/NotoSerif-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+  </style>
   <link rel="stylesheet" href="/static/markdown.css">
   {% block styles %}
   {% endblock %}

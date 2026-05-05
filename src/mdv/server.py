@@ -249,7 +249,7 @@ def main():
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
-    parser.add_argument("--plugins", default="draw,worklog,csvviewer", help="Comma-separated list of plugins to load")
+    parser.add_argument("--plugins", default="", help="Comma-separated list of plugins to load")
     parser.add_argument("--csv", action="store_true", help="View target file as CSV using the csvviewer plugin")
     args = parser.parse_args()
 

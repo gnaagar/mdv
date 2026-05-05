@@ -8,11 +8,34 @@ def load_plugins(app, plugins_list):
     """
     Dynamically loads plugins specified in plugins_list ("draw,worklog")
     and registers their routes on the app instance.
+    
+    In lite mode (single file), only loads plugins relevant to that file type.
+    In normal mode (directory), loads all specified plugins.
     """
     if not plugins_list:
         return
-        
+    
     plugin_names = [p.strip() for p in plugins_list.split(",") if p.strip()]
+    
+    # Lite mode detection: single file being viewed
+    lite_file = app.config.get("lite_file")
+    is_lite_mode = lite_file is not None
+    
+    # Auto-filter plugins based on file type in lite mode
+    if is_lite_mode:
+        # csvviewer only useful for CSV files in lite mode
+        filtered_names = []
+        for name in plugin_names:
+            if name == "csvviewer":
+                # Only load csvviewer if viewing a CSV file
+                if lite_file.endswith('.csv') or app.config.get("csv_mode"):
+                    logger.info(f"Auto-loading csvviewer for CSV file: {lite_file}")
+                    filtered_names.append(name)
+                else:
+                    logger.debug(f"Skipping csvviewer (not a CSV file): {lite_file}")
+            else:
+                filtered_names.append(name)
+        plugin_names = filtered_names
     
     for loader, module_name, is_pkg in pkgutil.iter_modules(__path__):
         if module_name in plugin_names:
