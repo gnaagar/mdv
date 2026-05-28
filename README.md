@@ -55,6 +55,21 @@ You can then view the file `abc.md` in two ways:
 
 ## Development
 
+### Running from source
+
+```sh
+uvx .
+```
+
+When iterating, `uvx .` may serve a cached build. To force a fresh run without nuking the whole uv cache:
+
+```sh
+uvx -n .        # bypasses cache entirely, rebuilds from source
+# or: uvx --no-cache .
+```
+
+### Sass styles
+
 Sass standalone binary:
 
 ```
