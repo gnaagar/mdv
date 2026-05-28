@@ -48,10 +48,9 @@ Suppose directory listing of `~/workspace/scratch` is
         └── abc.md
 ```
 
-You can then view the file `abc.md` in three ways:
+You can then view the file `abc.md` in two ways:
 
-- `http://localhost:5000/v/notes/topics/abc.md`: Default viewer
-- `http://localhost:5000/m/notes/topics/abc.md`: Minimal viewer
+- `http://localhost:5000/v/notes/topics/abc.md`: Default viewer (supports toggling Focus Mode inside the UI)
 - `http://localhost:5000/t/notes/topics/abc.md`: Plaintext form
 
 ## Development

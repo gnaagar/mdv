@@ -1,7 +1,6 @@
 import re
-from markdown_it import MarkdownIt
-
-from bs4 import BeautifulSoup, Tag
+import html
+from html.parser import HTMLParser
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
@@ -32,11 +31,8 @@ def add_target_blank(md):
         
         href = token.attrGet('href')
         if href and (href.startswith('http://') or href.startswith('https://')):
-            # Ensure token.attrs exists
             if token.attrs is None:
                 token.attrs = []
-
-            # Add or overwrite 'target' attribute
             token.attrSet('target', '_blank')
 
         return md.renderer.renderToken(tokens, idx, options, env)
@@ -58,29 +54,67 @@ def inject_line_numbers(md):
 add_target_blank(mdparser)
 inject_line_numbers(mdparser)
 
-def wrap_tables_and_images(dom):
-    # Wrap tables
-    for table in dom.find_all('table'):
-        wrapper = dom.new_tag('div', **{'class': 'md-table'})
-        table.replace_with(wrapper)
-        wrapper.append(table)
 
-    # Wrap images
-    for img in dom.find_all('img'):
-        wrapper = dom.new_tag('div', **{'class': 'md-image'})
-        img.replace_with(wrapper)
-        wrapper.append(img)
+class SanitizingHTMLParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.result = []
+        self.dangerous_tag_depth = 0
 
-def simplify_anchor_text(dom):
-    for a in dom.find_all('a', href=True):
-        href = a['href'].strip()
-        text = a.get_text(strip=True)
+    def handle_starttag(self, tag, attrs):
+        tag_lower = tag.lower()
+        if tag_lower in {'script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base', 'form'}:
+            self.dangerous_tag_depth += 1
+            return
+        if self.dangerous_tag_depth > 0:
+            return
 
-        if text == href:
-            if href.startswith('http://'):
-                a.string = href[len('http://'):]
-            elif href.startswith('https://'):
-                a.string = href[len('https://'):]
+        cleaned_attrs = []
+        for name, value in attrs:
+            name_lower = name.lower()
+            if name_lower.startswith('on'):
+                continue
+            if name_lower in ('href', 'src'):
+                val_lower = (value or '').strip().lower()
+                if val_lower.startswith('javascript:') or val_lower.startswith('vbscript:') or val_lower.startswith('data:text/html'):
+                    continue
+            cleaned_attrs.append((name, value))
+
+        attr_str = ""
+        if cleaned_attrs:
+            attr_str = " " + " ".join(
+                f'{k}="{html.escape(v)}"' if v is not None else k
+                for k, v in cleaned_attrs
+            )
+        
+        if tag_lower in {'img', 'br', 'hr', 'input', 'meta', 'link'}:
+            self.result.append(f"<{tag}{attr_str} />")
+        else:
+            self.result.append(f"<{tag}{attr_str}>")
+
+    def handle_endtag(self, tag):
+        tag_lower = tag.lower()
+        if tag_lower in {'script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base', 'form'}:
+            self.dangerous_tag_depth = max(0, self.dangerous_tag_depth - 1)
+            return
+        if self.dangerous_tag_depth > 0:
+            return
+
+        if tag_lower not in {'img', 'br', 'hr', 'input', 'meta', 'link'}:
+            self.result.append(f"</{tag}>")
+
+    def handle_data(self, data):
+        if self.dangerous_tag_depth == 0:
+            self.result.append(data)
+
+    def handle_entityref(self, name):
+        if self.dangerous_tag_depth == 0:
+            self.result.append(f"&{name};")
+
+    def handle_charref(self, name):
+        if self.dangerous_tag_depth == 0:
+            self.result.append(f"&#{name};")
+
 
 class MarkdownParser:
     
@@ -89,7 +123,6 @@ class MarkdownParser:
         # Merge all lines inside $$...$$, remove leading > and whitespace from each line
         def replacer(m):
             inner = m.group(1)
-            # Remove leading > and spaces from each line
             lines = [re.sub(r'^\s*>?\s?', '', line) for line in inner.splitlines()]
             merged = ' '.join(lines)
             return '$$' + merged.replace('\\', '\\\\') + '$$'
@@ -99,43 +132,9 @@ class MarkdownParser:
     @staticmethod
     def parse(mdcontent: str) -> str:
         mdcontent = MarkdownParser._clean_math(mdcontent)
-        html = mdparser.render(mdcontent)
-        dom = BeautifulSoup(html, 'lxml')
-        MarkdownParser._sanitize_html(dom)
-        wrap_tables_and_images(dom)
-        simplify_anchor_text(dom)
-        MarkdownParser._post_process_tasklists(dom)
-        # lxml wraps in <html><body>; extract inner content only
-        body = dom.body
-        if body:
-            return ''.join(str(c) for c in body.children)
-        return str(dom)
-
-    @staticmethod
-    def _sanitize_html(dom: BeautifulSoup):
-        # Remove dangerous tags completely
-        for tag in dom.find_all(['script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base', 'form']):
-            tag.decompose()
+        raw_html = mdparser.render(mdcontent)
         
-        # Remove dangerous Javascript URIs and inline event handlers
-        for tag in dom.find_all(True):
-            # Iterate over a list of keys since we delete properties
-            attrs = list(tag.attrs.keys())
-            for attr_name in attrs:
-                attr_lower = attr_name.lower()
-                if attr_lower.startswith('on'):
-                    del tag[attr_name]
-                elif attr_lower in ('href', 'src'):
-                    attr_value = tag.attrs.get(attr_name, '')
-                    val_str = ' '.join(attr_value).strip().lower() if isinstance(attr_value, list) else str(attr_value).strip().lower()
-                    if val_str.startswith('javascript:') or val_str.startswith('vbscript:') or val_str.startswith('data:text/html'):
-                        del tag[attr_name]
-
-    @staticmethod
-    def _post_process_tasklists(dom: BeautifulSoup):
-        for li in dom.find_all('li'):
-            checkbox = li.find('input', type='checkbox')
-            if checkbox:
-                checkbox['disabled'] = ''  # Disable the checkbox
-                if 'checked' in checkbox.attrs:
-                    li['class'] = li.get('class', []) + ['task-completed']
+        # Sanitize HTML using lightweight stdlib parser
+        parser = SanitizingHTMLParser()
+        parser.feed(raw_html)
+        return "".join(parser.result)

@@ -81,11 +81,45 @@ function setupModalsAndHeader() {
   const btnDir = document.getElementById('btn-dir-explorer');
   const btnSearch = document.getElementById('btn-search');
   const btnTheme = document.getElementById('btn-theme-toggle');
+  const btnFocus = document.getElementById('btn-focus');
+  const btnFocusExit = document.getElementById('btn-focus-exit');
+  const container = document.querySelector('.container');
 
   const dirFilterInput = document.getElementById('dir-filter-input');
   const searchInput = document.getElementById('search-input');
 
   if (!overlay || !btnTheme) return; // fail gracefully
+
+  function setFocusMode(active) {
+    if (active) {
+      if (container) container.classList.add('sidebar-hidden');
+      if (MD_BODY) MD_BODY.classList.add('focus-layout');
+      if (btnFocusExit) btnFocusExit.classList.remove('hidden');
+      localStorage.setItem('focus-mode', 'true');
+    } else {
+      if (container) container.classList.remove('sidebar-hidden');
+      if (MD_BODY) MD_BODY.classList.remove('focus-layout');
+      if (btnFocusExit) btnFocusExit.classList.add('hidden');
+      localStorage.setItem('focus-mode', 'false');
+    }
+  }
+
+  if (btnFocus) {
+    btnFocus.addEventListener('click', () => {
+      setFocusMode(true);
+    });
+  }
+
+  if (btnFocusExit) {
+    btnFocusExit.addEventListener('click', () => {
+      setFocusMode(false);
+    });
+  }
+
+  // Initialize focus mode from localStorage
+  if (localStorage.getItem('focus-mode') === 'true') {
+    setFocusMode(true);
+  }
 
   // Track which modal is open for keyboard navigation
   let activeModal = null;

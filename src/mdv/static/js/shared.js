@@ -1,7 +1,7 @@
 /* ================================================================
    MDV Shared JavaScript Utilities
    Theme toggle, DOM helpers, timing constants
-   Import this in all HTML pages that use viewer.js, csvviewer.js, etc.
+   Import this in all HTML pages that use viewer.js, etc.
    ================================================================ */
 
 "use strict";

@@ -4,12 +4,17 @@
    ================================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const mdbody = document.getElementById('markdown-body')
+  const mdbody = document.getElementById('markdown-body');
+  if (!mdbody) return;
 
   let topLevelHeading = mdbody.querySelector('h1');
   if (topLevelHeading) {
     document.title = topLevelHeading.textContent;
   }
+
+  wrapTablesAndImages(mdbody);
+  simplifyAnchorText(mdbody);
+  postProcessTasklists(mdbody);
 
   renderMath(mdbody);
   renderMermaidDiagrams();
@@ -110,3 +115,50 @@ function genCopyButtons(container) {
     });
   });
 }
+
+function wrapTablesAndImages(container) {
+  // Wrap tables in .md-table
+  container.querySelectorAll('table').forEach(table => {
+    if (table.parentElement.classList.contains('md-table')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'md-table';
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+  });
+
+  // Wrap images in .md-image
+  container.querySelectorAll('img').forEach(img => {
+    if (img.parentElement.classList.contains('md-image')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'md-image';
+    img.parentNode.insertBefore(wrapper, img);
+    wrapper.appendChild(img);
+  });
+}
+
+function simplifyAnchorText(container) {
+  container.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href').trim();
+    const text = a.textContent.trim();
+    if (text === href) {
+      if (href.startsWith('http://')) {
+        a.textContent = href.substring(7);
+      } else if (href.startsWith('https://')) {
+        a.textContent = href.substring(8);
+      }
+    }
+  });
+}
+
+function postProcessTasklists(container) {
+  container.querySelectorAll('li').forEach(li => {
+    const checkbox = li.querySelector('input[type="checkbox"]');
+    if (checkbox) {
+      checkbox.disabled = true;
+      if (checkbox.checked) {
+        li.classList.add('task-completed');
+      }
+    }
+  });
+}
+

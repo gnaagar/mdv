@@ -12,7 +12,6 @@ from pathlib import Path
 from mdv.logger import get_logger
 from mdv.mdparser import MarkdownParser
 from mdv.sv_state import MdViewerState
-from mdv.plugins import load_plugins
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 from werkzeug.serving import run_simple, make_server
@@ -69,8 +68,6 @@ url_map = Map([
     Rule("/static/<path:filename>", endpoint="static"),  # handled by middleware
     Rule("/v/", endpoint="index"),
     Rule("/v/<path:filename>", endpoint="view"),
-    Rule("/m/", endpoint="index_mdplain"),
-    Rule("/m/<path:filename>", endpoint="mdplain"),
     Rule("/t/<path:filename>", endpoint="mdtext"),
     Rule("/api/tree", endpoint="dirtree"),
     Rule("/api/search", endpoint="search"),
@@ -90,9 +87,6 @@ class App:
         self.config = config
         self.state = MdViewerState(config)
         self.theme = config.get("theme", "light")
-
-        # Load plugins
-        load_plugins(self, config.get("plugins"))
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -168,19 +162,6 @@ class App:
         )
         return Response(html, mimetype="text/html")
 
-    def on_index_mdplain(self, request):
-        self.state.refresh()
-        tree = self.state.get_tree()
-        tree_md = env.get_template("tree.md").render(
-            tree=tree,
-            path="m",
-            root="/"
-        )
-        html = env.get_template("plain.html").render(
-            content=MarkdownParser.parse(tree_md),
-            theme=self.theme
-        )
-        return Response(html, mimetype="text/html")
 
     # JSON
     def on_dirtree(self, request):
@@ -198,8 +179,6 @@ class App:
         result = self.state.search(query, types=type_list)
         return Response(json.dumps(result), mimetype="application/json")
 
-    def on_mdplain(self, request, filename):
-        return self.handle_common(filename, template="plain.html", prefix="m")
 
     def on_view(self, request, filename):
         return self.handle_common(filename, template="viewer.html", prefix="v")
@@ -249,8 +228,6 @@ def main():
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
     parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
-    parser.add_argument("--plugins", default="", help="Comma-separated list of plugins to load")
-    parser.add_argument("--csv", action="store_true", help="View target file as CSV using the csvviewer plugin")
     args = parser.parse_args()
 
     target_path = Path(args.target).resolve()
@@ -260,8 +237,6 @@ def main():
         "dir": str(target_path.parent) if lite_mode else str(target_path),
         "theme": args.theme,
         "ignore_dirs": args.ignore,
-        "plugins": args.plugins,
-        "csv_mode": getattr(args, "csv", False),
         "lite_file": target_path.name if lite_mode else None
     }
 

@@ -25,6 +25,12 @@ body {
   grid-template-columns: 320px 1fr;
   min-height: 100vh;
 }
+.container.sidebar-hidden {
+  grid-template-columns: 1fr;
+}
+.container.sidebar-hidden .nav-sidebar {
+  display: none !important;
+}
 .container .nav-sidebar {
   display: flex;
   flex-direction: column;
