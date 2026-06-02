@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 let lastMermaidTheme = null;
 
 function renderMermaidDiagrams() {
-  const isDark = document.body.classList.contains('theme-dark') || localStorage.getItem('theme') === 'dark';
+  const isDark = typeof mdvIsDark === 'function' ? mdvIsDark() : document.body.classList.contains('theme-dark');
   lastMermaidTheme = isDark ? "dark" : "default";
   mermaid.initialize({
     startOnLoad: false,

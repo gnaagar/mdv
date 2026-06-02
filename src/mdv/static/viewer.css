@@ -886,3 +886,32 @@ body.theme-dark .badge-list {
   max-width: 100%;
   height: auto;
 }
+
+/* ================================================================
+   THEME MODAL
+   ================================================================ */
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-family: "Noto Serif", serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.12s ease-in-out;
+  text-align: left;
+}
+.theme-option:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.theme-option-check {
+  color: var(--tree-active-color);
+  font-weight: 700;
+  font-size: 1rem;
+}

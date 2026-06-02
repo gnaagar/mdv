@@ -21,6 +21,16 @@ from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 
+def get_available_themes():
+    themes_dir = files("mdv").joinpath("static", "themes")
+    themes = []
+    if themes_dir.is_dir():
+        for f in sorted(themes_dir.iterdir()):
+            if f.suffix == ".css" and f.stem != "base":
+                themes.append(f.stem)
+    return themes or ["std-light"]
+
+
 # ---------------------------------------------------------
 # Jinja environment (package-safe)
 # ---------------------------------------------------------
@@ -71,6 +81,7 @@ url_map = Map([
     Rule("/t/<path:filename>", endpoint="mdtext"),
     Rule("/api/tree", endpoint="dirtree"),
     Rule("/api/search", endpoint="search"),
+    Rule("/api/themes", endpoint="themes"),
     Rule("/api/render", endpoint="api_render", methods=["POST"]),
     Rule("/live", endpoint="live"),
     Rule("/favicon.ico", endpoint="favicon"),
@@ -86,7 +97,9 @@ class App:
         self.url_map = url_map
         self.config = config
         self.state = MdViewerState(config)
-        self.theme = config.get("theme", "light")
+        self.themes = get_available_themes()
+        initial = config.get("theme", "std-light")
+        self.theme = initial if initial in self.themes else "std-light"
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -116,7 +129,7 @@ class App:
     # -----------------------------------------------------
 
     def render_markdown(self, template, content):
-        html = env.get_template(template).render(content=content, theme=self.theme)
+        html = env.get_template(template).render(content=content, theme=self.theme, themes=self.themes)
         return Response(html, mimetype="text/html")
 
     def render_tree(self, template, prefix, filename):
@@ -158,6 +171,7 @@ class App:
         data = self.state.get_dashboard_data()
         html = env.get_template("dashboard.html").render(
             theme=self.theme,
+            themes=self.themes,
             **data
         )
         return Response(html, mimetype="text/html")
@@ -180,6 +194,10 @@ class App:
         return Response(json.dumps(result), mimetype="application/json")
 
 
+    def on_themes(self, request):
+        return Response(json.dumps(self.themes), mimetype="application/json")
+
+
     def on_view(self, request, filename):
         return self.handle_common(filename, template="viewer.html", prefix="v")
 
@@ -193,7 +211,7 @@ class App:
         return Response(html, mimetype="text/html")
 
     def on_live(self, request):
-        html = env.get_template("live.html").render(theme=self.theme)
+        html = env.get_template("live.html").render(theme=self.theme, themes=self.themes)
         return Response(html, mimetype="text/html")
 
     def on_favicon(self, request):
@@ -226,7 +244,7 @@ def main():
     parser.add_argument("target", nargs="?", default=".", help="Target directory or file to view")
     parser.add_argument("--port", "-p", type=int, default=8000)
     parser.add_argument("--host", "-H", default="localhost")
-    parser.add_argument("--theme", "-t", choices=["light", "dark"], default="light", help="Color theme (light or dark)")
+    parser.add_argument("--theme", "-t", default="std-light", help="Theme name (e.g., std-light, std-dark)")
     parser.add_argument("--ignore", "-i", nargs="*", default=[], help="Additional directory names to ignore (dot-directories are always ignored)")
     args = parser.parse_args()
 

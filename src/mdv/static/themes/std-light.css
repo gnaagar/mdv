@@ -1,0 +1,56 @@
+/* ================================================================
+   std-light.css — Standard Light Theme
+   ================================================================ */
+
+body.theme-std-light {
+  color-scheme: light;
+
+  --main-bg: #ffffff;
+  --text-color: rgb(20, 20, 20);
+  --text-muted: #6c757d;
+  --markdown-bg: #fff;
+  --markdown-shadow: rgba(0, 0, 0, 0.05);
+  --markdown-hr: #ccc;
+  --markdown-table-border: #dbd9d5;
+  --markdown-table-header-bg: #f6f8fa;
+  --markdown-table-row-bg: #fdfcfb;
+  --markdown-table-header-color: #333;
+  --markdown-table-hover-bg: #f9f9f9;
+  --code-bg: #f5f7fa;
+  --code-border: #D3D5D6;
+  --code-highlight: #ccc;
+  --code-copied-bg: #EBEDF2;
+  --code-color: #252b33;
+  --code-button-color: #d0d0d0;
+  --inline-code-color: #A90D91;
+  --link-color: #2C6CCF;
+  --link-hover-color: #2C6CCF;
+  --tree-entry-color: #6b7683;
+  --tree-entry-hover-color: #1976d2;
+  --tree-entry-highlight-bg: #F1F9FE;
+  --tree-entry-highlight-color: #1976d2;
+  --tree-indent-line-color: #e3e8ee;
+  --tree-active-bg: #DAEDFD;
+  --tree-active-color: #1976d2;
+  --blockquote-bg: #f0f4f8;
+  --blockquote-indicator-color: #7fa0c3;
+  --blockquote-text-color: #2e3a46;
+  --task-completed-color: #999;
+  --task-completed-bg: #f5f5f5;
+  --task-pending-color: var(--text-color);
+  --highlight-bg: #fff59d;
+  --search-hover-color: #1976d2;
+  --search-overlay-bg: rgba(255, 255, 255, 0.9);
+  --search-overlay-shadow: rgba(0, 0, 0, 0.1);
+  --search-preview-file-color: #3572b0;
+  --toggle-area-bg: #F5FAFF;
+  --toggle-area-hover-bg: #f0f8ff;
+  --toggle-area-color: #aaaaaa;
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --border-color-light: #ccc;
+  --border-color-dark: #bbb;
+  --shadow-color: rgba(0, 0, 0, 0.133);
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.2s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+}

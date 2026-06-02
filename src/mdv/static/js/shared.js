@@ -46,20 +46,41 @@ const MDV_CLASSES = Object.freeze({
 function mdvGetTheme() {
   const stored = localStorage.getItem('theme');
   if (stored) return stored;
-  return document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+  const cls = document.body.className;
+  const m = cls.match(/\btheme-(\S+)/);
+  return m ? m[1] : 'std-light';
 }
 
 function mdvIsDark() {
-  return document.body.classList.contains(MDV_CLASSES.themeDark) ||
-         localStorage.getItem('theme') === 'dark';
+  const theme = mdvGetTheme();
+  return theme.includes('dark');
+}
+
+function mdvSetTheme(name) {
+  const isDark = name.includes('dark');
+  document.body.className = 'theme-' + name;
+  document.body.classList.toggle('theme-dark', isDark);
+  localStorage.setItem('theme', name);
+  document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
+  // Update all toggle buttons
+  const btns = document.querySelectorAll('#btn-theme-toggle');
+  btns.forEach(function(b) { b.title = 'Switch Theme (' + name + ')'; });
+  // Sync modal checkmark
+  const modal = document.getElementById('theme-modal');
+  if (modal) {
+    modal.querySelectorAll('.theme-option-check').forEach(function(c) { c.style.display = 'none'; });
+    var sel = modal.querySelector('.theme-option[data-theme="' + name + '"] .theme-option-check');
+    if (sel) sel.style.display = '';
+  }
 }
 
 function mdvToggleTheme() {
-  const isDark = document.body.classList.toggle(MDV_CLASSES.themeDark);
-  const theme = isDark ? 'dark' : 'light';
-  localStorage.setItem('theme', theme);
-  document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
-  return isDark;
+  var themes = window.MDV_THEMES || ['std-light', 'std-dark'];
+  var current = mdvGetTheme();
+  var idx = themes.indexOf(current);
+  if (idx < 0) idx = -1;
+  var next = themes[(idx + 1) % themes.length];
+  mdvSetTheme(next);
 }
 
 function mdvDispatchThemeChange(isDark) {
@@ -154,13 +175,18 @@ function mdvIsModKey(e) {
    Initialize theme on page load
    ---------------------------------------------------------- */
 function mdvInitTheme() {
-  const stored = localStorage.getItem('theme');
-  if (stored === 'dark') {
-    document.body.classList.add(MDV_CLASSES.themeDark);
-  } else if (stored === 'light') {
-    document.body.classList.remove(MDV_CLASSES.themeDark);
+  var theme = mdvGetTheme();
+  var btns = document.querySelectorAll('#btn-theme-toggle');
+  btns.forEach(function(b) { b.title = 'Switch Theme (' + theme + ')'; });
+  // Sync theme modal checkmark with resolved theme
+  var modal = document.getElementById('theme-modal');
+  if (modal) {
+    modal.querySelectorAll('.theme-option-check').forEach(function(c) {
+      c.style.display = 'none';
+    });
+    var sel = modal.querySelector('.theme-option[data-theme="' + theme + '"] .theme-option-check');
+    if (sel) sel.style.display = '';
   }
-  // Otherwise let CSS defaults apply
 }
 
 // Auto-initialize when DOM is ready
@@ -179,6 +205,7 @@ if (typeof module !== 'undefined' && module.exports) {
     MDV_CLASSES,
     mdvGetTheme,
     mdvIsDark,
+    mdvSetTheme,
     mdvToggleTheme,
     mdvDispatchThemeChange,
     mdvEscapeHtml,

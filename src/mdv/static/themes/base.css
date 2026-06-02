@@ -1,0 +1,80 @@
+/* ================================================================
+   base.css — Reference Theme Template
+   
+   Copy this file to create your own theme. Rename it (e.g. dracula.css)
+   and change the body class selector. All CSS variables are listed below
+   with minimal/neutral defaults.
+   
+   Theme files go in src/mdv/static/themes/ and are loaded automatically.
+   The filename (minus .css) becomes the theme name.
+   ================================================================ */
+
+body.theme-base {
+  /* ── Background & Text ── */
+  --main-bg: #ffffff;
+  --text-color: #000000;
+  --text-muted: #666666;
+  --markdown-bg: #ffffff;
+  --markdown-shadow: rgba(0, 0, 0, 0.05);
+  --markdown-hr: #cccccc;
+
+  /* ── Tables ── */
+  --markdown-table-border: #cccccc;
+  --markdown-table-header-bg: #f5f5f5;
+  --markdown-table-row-bg: #ffffff;
+  --markdown-table-header-color: #000000;
+  --markdown-table-hover-bg: #f0f0f0;
+
+  /* ── Code Blocks ── */
+  --code-bg: #f5f5f5;
+  --code-border: #cccccc;
+  --code-highlight: #dddddd;
+  --code-copied-bg: #e8e8e8;
+  --code-color: #333333;
+  --code-button-color: #cccccc;
+  --inline-code-color: #990000;
+
+  /* ── Links ── */
+  --link-color: #0066cc;
+  --link-hover-color: #0066cc;
+
+  /* ── Sidebar / Tree ── */
+  --tree-entry-color: #666666;
+  --tree-entry-hover-color: #0066cc;
+  --tree-entry-highlight-bg: #f0f6ff;
+  --tree-entry-highlight-color: #0066cc;
+  --tree-indent-line-color: #e0e0e0;
+  --tree-active-bg: #d0e4ff;
+  --tree-active-color: #0066cc;
+
+  /* ── Blockquotes ── */
+  --blockquote-bg: #f5f5f5;
+  --blockquote-indicator-color: #888888;
+  --blockquote-text-color: #333333;
+
+  /* ── Task Lists ── */
+  --task-completed-color: #999999;
+  --task-completed-bg: #f5f5f5;
+  --task-pending-color: var(--text-color);
+
+  /* ── Highlights & Search ── */
+  --highlight-bg: #ffff99;
+  --search-hover-color: #0066cc;
+  --search-overlay-bg: rgba(255, 255, 255, 0.9);
+  --search-overlay-shadow: rgba(0, 0, 0, 0.1);
+  --search-preview-file-color: #0066cc;
+
+  /* ── Toggle / Misc ── */
+  --toggle-area-bg: #f5f5f5;
+  --toggle-area-hover-bg: #f0f0f0;
+  --toggle-area-color: #aaaaaa;
+  --overlay-bg: rgba(0, 0, 0, 0.4);
+  --border-color-light: #cccccc;
+  --border-color-dark: #aaaaaa;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+
+  /* ── Animation Timing ── */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.2s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+}
