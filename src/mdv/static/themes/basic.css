@@ -1,0 +1,241 @@
+body.theme-basic {
+  font-family: serif;
+  color-scheme: light;
+}
+
+/* ── Markdown body: plain HTML ── */
+body.theme-basic #markdown-body {
+  background: transparent;
+  font-family: serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #000;
+}
+body.theme-basic #markdown-body pre,
+body.theme-basic #markdown-body p,
+body.theme-basic #markdown-body table,
+body.theme-basic #markdown-body h1, body.theme-basic #markdown-body h2, body.theme-basic #markdown-body h3,
+body.theme-basic #markdown-body h4, body.theme-basic #markdown-body h5, body.theme-basic #markdown-body h6,
+body.theme-basic #markdown-body blockquote,
+body.theme-basic #markdown-body ul,
+body.theme-basic #markdown-body ol,
+body.theme-basic #markdown-body hr {
+  margin-bottom: 1em;
+}
+body.theme-basic #markdown-body h1, body.theme-basic #markdown-body h2,
+body.theme-basic #markdown-body h3, body.theme-basic #markdown-body h4,
+body.theme-basic #markdown-body h5, body.theme-basic #markdown-body h6 {
+  font-weight: 700;
+  font-size: 1em;
+  line-height: 1.2;
+}
+body.theme-basic #markdown-body h1 { font-size: 1.5em; }
+body.theme-basic #markdown-body h2 { font-size: 1.25em; }
+body.theme-basic #markdown-body h3 { font-size: 1.1em; }
+body.theme-basic #markdown-body ul, body.theme-basic #markdown-body ol {
+  padding-left: 2.5em;
+}
+body.theme-basic #markdown-body li {
+  margin-bottom: 0.25em;
+}
+body.theme-basic #markdown-body pre {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 0;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+body.theme-basic #markdown-body pre.highlight {
+  border-left: none;
+  padding-left: 0;
+}
+body.theme-basic #markdown-body code {
+  color: inherit;
+  font-family: monospace;
+  font-size: 0.9em;
+  background: transparent;
+}
+body.theme-basic #markdown-body .code-wrapper {
+  position: static;
+}
+body.theme-basic #markdown-body .copy-btn {
+  display: none;
+}
+body.theme-basic #markdown-body table {
+  display: table;
+  font-size: inherit;
+  background: transparent;
+  border-collapse: collapse;
+}
+body.theme-basic #markdown-body th,
+body.theme-basic #markdown-body td {
+  border: 1px solid #ccc;
+  padding: 0.25em 0.5em;
+  white-space: normal;
+  background: transparent;
+}
+body.theme-basic #markdown-body th {
+  background: transparent;
+}
+body.theme-basic #markdown-body tr:hover {
+  background: transparent;
+}
+body.theme-basic #markdown-body hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 1.5em 0;
+}
+body.theme-basic #markdown-body blockquote {
+  background: transparent;
+  border-left: 3px solid #ccc;
+  box-shadow: none;
+  padding: 0 1em;
+  margin-left: 1em;
+  margin-right: 0;
+  color: inherit;
+}
+body.theme-basic #markdown-body a {
+  color: #0000ee;
+  text-decoration: underline;
+}
+body.theme-basic #markdown-body a:visited {
+  color: #551a8b;
+}
+body.theme-basic #markdown-body a:hover {
+  color: #0000ee;
+}
+body.theme-basic #markdown-body .task-list-item {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+  border-radius: 0;
+}
+body.theme-basic #markdown-body .task-list-item input[type=checkbox] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  width: auto;
+  height: auto;
+  border: none;
+  border-radius: 0;
+  margin-right: 0.3em;
+}
+body.theme-basic #markdown-body .task-completed {
+  color: inherit;
+}
+body.theme-basic #markdown-body .task-completed * {
+  color: inherit !important;
+}
+body.theme-basic #markdown-body .task-list-item > ul > .task-list-item::before,
+body.theme-basic #markdown-body .task-list-item > ul > .task-list-item::after {
+  display: none;
+}
+
+/* ── Viewer / Dashboard: plain ── */
+body.theme-basic .header-btn {
+  color: #000;
+}
+body.theme-basic .header-btn:hover {
+  color: #000;
+}
+body.theme-basic .container .nav-sidebar {
+  border-right: none;
+  padding: 1em;
+}
+body.theme-basic .container .section-main {
+  padding: 1em;
+}
+body.theme-basic .tree .tree-entry {
+  color: #000;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  font-weight: normal;
+}
+body.theme-basic .tree .tree-entry:hover {
+  background: transparent;
+  color: #000;
+}
+body.theme-basic .tree .tree-entry.active {
+  background: transparent;
+  color: #000;
+  font-weight: bold;
+}
+body.theme-basic .modal-overlay {
+  backdrop-filter: none;
+  background: rgba(0,0,0,0.15);
+}
+body.theme-basic .modal-box {
+  border: 1px solid #ccc;
+  border-radius: 0;
+  box-shadow: none;
+}
+body.theme-basic .modal-header input {
+  border-bottom: 1px solid #ccc;
+  font-family: monospace;
+}
+body.theme-basic .search-cat-pill {
+  border: 1px solid #ccc;
+  border-radius: 0;
+  background: transparent;
+  color: #000;
+}
+body.theme-basic .search-cat-pill.active {
+  background: transparent;
+  color: #000;
+  border-color: #000;
+}
+body.theme-basic .search-cat-invert {
+  border: 1px solid #ccc;
+  border-radius: 0;
+}
+body.theme-basic .focus-exit-btn {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  opacity: 0.5;
+}
+body.theme-basic .focus-exit-btn:hover {
+  background: transparent;
+  opacity: 1;
+  color: inherit;
+  border-color: transparent;
+}
+body.theme-basic .dash-card {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+body.theme-basic .dash-card:hover {
+  border-color: transparent;
+}
+body.theme-basic .dash-header-actions {
+  gap: 0.25em;
+}
+body.theme-basic .dash-title {
+  color: #000;
+}
+body.theme-basic .mermaid svg {
+  max-width: 100%;
+}
+body.theme-basic .muted-message {
+  color: #555;
+}
+body.theme-basic .temp-highlight {
+  background: #ffff00;
+  border-radius: 0;
+}
+body.theme-basic #search-results .search-results-body ul li {
+  border: none;
+}
+body.theme-basic #search-results .search-results-body ul li:hover {
+  background: transparent;
+  border-color: transparent;
+}
+body.theme-basic .theme-option {
+  font-family: serif;
+}
+body.theme-basic .modal-header span {
+  font-family: serif;
+}

@@ -27,44 +27,40 @@
     }
   </style>
   <link rel="stylesheet" href="/static/markdown.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme | default('std-light') }}.css">
   {% block styles %}
   {% endblock %}
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
 
 </head>
-<body class="theme-{{ theme | default('light') }}">
+<body class="theme-{{ theme | default('std-light') }}">
   <script>
+    var MDV_THEMES = {{ themes | tojson }};
     (function() {
       var params = new URLSearchParams(window.location.search);
       var themeParam = params.get('theme');
-      var theme = themeParam || localStorage.getItem('theme');
-      if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        theme = 'dark';
+      var preferred = themeParam || localStorage.getItem('theme');
+      
+      // Migrate old theme names
+      if (preferred === 'light') preferred = 'std-light';
+      if (preferred === 'dark') preferred = 'std-dark';
+      
+      var active = preferred;
+      if (!active || MDV_THEMES.indexOf(active) < 0) {
+        active = '{{ theme | default("std-light") }}';
       }
-      if (theme === 'dark') {
-        document.body.classList.remove('theme-light');
-        document.body.classList.add('theme-dark');
-      } else if (theme === 'light') {
-        document.body.classList.remove('theme-dark');
-        document.body.classList.add('theme-light');
+      
+      document.body.className = 'theme-' + active;
+      var isDark = active.indexOf('dark') >= 0;
+      document.body.classList.toggle('theme-dark', isDark);
+      
+      var linkEl = document.getElementById('theme-stylesheet');
+      if (linkEl) {
+        linkEl.href = '/static/themes/' + active + '.css';
       }
-      // Persist query param choice to localStorage for future visits
-      if (themeParam) {
-        localStorage.setItem('theme', themeParam);
-      }
-
-      // Live listen to system theme changes if no manual preference is set
-      if (window.matchMedia) {
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-          if (!localStorage.getItem('theme')) {
-            var newTheme = e.matches ? 'dark' : 'light';
-            document.body.classList.remove('theme-light', 'theme-dark');
-            document.body.classList.add('theme-' + newTheme);
-            window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: e.matches } }));
-          }
-        });
-      }
+      
+      if (themeParam) localStorage.setItem('theme', themeParam);
     })();
   </script>
   {% block body %}
@@ -76,5 +72,20 @@
   <script src="/static/js/markdown.js"></script>
   {% block scripts %}
   {% endblock %}
+  <!-- Shared modals -->
+  <div id="modal-overlay" class="modal-overlay hidden"></div>
+  <div id="theme-modal" class="modal-box hidden">
+    <div class="modal-header" style="padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color-light);">
+      <span style="font-weight: 600; color: var(--text-color); font-family: 'Noto Serif', serif;">Switch Theme</span>
+    </div>
+    <div id="theme-list" class="modal-body" style="padding: 0.25rem 0;">
+      {% for t in themes %}
+      <button class="theme-option" data-theme="{{ t }}">
+        <span class="theme-option-name">{{ t.replace('-', ' ').title() }}</span>
+        <span class="theme-option-check" style="display:none">✓</span>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
 </body>
 </html>

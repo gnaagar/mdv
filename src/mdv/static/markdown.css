@@ -8,7 +8,7 @@ body {
 
 #markdown-body {
   width: 100%;
-  max-width: 950px;
+  max-width: var(--content-max-width, 786px);
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -140,7 +140,7 @@ body {
   vertical-align: top;
   padding: 0.4rem 0.8rem;
   border: 1px solid var(--markdown-table-border);
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -153,7 +153,7 @@ body {
 }
 #markdown-body hr {
   border: none;
-  border-top: solid 3px rgba(189, 193, 198, 0.2);
+  border-top: 1px solid var(--markdown-hr, rgba(189, 193, 198, 0.4));
   margin: 2em 0;
 }
 #markdown-body .task-list-item {
@@ -169,7 +169,7 @@ body {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border: 2px solid #ccc;
+  border: 2px solid var(--checkbox-border);
   border-radius: 3px;
   margin-right: 0.5em;
   pointer-events: none;
@@ -179,8 +179,8 @@ body {
 }
 
 #markdown-body .task-list-item input[type=checkbox]:checked {
-  background-color: #aaa;
-  border-color: #aaa;
+  background-color: var(--checkbox-checked-bg);
+  border-color: var(--checkbox-checked-border);
 }
 
 #markdown-body .task-list-item input[type=checkbox]:checked::after {
@@ -281,7 +281,7 @@ body {
 .focus-exit-btn {
   position: fixed;
   top: 1rem;
-  right: 1.5rem;
+  left: 1.5rem;
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -309,7 +309,7 @@ body {
 
 .focus-layout {
   padding: 4rem !important;
-  max-width: 950px !important;
+  max-width: var(--content-max-width, 850px) !important;
   margin: 0 auto !important;
 }
 @media (max-width: 768px) {

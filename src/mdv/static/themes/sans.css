@@ -1,0 +1,144 @@
+/* ================================================================
+   sans.css — Clean sans-serif theme
+   ================================================================ */
+
+body.theme-sans {
+  color-scheme: light;
+
+  --main-bg: #ffffff;
+  --text-color: #333333;
+  --text-muted: #777777;
+  --markdown-bg: #ffffff;
+  --markdown-shadow: none;
+  --markdown-hr: #eeeeee;
+  --markdown-table-border: #cccccc;
+  --markdown-table-header-bg: #ffffff;
+  --markdown-table-row-bg: #ffffff;
+  --markdown-table-header-color: #333333;
+  --markdown-table-hover-bg: #fdfdfd;
+  --code-bg: #f8f8f8;
+  --code-border: #eeeeee;
+  --code-highlight: rgba(157, 193, 200, 0.5);
+  --code-copied-bg: #eeeeee;
+  --code-color: #333333;
+  --code-button-color: #999999;
+  --inline-code-color: #333333;
+  --link-color: #4078c0;
+  --link-hover-color: #4078c0;
+  --tree-entry-color: #777777;
+  --tree-entry-hover-color: #4078c0;
+  --tree-entry-highlight-bg: #f0f5fa;
+  --tree-entry-highlight-color: #4078c0;
+  --tree-indent-line-color: #eeeeee;
+  --tree-active-bg: #e2ecf7;
+  --tree-active-color: #4078c0;
+  --blockquote-bg: transparent;
+  --blockquote-indicator-color: #dddddd;
+  --blockquote-text-color: #777777;
+  --task-completed-color: #777777;
+  --task-completed-bg: transparent;
+  --task-pending-color: var(--text-color);
+  --highlight-bg: rgba(255, 230, 102, 0.5);
+  --search-hover-color: #4078c0;
+  --search-overlay-bg: rgba(255, 255, 255, 0.95);
+  --search-overlay-shadow: rgba(0, 0, 0, 0.05);
+  --search-preview-file-color: #4078c0;
+  --toggle-area-bg: #f8f8f8;
+  --toggle-area-hover-bg: #eeeeee;
+  --toggle-area-color: #999999;
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --border-color-light: #eeeeee;
+  --border-color-dark: #cccccc;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --transition-fast: 0.1s ease-in-out;
+  --transition-normal: 0.15s ease-in-out;
+  --transition-slow: 0.3s ease-in-out;
+
+  --theme-mode: light;
+
+  --badge-link-bg: #eaf1f9;
+  --badge-link-color: #4078c0;
+  --badge-list-bg: #eaf1f9;
+  --badge-list-color: #4078c0;
+  --checkbox-border: #cccccc;
+  --checkbox-checked-bg: #4078c0;
+  --checkbox-checked-border: #4078c0;
+}
+
+/* ── Typography and font overrides for sans theme ── */
+body.theme-sans,
+body.theme-sans #markdown-body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+body.theme-sans #markdown-body h1,
+body.theme-sans #markdown-body h2,
+body.theme-sans #markdown-body h3,
+body.theme-sans #markdown-body h4,
+body.theme-sans #markdown-body h5,
+body.theme-sans #markdown-body h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  color: #333333;
+}
+
+body.theme-sans #markdown-body code,
+body.theme-sans #markdown-body tt {
+  font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  background-color: rgba(0, 0, 0, 0.04);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+}
+
+body.theme-sans #markdown-body pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+body.theme-sans #markdown-body pre {
+  background-color: #f8f8f8;
+  border: none;
+  border-radius: 3px;
+  padding: 16px;
+}
+
+/* Table rows styling */
+body.theme-sans #markdown-body table tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+body.theme-sans #markdown-body table th,
+body.theme-sans #markdown-body table td {
+  border: 1px solid #cccccc;
+  padding: 6px 13px;
+}
+
+/* Selection colors from samples/nohello */
+body.theme-sans ::selection {
+  background: rgba(157, 193, 200, 0.5);
+}
+
+body.theme-sans h1::selection {
+  background-color: rgba(45, 156, 208, 0.3);
+}
+
+body.theme-sans h2::selection {
+  background-color: rgba(90, 182, 224, 0.3);
+}
+
+body.theme-sans h3::selection,
+body.theme-sans h4::selection,
+body.theme-sans h5::selection,
+body.theme-sans h6::selection {
+  background-color: rgba(133, 201, 232, 0.3);
+}
+
+body.theme-sans code::selection {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #eee;
+}
+
+body.theme-sans a::selection {
+  background-color: rgba(255, 230, 102, 0.2);
+}

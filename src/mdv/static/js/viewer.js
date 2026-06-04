@@ -77,15 +77,50 @@ function setupModalsAndHeader() {
   const overlay = document.getElementById('modal-overlay');
   const dirModal = document.getElementById('dir-modal');
   const searchModal = document.getElementById('search-modal');
+  const themeModal = document.getElementById('theme-modal');
   
   const btnDir = document.getElementById('btn-dir-explorer');
   const btnSearch = document.getElementById('btn-search');
   const btnTheme = document.getElementById('btn-theme-toggle');
+  const btnFocus = document.getElementById('btn-focus');
+  const btnFocusExit = document.getElementById('btn-focus-exit');
+  const container = document.querySelector('.container');
 
   const dirFilterInput = document.getElementById('dir-filter-input');
   const searchInput = document.getElementById('search-input');
 
   if (!overlay || !btnTheme) return; // fail gracefully
+
+  function setFocusMode(active) {
+    if (active) {
+      if (container) container.classList.add('sidebar-hidden');
+      if (MD_BODY) MD_BODY.classList.add('focus-layout');
+      if (btnFocusExit) btnFocusExit.classList.remove('hidden');
+      localStorage.setItem('focus-mode', 'true');
+    } else {
+      if (container) container.classList.remove('sidebar-hidden');
+      if (MD_BODY) MD_BODY.classList.remove('focus-layout');
+      if (btnFocusExit) btnFocusExit.classList.add('hidden');
+      localStorage.setItem('focus-mode', 'false');
+    }
+  }
+
+  if (btnFocus) {
+    btnFocus.addEventListener('click', () => {
+      setFocusMode(true);
+    });
+  }
+
+  if (btnFocusExit) {
+    btnFocusExit.addEventListener('click', () => {
+      setFocusMode(false);
+    });
+  }
+
+  // Initialize focus mode from localStorage
+  if (localStorage.getItem('focus-mode') === 'true') {
+    setFocusMode(true);
+  }
 
   // Track which modal is open for keyboard navigation
   let activeModal = null;
@@ -102,6 +137,7 @@ function setupModalsAndHeader() {
     overlay.classList.add('hidden');
     if (dirModal) dirModal.classList.add('hidden');
     if (searchModal) searchModal.classList.add('hidden');
+    if (themeModal) themeModal.classList.add('hidden');
     activeModal = null;
     dirKeyboardIndex = -1;
     searchKeyboardIndex = -1;
@@ -146,6 +182,9 @@ function setupModalsAndHeader() {
           handleDirKeyboard(e);
         } else if (activeModal === searchModal) {
           handleSearchKeyboard(e);
+        } else if (activeModal === themeModal) {
+          if (e.key === 'Enter') { e.preventDefault(); document.activeElement && document.activeElement.click(); }
+          return;
         }
         return;
       }
@@ -210,14 +249,22 @@ function setupModalsAndHeader() {
       });
   }
 
-  // Theme Toggler is already handled in live.html but here it binds globally
-  // We can leave this but `live.html` binds it differently. Wait, if we use `viewer.js` in `live.html`, 
-  // we should remove the redundant binding from `live.html` or just let it bind twice (it uses `classList.toggle`, twice means it undoes itself!).
-  // So we MUST NOT double-bind. `live.html` should just let `viewer.js` handle it, or we check if it is already bound.
-  // Actually, I'll remove it from `live.html`.
-  btnTheme.addEventListener('click', () => {
-    mdvToggleTheme(); // Use shared function from shared.js
-  });
+  // Theme modal
+  if (themeModal) {
+    btnTheme.addEventListener('click', () => openModal(themeModal));
+    themeModal.addEventListener('click', function(e) {
+      var option = e.target.closest('.theme-option');
+      if (!option) return;
+      var name = option.dataset.theme;
+      themeModal.querySelectorAll('.theme-option-check').forEach(function(c) {
+        c.style.display = 'none';
+      });
+      var check = option.querySelector('.theme-option-check');
+      if (check) check.style.display = '';
+      mdvSetTheme(name);
+      closeAllModals();
+    });
+  }
 }
 
 // -----------------------------------------------------------------------------

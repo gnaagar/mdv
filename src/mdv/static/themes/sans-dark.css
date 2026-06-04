@@ -1,0 +1,171 @@
+/* ================================================================
+   sans-dark.css — Clean dark sans-serif theme matching dark visuals
+   ================================================================ */
+
+body.theme-sans-dark {
+    color-scheme: dark;
+
+    --main-bg: #202124;
+    --text-color: #cccccc;
+    --text-muted: #9aa0a6;
+    --markdown-bg: #202124;
+    --markdown-shadow: none;
+    --markdown-hr: #4a4d52;
+    --markdown-table-border: #3c4043;
+    --markdown-table-header-bg: #2b2c2f;
+    --markdown-table-row-bg: #202124;
+    --markdown-table-header-color: #cccccc;
+    --markdown-table-hover-bg: #2d2f32;
+    --code-bg: #18191b;
+    --code-border: #303134;
+    --code-highlight: rgba(138, 180, 248, 0.2);
+    --code-copied-bg: #303134;
+    --code-color: #cccccc;
+    --code-button-color: #9aa0a6;
+    --inline-code-color: #cccccc;
+    --link-color: #8ab4f8;
+    --link-hover-color: #8ab4f8;
+    --tree-entry-color: #9aa0a6;
+    --tree-entry-hover-color: #8ab4f8;
+    --tree-entry-highlight-bg: #2d2f32;
+    --tree-entry-highlight-color: #8ab4f8;
+    --tree-indent-line-color: #303134;
+    --tree-active-bg: #2e3b4e;
+    --tree-active-color: #8ab4f8;
+    --blockquote-bg: #2a2b2e;
+    --blockquote-indicator-color: #8ab4f8;
+    --blockquote-text-color: #d4d4d4;
+    --task-completed-color: #9aa0a6;
+    --task-completed-bg: transparent;
+    --task-pending-color: var(--text-color);
+    --highlight-bg: rgba(255, 230, 102, 0.15);
+    /* Softer highlight for dark backgrounds */
+    --search-hover-color: #8ab4f8;
+    --search-overlay-bg: rgba(32, 33, 36, 0.95);
+    --search-overlay-shadow: rgba(0, 0, 0, 0.4);
+    --search-preview-file-color: #8ab4f8;
+    --toggle-area-bg: #18191b;
+    --toggle-area-hover-bg: #303134;
+    --toggle-area-color: #9aa0a6;
+    --overlay-bg: rgba(0, 0, 0, 0.6);
+    --border-color-light: #303134;
+    --border-color-dark: #3c4043;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --transition-fast: 0.1s ease-in-out;
+    --transition-normal: 0.15s ease-in-out;
+    --transition-slow: 0.3s ease-in-out;
+
+    --theme-mode: dark;
+
+    --badge-link-bg: #2d2f32;
+    --badge-link-color: #8ab4f8;
+    --badge-list-bg: #2d2f32;
+    --badge-list-color: #8ab4f8;
+    --checkbox-border: #5f6368;
+    --checkbox-checked-bg: #8ab4f8;
+    --checkbox-checked-border: #8ab4f8;
+}
+
+/* ── Typography and font overrides for dark sans theme ── */
+body.theme-sans-dark,
+body.theme-sans-dark #markdown-body {
+    font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 16px; /* Baseline overall doc font-size */
+}
+
+body.theme-sans-dark #markdown-body h1,
+body.theme-sans-dark #markdown-body h2,
+body.theme-sans-dark #markdown-body h3,
+body.theme-sans-dark #markdown-body h4,
+body.theme-sans-dark #markdown-body h5,
+body.theme-sans-dark #markdown-body h6 {
+    font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600; /* Distinct bold headings */
+    color: #d4d4d4; /* Softer non-glary off-white */
+}
+
+/* Progressive heading sizes starting from h6 (16px) up to h1 (28.8px) */
+body.theme-sans-dark #markdown-body h1 { font-size: 1.8em; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3em; }
+body.theme-sans-dark #markdown-body h2 { font-size: 1.55em; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3em; }
+body.theme-sans-dark #markdown-body h3 { font-size: 1.35em; }
+body.theme-sans-dark #markdown-body h4 { font-size: 1.2em; }
+body.theme-sans-dark #markdown-body h5 { font-size: 1.1em; }
+body.theme-sans-dark #markdown-body h6 { font-size: 1em; }
+
+body.theme-sans-dark #markdown-body code,
+body.theme-sans-dark #markdown-body tt {
+    font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    background-color: rgba(255, 255, 255, 0.08); /* Softer highlight box */
+    color: var(--text-color);
+    padding: 0.12em 0.25em; /* Tighter padding */
+    border-radius: 3px;
+    font-size: 0.85em; /* Smaller inline code font */
+}
+
+body.theme-sans-dark #markdown-body pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+}
+
+body.theme-sans-dark #markdown-body pre {
+    background-color: #161616;
+    border: 1px solid #2d2d2d;
+    border-radius: 8px; /* Rounder corners */
+    padding: 12px; /* Slightly reduced padding */
+    font-size: 0.85em; /* Scaled relative to the 16px baseline */
+}
+
+/* Subtler and thinner horizontal rules */
+body.theme-sans-dark #markdown-body hr {
+    border: none;
+    border-top: 1px solid var(--markdown-hr);
+}
+
+/* Table rows styling */
+body.theme-sans-dark #markdown-body table tr:nth-child(2n) {
+    background-color: #161616;
+}
+
+body.theme-sans-dark #markdown-body table th,
+body.theme-sans-dark #markdown-body table td {
+    border: 1px solid #3a3a3a;
+    padding: 6px 13px;
+}
+
+/* Selection colors inverted cleanly for dark mode */
+body.theme-sans-dark ::selection {
+    background: rgba(64, 120, 192, 0.4);
+}
+
+body.theme-sans-dark h1::selection {
+    background-color: rgba(88, 166, 255, 0.4);
+}
+
+body.theme-sans-dark h2::selection {
+    background-color: rgba(88, 166, 255, 0.35);
+}
+
+body.theme-sans-dark h3::selection,
+body.theme-sans-dark h4::selection,
+body.theme-sans-dark h5::selection,
+body.theme-sans-dark h6::selection {
+    background-color: rgba(88, 166, 255, 0.3);
+}
+
+body.theme-sans-dark code::selection {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+body.theme-sans-dark a::selection {
+    background-color: rgba(88, 166, 255, 0.4);
+}
+
+/* ── Mermaid Connector Contrast (Per Implementation Plan Item 3) ── */
+body.theme-sans-dark .theme-dark .edgePaths .edgePath .path,
+body.theme-sans-dark .theme-dark .marker {
+    stroke: #cccccc !important;
+    fill: #cccccc !important;
+}

@@ -1,0 +1,119 @@
+/* ================================================================
+   onehalf-light.css — One Half Light Theme
+   ================================================================ */
+
+body.theme-onehalf-light {
+  color-scheme: light;
+
+  --main-bg: #fafafa;
+  --text-color: #383a42;
+  --text-muted: #a0a1a7;
+  --markdown-bg: #fafafa;
+  --markdown-shadow: none;
+  --markdown-hr: #e5e5e6;
+  --markdown-table-border: #e5e5e6;
+  --markdown-table-header-bg: #f3f3f3;
+  --markdown-table-row-bg: #fafafa;
+  --markdown-table-header-color: #383a42;
+  --markdown-table-hover-bg: #f0f0f1;
+  --code-bg: #f3f3f3;
+  --code-border: #e5e5e6;
+  --code-highlight: #e5e5e6;
+  --code-copied-bg: #e5e5e6;
+  --code-color: #383a42;
+  --code-button-color: #a0a1a7;
+  --inline-code-color: #a626a4;
+  --link-color: #0184bc;
+  --link-hover-color: #0997b3;
+  --tree-entry-color: #383a42;
+  --tree-entry-hover-color: #0184bc;
+  --tree-entry-highlight-bg: #f3f3f3;
+  --tree-entry-highlight-color: #0184bc;
+  --tree-indent-line-color: #e5e5e6;
+  --tree-active-bg: #e5e5e6;
+  --tree-active-color: #0184bc;
+  --blockquote-bg: #f3f3f3;
+  --blockquote-indicator-color: #50a14f;
+  --blockquote-text-color: #a0a1a7;
+  --task-completed-color: #a0a1a7;
+  --task-completed-bg: transparent;
+  --task-pending-color: var(--text-color);
+  --highlight-bg: #f1e2ad;
+  --search-hover-color: #0184bc;
+  --search-overlay-bg: rgba(250, 250, 250, 0.95);
+  --search-overlay-shadow: rgba(0, 0, 0, 0.05);
+  --search-preview-file-color: #0184bc;
+  --toggle-area-bg: #f3f3f3;
+  --toggle-area-hover-bg: #e5e5e6;
+  --toggle-area-color: #a0a1a7;
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --border-color-light: #e5e5e6;
+  --border-color-dark: #d6d6d7;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --transition-fast: 0.1s ease-in-out;
+  --transition-normal: 0.15s ease-in-out;
+  --transition-slow: 0.3s ease-in-out;
+
+  --theme-mode: light;
+
+  /* Component specific overrides */
+  --badge-link-bg: #e5f3fa;
+  --badge-link-color: #0184bc;
+  --badge-list-bg: #eaf6ea;
+  --badge-list-color: #50a14f;
+  --checkbox-border: #a0a1a7;
+  --checkbox-checked-bg: #50a14f;
+  --checkbox-checked-border: #50a14f;
+}
+
+/* Typography and Font Overrides */
+body.theme-onehalf-light,
+body.theme-onehalf-light #markdown-body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+body.theme-onehalf-light #markdown-body h1,
+body.theme-onehalf-light #markdown-body h2,
+body.theme-onehalf-light #markdown-body h3,
+body.theme-onehalf-light #markdown-body h4,
+body.theme-onehalf-light #markdown-body h5,
+body.theme-onehalf-light #markdown-body h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  color: #383a42;
+}
+
+body.theme-onehalf-light #markdown-body h1 { border-bottom: 1px solid #e5e5e6; padding-bottom: 0.3em; }
+body.theme-onehalf-light #markdown-body h2 { border-bottom: 1px solid #e5e5e6; padding-bottom: 0.3em; }
+
+body.theme-onehalf-light #markdown-body code,
+body.theme-onehalf-light #markdown-body tt {
+  font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  background-color: #f3f3f3;
+  color: #a626a4;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+body.theme-onehalf-light #markdown-body pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+body.theme-onehalf-light #markdown-body pre {
+  background-color: #f3f3f3;
+  border: 1px solid #e5e5e6;
+  border-radius: 4px;
+}
+
+/* Custom Table Row Stripes */
+body.theme-onehalf-light #markdown-body table tr:nth-child(2n) {
+  background-color: #f3f3f3;
+}
+
+/* Selection Highlight */
+body.theme-onehalf-light ::selection {
+  background: #ececec;
+}

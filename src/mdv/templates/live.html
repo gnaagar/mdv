@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import theme_toggle_button %}
 
 {% block styles %}
 <link rel="stylesheet" href="/static/viewer.css">
@@ -74,11 +75,7 @@
     <div class="live-header">
       <span>Live Editor (Auto-saved)</span>
       <div style="display: flex; gap: 5px; flex-direction: row;">
-        <button id="btn-theme-toggle" class="header-btn" title="Toggle Theme">
-          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18">
-            <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path>
-          </svg>
-        </button>
+        {{ theme_toggle_button() }}
         <button id="btn-copy" class="header-btn" title="Copy Markdown">
           <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18">
             <path
@@ -116,14 +113,12 @@
   </div>
 </div>
 
-<script src="/static/js/shared.js"></script>
 <script src="/static/js/viewer.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const editor = document.getElementById('live-editor');
     const preview = document.getElementById('markdown-body');
     const copyBtn = document.getElementById('btn-copy');
-    const themeBtn = document.getElementById('btn-theme-toggle');
     const toggleEditorBtn = document.getElementById('btn-toggle-editor');
     const editorPane = document.getElementById('editor-pane');
     const tocSidebar = document.getElementById('live-toc-sidebar');
@@ -203,16 +198,7 @@
       });
     });
 
-    themeBtn.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('theme-dark');
-      if (isDark) {
-        document.body.classList.remove('theme-dark');
-        localStorage.setItem('theme', 'light');
-      } else {
-        document.body.classList.add('theme-dark');
-        localStorage.setItem('theme', 'dark');
-      }
-    });
+    // Theme button handled by viewer.js setupModalsAndHeader
 
     // Initial render
     renderMarkdown();

@@ -1,0 +1,68 @@
+/* ================================================================
+   std-dark.css — Standard Dark Theme
+   ================================================================ */
+
+body.theme-std-dark {
+  color-scheme: dark;
+
+  --main-bg: #1e1e1e;
+  --text-color: #d4d4d4;
+  --text-muted: #858585;
+  --markdown-bg: #1e1e1e;
+  --markdown-shadow: rgba(0, 0, 0, 0.3);
+  --markdown-hr: #444;
+  --markdown-table-border: #444;
+  --markdown-table-header-bg: #2d2d2d;
+  --markdown-table-row-bg: #1e1e1e;
+  --markdown-table-header-color: #d4d4d4;
+  --markdown-table-hover-bg: #333333;
+  --code-bg: #2d2d2d;
+  --code-border: #444;
+  --code-highlight: #555;
+  --code-copied-bg: #3a3a3a;
+  --code-color: #e4e4e4;
+  --code-button-color: #888;
+  --inline-code-color: #CE9178;
+  --link-color: #4fc1ff;
+  --link-hover-color: #4fc1ff;
+  --tree-entry-color: #cccccc;
+  --tree-entry-hover-color: #4fc1ff;
+  --tree-entry-highlight-bg: #2d2d2d;
+  --tree-entry-highlight-color: #4fc1ff;
+  --tree-indent-line-color: #444;
+  --tree-active-bg: #37373d;
+  --tree-active-color: #4fc1ff;
+  --blockquote-bg: #2d2d2d;
+  --blockquote-indicator-color: #4fc1ff;
+  --blockquote-text-color: #d4d4d4;
+  --task-completed-color: #777;
+  --task-completed-bg: #2a2a2a;
+  --task-pending-color: var(--text-color);
+  --highlight-bg: #614a19;
+  --search-hover-color: #4fc1ff;
+  --search-overlay-bg: rgba(30, 30, 30, 0.95);
+  --search-overlay-shadow: rgba(0, 0, 0, 0.5);
+  --search-preview-file-color: #4fc1ff;
+  --toggle-area-bg: #252526;
+  --toggle-area-hover-bg: #2d2d2d;
+  --toggle-area-color: #cccccc;
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --border-color-light: #444;
+  --border-color-dark: #555;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.2s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
+
+  /* Theme type configuration */
+  --theme-mode: dark;
+
+  /* Component specific overrides */
+  --badge-link-bg: #1a3350;
+  --badge-link-color: #4fc1ff;
+  --badge-list-bg: #213221;
+  --badge-list-color: #89d185;
+  --checkbox-border: #555;
+  --checkbox-checked-bg: #666;
+  --checkbox-checked-border: #666;
+}

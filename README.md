@@ -48,13 +48,27 @@ Suppose directory listing of `~/workspace/scratch` is
         └── abc.md
 ```
 
-You can then view the file `abc.md` in three ways:
+You can then view the file `abc.md` in two ways:
 
-- `http://localhost:5000/v/notes/topics/abc.md`: Default viewer
-- `http://localhost:5000/m/notes/topics/abc.md`: Minimal viewer
+- `http://localhost:5000/v/notes/topics/abc.md`: Default viewer (supports toggling Focus Mode inside the UI)
 - `http://localhost:5000/t/notes/topics/abc.md`: Plaintext form
 
 ## Development
+
+### Running from source
+
+```sh
+uvx .
+```
+
+When iterating, `uvx .` may serve a cached build. To force a fresh run without nuking the whole uv cache:
+
+```sh
+uvx -n .        # bypasses cache entirely, rebuilds from source
+# or: uvx --no-cache .
+```
+
+### Sass styles
 
 Sass standalone binary:
 
