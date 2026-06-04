@@ -69,7 +69,8 @@ function mdvGetActiveTheme() {
 
 function mdvIsDark() {
   // First check CSS custom property for active theme mode
-  const mode = getComputedStyle(document.documentElement).getPropertyValue('--theme-mode').trim();
+  const targetEl = document.body || document.documentElement;
+  const mode = getComputedStyle(targetEl).getPropertyValue('--theme-mode').trim();
   if (mode === 'dark') return true;
   if (mode === 'light') return false;
 

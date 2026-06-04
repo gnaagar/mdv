@@ -140,7 +140,7 @@ body {
   vertical-align: top;
   padding: 0.4rem 0.8rem;
   border: 1px solid var(--markdown-table-border);
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
 }
