@@ -8,7 +8,7 @@ body {
 
 #markdown-body {
   width: 100%;
-  max-width: var(--content-max-width, 850px);
+  max-width: var(--content-max-width, 786px);
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -153,8 +153,7 @@ body {
 }
 #markdown-body hr {
   border: none;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--markdown-hr, rgba(189, 193, 198, 0.5)) 20%, var(--markdown-hr, rgba(189, 193, 198, 0.5)) 80%, transparent);
+  border-top: 1px solid var(--markdown-hr, rgba(189, 193, 198, 0.4));
   margin: 2em 0;
 }
 #markdown-body .task-list-item {
