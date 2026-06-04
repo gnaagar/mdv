@@ -751,9 +751,12 @@ body {
   grid-template-columns: 2.2fr 1fr;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+  min-width: 0;
 }
 .dash-row > .dash-card {
   margin-bottom: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Keyboard Shortcuts Cheat Sheet */
@@ -812,6 +815,8 @@ body {
 }
 .dash-recent-list li {
   margin: 0;
+  min-width: 0; /* Prevents grid cell expanding to fit content */
+  overflow: hidden;
 }
 .dash-recent-entry {
   display: flex;
@@ -836,6 +841,8 @@ body {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
 }
 .dash-recent-name {
   font-weight: 500;
