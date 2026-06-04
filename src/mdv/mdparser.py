@@ -7,6 +7,7 @@ from markdown_it.token import Token
 from mdit_py_plugins.anchors import anchors_plugin
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 from mdit_py_plugins.tasklists import tasklists_plugin
+from mdit_py_plugins.front_matter import front_matter_plugin
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
@@ -22,7 +23,7 @@ def highlight_code(code, lang, attrs):
         lexer = get_lexer_by_name("text")
     return highlight(code, lexer, _html_formatter)
 
-mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True).use(tasklists_plugin)
+mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True).use(tasklists_plugin).use(front_matter_plugin)
 
 # Custom plugin to add target="_blank" only to external <a> tags
 def add_target_blank(md):
