@@ -157,7 +157,6 @@ class MdViewerState:
                 raw_content = f.read()
                 node.raw = raw_content
                 node.parsed = MarkdownParser.parse(raw_content)
-                node.last_updated = os.stat(full_path).st_mtime
         except Exception as e:
             logger.error(f"Error reading file {full_path}: {e}")
 
@@ -226,27 +225,6 @@ class MdViewerState:
                 'mtime': n.last_updated,
             })
 
-        # --- README preview ---
-        readme_html = None
-        readme_path = None
-        # Check common README filenames
-        for candidate in ['README.md', 'readme.md', 'Readme.md']:
-            if candidate in self._node_map:
-                node = self._node_map[candidate]
-                self._refresh_node(node)
-                if node.raw:
-                    # Take first 15 non-empty lines
-                    lines = node.raw.splitlines()
-                    preview_lines = []
-                    for line in lines:
-                        preview_lines.append(line)
-                        if len(preview_lines) >= 15:
-                            break
-                    preview_md = '\n'.join(preview_lines)
-                    readme_html = MarkdownParser.parse(preview_md)
-                    readme_path = candidate
-                break
-
         return {
             'workspace_name': workspace_name,
             'workspace_path': workspace_path,
@@ -254,8 +232,6 @@ class MdViewerState:
             'heading_count': heading_count,
             'word_count': word_count,
             'recent_files': recent_files,
-            'readme_html': readme_html,
-            'readme_path': readme_path,
         }
 
     def get_tree(self):

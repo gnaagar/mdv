@@ -1,89 +1,80 @@
-# mdv - Mardown Viewer for local directories
+# mdv — Markdown Viewer for Local Directories
+
+A clean, elegant, and high-performance Markdown viewer for navigating and reading local document workspaces.
+
+---
 
 ## Features
 
-- Clean styles, convenient to customize
-- Directory tree sidebar for quick switching
-- Table of contents automatically generates, heading tracking/highlighting
-- Searching: both files names and content
+- **Premium Aesthetics**: Harmonious light and dark themes (including standard light, dark, and One Dark modes) with elegant typography and smooth micro-animations.
+- **Directory Tree Explorer**: An interactive, modal-based directory explorer with subsequence-matching fuzzy filtering to quickly swap files (press `.` to open).
+- **Fuzzy Content Search**: Ultra-fast, line-based content search with fzf-style substring/subsequence matching and inline category filters (press `/` to open).
+- **Smart Table of Contents**: Sidebar navigation with automatic scroll-tracking and bidirectional synchronization.
+- **Focus Mode**: Hide distracting menus and sidebars to read documents in a clean, uncluttered layout.
+- **Rich Content Support**: Full support for rendering complex math equations via KaTeX, and flowchart diagrams via Mermaid.js.
 
+---
+
+## Keyboard Shortcuts
+
+The viewer includes robust offline-capable keyboard hotkeys for keyboard-driven navigation:
+
+| Key | Action |
+| --- | --- |
+| `.` | Open Directory Tree Explorer |
+| `/` | Open Content Search Modal |
+| `Escape` | Close any active modal |
+| `ArrowUp` / `ArrowDown` | Navigate through files/results in modals |
+| `Enter` | Open the selected file or search result |
+
+---
 
 ## Installation
 
 Install globally using `pipx` or `uv`:
 
 ```sh
-# using pipx
+# Using pipx
 pipx install git+https://github.com/gnaagar/mdv.git
 
-# or using uv
+# Or using uv
 uv tool install git+https://github.com/gnaagar/mdv.git
 ```
 
+---
+
 ## Usage
 
-Run without installing:
+Start the server inside your workspace directory:
 
 ```sh
-# using pipx
-pipx run git+https://github.com/gnaagar/mdv.git
+# Change to your notes/documentation workspace
+cd ~/my-workspace
 
-# or using uv
-uvx git+https://github.com/gnaagar/mdv.git
-```
-
-Or, if installed:
-
-```sh
-cd ~/workspace/scratch
+# Run the viewer
 mdv
 ```
 
-Suppose directory listing of `~/workspace/scratch` is
+By default, the server boots on `http://localhost:8000/`. You can specify a custom port or host if needed:
 
-```
-/home/terxor/workspace/scratch
-└── notes
-    └── topics
-        └── abc.md
+```sh
+mdv --port 8080 --host 0.0.0.0
 ```
 
-You can then view the file `abc.md` in two ways:
+### Navigating Workspace Files
+- The home page (`http://localhost:8000/`) displays a dashboard of your workspace with a list of recent files.
+- Individual markdown files can be read at `http://localhost:8000/v/path/to/file.md`.
+- View the plain text source at `http://localhost:8000/t/path/to/file.md`.
 
-- `http://localhost:5000/v/notes/topics/abc.md`: Default viewer (supports toggling Focus Mode inside the UI)
-- `http://localhost:5000/t/notes/topics/abc.md`: Plaintext form
+---
 
 ## Development
 
-### Running from source
+To run from source during local development, use `uv`:
 
 ```sh
-uvx .
+# Run locally with test/sample documents
+uv run mdv samples --port 8000
 ```
 
-When iterating, `uvx .` may serve a cached build. To force a fresh run without nuking the whole uv cache:
-
-```sh
-uvx -n .        # bypasses cache entirely, rebuilds from source
-# or: uvx --no-cache .
-```
-
-### Sass styles
-
-Sass standalone binary:
-
-```
-cd /tmp
-# Note: Use your os version
-SASS_URL=https://github.com/sass/dart-sass/releases/download/1.97.0/dart-sass-1.97.0-macos-arm64.tar.gz
-curl -fsSL -o sass.tar.gz $SASS_URL
-tar -xzf sass.tar.gz
-```
-
-Now, regen css while development:
-
-```
-/tmp/dart-sass/sass --watch src/styles:static/
-```
-
---------------------------------------------------------------------------------
+If you are modifying frontend assets (like CSS and JS) and need to bypass browser caching, the templates support version cache-busting.

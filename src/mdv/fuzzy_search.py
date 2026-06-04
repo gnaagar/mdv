@@ -84,7 +84,7 @@ def _subsequence_score(query, text):
     return max(score, 1)
 
 
-def _substring_score(query_lower, text_lower, text_original):
+def _substring_score(query_original, query_lower, text_lower, text_original):
     """
     Score a substring match. Returns score or -1 if no substring match.
     """
@@ -99,14 +99,11 @@ def _substring_score(query_lower, text_lower, text_original):
         score += 20
 
     # Bonus: case-sensitive match
-    if query_lower in text_original:
-        # Already lowercase match; check exact case
-        pass
-    if text_original.find(query_lower) != -1:
-        score += 5  # Exact case match (query was already lowered, so this is just substring)
+    if query_original in text_original:
+        score += 5
 
     # Bonus: query covers large portion of the line (tighter match)
-    ratio = len(query_lower) / max(len(text_lower), 1)
+    ratio = len(query_original) / max(len(text_lower), 1)
     score += int(ratio * 30)
 
     return score
@@ -187,7 +184,7 @@ class LineIndex:
                 score += int(ratio * 30)
             else:
                 # Single token: substring then subsequence
-                score = _substring_score(query_lower, text_lower, display)
+                score = _substring_score(query, query_lower, text_lower, display)
                 if score == -1:
                     score = _subsequence_score(query_lower, text_lower)
                 if score == -1:
