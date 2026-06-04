@@ -80,11 +80,19 @@ body.theme-onehalf-dark #markdown-body h5,
 body.theme-onehalf-dark #markdown-body h6 {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 600;
-  color: #e5c07b; /* Warm tone for headers, matching One Half scheme */
+  color: #e5c07b;
+  /* Warm tone for headers, matching One Half scheme */
 }
 
-body.theme-onehalf-dark #markdown-body h1 { border-bottom: 1px solid #3e4452; padding-bottom: 0.3em; }
-body.theme-onehalf-dark #markdown-body h2 { border-bottom: 1px solid #3e4452; padding-bottom: 0.3em; }
+body.theme-onehalf-dark #markdown-body h1 {
+  border-bottom: 1px solid #3e4452;
+  padding-bottom: 0.3em;
+}
+
+body.theme-onehalf-dark #markdown-body h2 {
+  border-bottom: 1px solid #3e4452;
+  padding-bottom: 0.3em;
+}
 
 body.theme-onehalf-dark #markdown-body code,
 body.theme-onehalf-dark #markdown-body tt {

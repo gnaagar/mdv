@@ -93,31 +93,28 @@ function mdvSetTheme(name) {
     document.body.className = 'theme-' + name;
   }
 
-  // Update dynamic stylesheet link
-  const linkEl = document.getElementById('theme-stylesheet');
-  if (linkEl) {
-    linkEl.href = '/static/themes/' + name + '.css';
-  }
-
   var isDark = name.includes('dark');
   document.documentElement.classList.toggle('theme-dark', isDark);
   if (document.body) {
     document.body.classList.toggle('theme-dark', isDark);
   }
-  
   document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
 
-  // Run a post-update frame check using getComputedStyle to ensure accuracy for non-standard named custom themes
-  requestAnimationFrame(function() {
-    var accurateDark = mdvIsDark();
-    if (accurateDark !== isDark) {
-      document.documentElement.classList.toggle('theme-dark', accurateDark);
-      if (document.body) {
-        document.body.classList.toggle('theme-dark', accurateDark);
+  // Update dynamic stylesheet link with onload verification to prevent race conditions
+  const linkEl = document.getElementById('theme-stylesheet');
+  if (linkEl) {
+    linkEl.onload = function() {
+      var accurateDark = mdvIsDark();
+      if (accurateDark !== isDark) {
+        document.documentElement.classList.toggle('theme-dark', accurateDark);
+        if (document.body) {
+          document.body.classList.toggle('theme-dark', accurateDark);
+        }
+        document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: accurateDark } }));
       }
-      document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: accurateDark } }));
-    }
-  });
+    };
+    linkEl.href = '/static/themes/' + name + '.css';
+  }
 
   // Update all toggle buttons
   const btns = document.querySelectorAll('#btn-theme-toggle');
