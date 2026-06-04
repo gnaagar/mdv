@@ -15,9 +15,9 @@ document.addEventListener('DOMContentLoaded', onPageLoad);
 // -----------------------------------------------------------------------------
 // PAGE STATE AND VARIABLES
 // -----------------------------------------------------------------------------
-const MD_BODY = document.getElementById('markdown-body')
-const DIR_TREE = document.getElementById('dtree-container')
-const TOC_TREE = document.getElementById('toc-container')
+let MD_BODY = null;
+let DIR_TREE = null;
+let TOC_TREE = null;
 
 const dirTreeState = {
   entryMap: {},
@@ -28,13 +28,7 @@ const dirTreeState = {
 // Use shared classes instead of local definitions
 const commonClasses = MDV_CLASSES;
 
-const treeClasses = Object.freeze({
-  tree: 'tree',
-  entry: 'tree-entry',
-  collapsed: 'tree-collapsed',
-  nested: 'nested',
-  active: 'active',
-});
+const treeClasses = MDV_CLASSES;
 
 // Shared utilities from shared.js
 const escapeHtml = mdvEscapeHtml;
@@ -44,6 +38,9 @@ const createHighlighter = mdvCreateHighlighter;
 // -----------------------------------------------------------------------------
 
 function onPageLoad() {
+  MD_BODY = document.getElementById('markdown-body');
+  DIR_TREE = document.getElementById('dtree-container');
+  TOC_TREE = document.getElementById('toc-container');
   loadDirTree(DIR_TREE);
   setupSearch();
   if (MD_BODY && TOC_TREE) generateTOC(MD_BODY, TOC_TREE);
@@ -447,19 +444,7 @@ function highlightTextInNode(node, query) {
   // After highlight fades, unwrap spans to restore original text nodes
   if (insertedSpans.length > 0) {
     const cleanupDelay = 4000 + 700 + 50; // duration + transitionMs + buffer
-    setTimeout(() => unwrapHighlightSpans(insertedSpans, node), cleanupDelay);
-  }
-}
-
-function unwrapHighlightSpans(spans, containerNode) {
-  spans.forEach(span => {
-    if (!span.parentNode) return;
-    const text = document.createTextNode(span.textContent);
-    span.parentNode.replaceChild(text, span);
-  });
-  // Merge adjacent text nodes to fully restore original DOM structure
-  if (containerNode && containerNode.normalize) {
-    containerNode.normalize();
+    setTimeout(() => mdvUnwrapHighlightSpans(insertedSpans, node), cleanupDelay);
   }
 }
 
