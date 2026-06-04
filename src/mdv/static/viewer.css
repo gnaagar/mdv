@@ -274,9 +274,9 @@ body {
 .tree li.tree-expanded > ul {
   display: block;
 }
-/* TOC entries - use serif font */
+/* TOC entries - inherit font from theme body */
 #toc-container .tree .tree-entry {
-  font-family: "Noto Serif", serif;
+  font-family: inherit;
 }
 
 /* File tree entries - keep monospace */

@@ -133,17 +133,10 @@ body.theme-basic #markdown-body .task-list-item > ul > .task-list-item::after {
 }
 
 /* ── Viewer / Dashboard: plain ── */
-body.theme-basic .sidebar-top-header {
-  border-bottom: none;
-}
 body.theme-basic .header-btn {
-  border: none;
-  background: transparent;
-  border-radius: 0;
   color: #000;
 }
 body.theme-basic .header-btn:hover {
-  background: transparent;
   color: #000;
 }
 body.theme-basic .container .nav-sidebar {
