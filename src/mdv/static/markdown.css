@@ -8,7 +8,7 @@ body {
 
 #markdown-body {
   width: 100%;
-  max-width: 950px;
+  max-width: var(--content-max-width, 850px);
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -153,7 +153,8 @@ body {
 }
 #markdown-body hr {
   border: none;
-  border-top: solid 3px rgba(189, 193, 198, 0.2);
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--markdown-hr, rgba(189, 193, 198, 0.5)) 20%, var(--markdown-hr, rgba(189, 193, 198, 0.5)) 80%, transparent);
   margin: 2em 0;
 }
 #markdown-body .task-list-item {
@@ -309,7 +310,7 @@ body {
 
 .focus-layout {
   padding: 4rem !important;
-  max-width: 950px !important;
+  max-width: var(--content-max-width, 850px) !important;
   margin: 0 auto !important;
 }
 @media (max-width: 768px) {

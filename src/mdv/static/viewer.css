@@ -274,10 +274,10 @@ body {
 .tree li.tree-expanded > ul {
   display: block;
 }
-/* TOC entries - inherit font from theme body and scale down size */
+/* TOC entries - inherit font from theme body */
 #toc-container .tree .tree-entry {
   font-family: inherit;
-  font-size: 0.8em;
+  font-size: 0.875em;
 }
 
 /* File tree entries - keep monospace */
@@ -305,8 +305,9 @@ body {
   color: var(--tree-entry-highlight-color);
 }
 .tree .tree-entry.active {
-  background: var(--tree-active-bg);
+  background: transparent;
   color: var(--tree-active-color);
+  font-weight: 600;
 }
 
 /* ================================================================
@@ -636,6 +637,8 @@ body {
   margin-top: 0.3rem;
   font-family: "JetBrains Mono", monospace;
   word-break: break-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 .dash-header-actions {
   flex-shrink: 0;
@@ -820,6 +823,8 @@ body {
   color: var(--text-color);
   transition: all var(--transition-normal);
   border: 1px solid transparent;
+  min-width: 0;
+  overflow: hidden;
 }
 .dash-recent-entry:hover {
   background: var(--tree-entry-highlight-bg);
