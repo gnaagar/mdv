@@ -53,4 +53,16 @@ body.theme-std-dark {
   --transition-fast: 0.15s ease-in-out;
   --transition-normal: 0.2s ease-in-out;
   --transition-slow: 0.5s ease-in-out;
+
+  /* Theme type configuration */
+  --theme-mode: dark;
+
+  /* Component specific overrides */
+  --badge-link-bg: #1a3350;
+  --badge-link-color: #4fc1ff;
+  --badge-list-bg: #213221;
+  --badge-list-color: #89d185;
+  --checkbox-border: #555;
+  --checkbox-checked-bg: #666;
+  --checkbox-checked-border: #666;
 }

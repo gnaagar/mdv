@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import theme_toggle_button %}
 
 {% block styles %}
 <link rel="stylesheet" href="/static/viewer.css">
@@ -74,9 +75,7 @@
     <div class="live-header">
       <span>Live Editor (Auto-saved)</span>
       <div style="display: flex; gap: 5px; flex-direction: row;">
-        <button id="btn-theme-toggle" class="header-btn" title="Switch Theme">
-          <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm6.5-5.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1h2zM3.5 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5z"/><path d="M13.3 2.7a.5.5 0 0 1 .7 0l.7.7a.5.5 0 0 1-.7.7l-.7-.7a.5.5 0 0 1 0-.7zm-11 11a.5.5 0 0 1 .7 0l.7.7a.5.5 0 0 1-.7.7l-.7-.7a.5.5 0 0 1 0-.7zM2.7 2.7a.5.5 0 0 1 0 .7l-.7.7a.5.5 0 0 1-.7-.7l.7-.7a.5.5 0 0 1 .7 0zm11 11a.5.5 0 0 1 0 .7l-.7.7a.5.5 0 0 1-.7-.7l.7-.7a.5.5 0 0 1 .7 0z"/></svg>
-        </button>
+        {{ theme_toggle_button() }}
         <button id="btn-copy" class="header-btn" title="Copy Markdown">
           <svg fill="currentColor" viewBox="0 0 16 16" width="18" height="18">
             <path

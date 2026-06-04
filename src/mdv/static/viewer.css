@@ -469,20 +469,12 @@ body {
   border: 1px solid var(--code-border);
 }
 .badge-link {
-  background: #e8f0fe;
-  color: #1a73e8;
-}
-body.theme-dark .badge-link {
-  background: #1a3350;
-  color: #4fc1ff;
+  background: var(--badge-link-bg);
+  color: var(--badge-link-color);
 }
 .badge-list {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-body.theme-dark .badge-list {
-  background: #213221;
-  color: #89d185;
+  background: var(--badge-list-bg);
+  color: var(--badge-list-color);
 }
 .badge-text {
   background: var(--tree-entry-highlight-bg);

@@ -27,9 +27,7 @@
     }
   </style>
   <link rel="stylesheet" href="/static/markdown.css">
-  {% for t in themes %}
-  <link rel="stylesheet" href="/static/themes/{{ t }}.css">
-  {% endfor %}
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme | default('std-light') }}.css">
   {% block styles %}
   {% endblock %}
   <link rel="stylesheet" href="/static/pygments.css">
@@ -42,28 +40,27 @@
     (function() {
       var params = new URLSearchParams(window.location.search);
       var themeParam = params.get('theme');
-      var theme = themeParam || localStorage.getItem('theme');
+      var preferred = themeParam || localStorage.getItem('theme');
+      
       // Migrate old theme names
-      if (theme === 'light') theme = 'std-light';
-      if (theme === 'dark') theme = 'std-dark';
-      if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        theme = 'std-dark';
+      if (preferred === 'light') preferred = 'std-light';
+      if (preferred === 'dark') preferred = 'std-dark';
+      
+      var active = preferred;
+      if (!active || MDV_THEMES.indexOf(active) < 0) {
+        active = '{{ theme | default("std-light") }}';
       }
-      theme = theme || 'std-light';
-      // Validate against available themes
-      if (MDV_THEMES.indexOf(theme) < 0) theme = 'std-light';
-      document.body.className = 'theme-' + theme;
-      if (theme.indexOf('dark') >= 0) document.body.classList.add('theme-dark');
+      
+      document.body.className = 'theme-' + active;
+      var isDark = active.indexOf('dark') >= 0;
+      document.body.classList.toggle('theme-dark', isDark);
+      
+      var linkEl = document.getElementById('theme-stylesheet');
+      if (linkEl) {
+        linkEl.href = '/static/themes/' + active + '.css';
+      }
+      
       if (themeParam) localStorage.setItem('theme', themeParam);
-
-      // Live listen to system theme changes if no manual preference is set
-      if (window.matchMedia) {
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-          if (!localStorage.getItem('theme')) {
-            mdvSetTheme(e.matches ? 'std-dark' : 'std-light');
-          }
-        });
-      }
     })();
   </script>
   {% block body %}
@@ -85,7 +82,7 @@
       {% for t in themes %}
       <button class="theme-option" data-theme="{{ t }}">
         <span class="theme-option-name">{{ t.replace('-', ' ').title() }}</span>
-        <span class="theme-option-check" {% if t != theme %}style="display:none"{% endif %}>✓</span>
+        <span class="theme-option-check" style="display:none">✓</span>
       </button>
       {% endfor %}
     </div>

@@ -53,4 +53,16 @@ body.theme-std-light {
   --transition-fast: 0.15s ease-in-out;
   --transition-normal: 0.2s ease-in-out;
   --transition-slow: 0.5s ease-in-out;
+
+  /* Theme type configuration */
+  --theme-mode: light;
+
+  /* Component specific overrides */
+  --badge-link-bg: #e8f0fe;
+  --badge-link-color: #1a73e8;
+  --badge-list-bg: #e8f5e9;
+  --badge-list-color: #2e7d32;
+  --checkbox-border: #ccc;
+  --checkbox-checked-bg: #aaa;
+  --checkbox-checked-border: #aaa;
 }

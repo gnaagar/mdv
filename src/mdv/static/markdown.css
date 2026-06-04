@@ -169,7 +169,7 @@ body {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border: 2px solid #ccc;
+  border: 2px solid var(--checkbox-border);
   border-radius: 3px;
   margin-right: 0.5em;
   pointer-events: none;
@@ -179,8 +179,8 @@ body {
 }
 
 #markdown-body .task-list-item input[type=checkbox]:checked {
-  background-color: #aaa;
-  border-color: #aaa;
+  background-color: var(--checkbox-checked-bg);
+  border-color: var(--checkbox-checked-border);
 }
 
 #markdown-body .task-list-item input[type=checkbox]:checked::after {
