@@ -274,9 +274,10 @@ body {
 .tree li.tree-expanded > ul {
   display: block;
 }
-/* TOC entries - inherit font from theme body */
+/* TOC entries - inherit font from theme body and scale down size */
 #toc-container .tree .tree-entry {
   font-family: inherit;
+  font-size: 0.8em;
 }
 
 /* File tree entries - keep monospace */
