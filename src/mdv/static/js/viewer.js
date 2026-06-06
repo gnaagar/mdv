@@ -715,7 +715,7 @@ async function search() {
       a.style.textDecoration = 'none';
       a.style.color = 'inherit';
 
-      a.href = `/v/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
+      a.href = `/_/${item.path}?q=${encodeURIComponent(query)}&l=${item.lineno}`;
 
       // Same-page: scroll directly
       if (currentPath === item.path) {
@@ -861,7 +861,7 @@ function loadDirTree(container, callback) {
         flatList.push({
           name: item.name,
           fullPath: fullPath,
-          href: '/v/' + item.path,
+          href: '/_/' + item.path,
           metadata: { id: item.path }
         });
       }

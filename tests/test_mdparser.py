@@ -46,12 +46,12 @@ class TestMarkdownParser(unittest.TestCase):
 
     def test_external_links_target_blank(self):
         # HTTP/HTTPS external links should have target="_blank"
-        md = "[Google](https://google.com) and [Local](/v/local.md)"
+        md = "[Google](https://google.com) and [Local](/_/local.md)"
         html = MarkdownParser.parse(md)
         self.assertIn('href="https://google.com" target="_blank"', html)
-        self.assertIn('href="/v/local.md"', html)
-        self.assertNotIn('target="_blank" href="/v/local.md"', html)
-        self.assertNotIn('href="/v/local.md" target="_blank"', html)
+        self.assertIn('href="/_/local.md"', html)
+        self.assertNotIn('target="_blank" href="/_/local.md"', html)
+        self.assertNotIn('href="/_/local.md" target="_blank"', html)
 
     def test_html_sanitization(self):
         # Dangerous tags should be stripped/sanitized
