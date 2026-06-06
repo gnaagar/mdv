@@ -78,9 +78,8 @@ url_map = Map(
     [
         Rule("/", endpoint="home"),
         Rule("/static/<path:filename>", endpoint="static"),  # handled by middleware
-        Rule("/v/", endpoint="index"),
-        Rule("/v/<path:filename>", endpoint="view"),
-        Rule("/t/<path:filename>", endpoint="mdtext"),
+        Rule("/_/", endpoint="index"),
+        Rule("/_/<path:filename>", endpoint="view"),
         Rule("/api/tree", endpoint="dirtree"),
         Rule("/api/search", endpoint="search"),
         Rule("/api/themes", endpoint="themes"),
@@ -171,8 +170,8 @@ class App:
         # In lite mode, go directly to the file view
         lite_file = self.config.get("lite_file")
         if lite_file:
-            return Response(status=302, headers={"Location": f"/v/{lite_file}"})
-        return Response(status=302, headers={"Location": "/v"})
+            return Response(status=302, headers={"Location": f"/_/{lite_file}"})
+        return Response(status=302, headers={"Location": "/_/"})
 
     def on_index(self, request: Request) -> Response:
         self.state.refresh()
@@ -201,11 +200,7 @@ class App:
         return Response(json.dumps(self.themes), mimetype="application/json")
 
     def on_view(self, request: Request, filename: str) -> Response:
-        return self.handle_common(filename, template="viewer.html", prefix="v")
-
-    def on_mdtext(self, request: Request, filename: str) -> Response:
-        raw_text = self.state.get_content(filename, raw=True)
-        return Response(raw_text, mimetype="text/plain")
+        return self.handle_common(filename, template="viewer.html", prefix="_")
 
     def on_api_render(self, request: Request) -> Response:
         raw_md = request.get_data(as_text=True)
@@ -282,7 +277,7 @@ def main() -> None:
         port = 0
         srv = make_server(args.host, port, app, threaded=True)
         actual_port = srv.port
-        url = f"http://{args.host}:{actual_port}/v/{config['lite_file']}"
+        url = f"http://{args.host}:{actual_port}/_/{config['lite_file']}"
         print(f"Lite mode: serving {target_path} on {url}")
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()
         srv.serve_forever()

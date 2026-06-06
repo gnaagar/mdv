@@ -63,8 +63,7 @@ mdv --port 8080 --host 0.0.0.0
 
 ### Navigating Workspace Files
 - The home page (`http://localhost:8000/`) displays a dashboard of your workspace with a list of recent files.
-- Individual markdown files can be read at `http://localhost:8000/v/path/to/file.md`.
-- View the plain text source at `http://localhost:8000/t/path/to/file.md`.
+- Individual markdown files can be read at `http://localhost:8000/_/path/to/file.md`.
 
 ---
 
