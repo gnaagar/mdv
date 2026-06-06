@@ -97,9 +97,9 @@ body.theme-sans-dark #markdown-body tt {
     font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     background-color: rgba(255, 255, 255, 0.08); /* Softer highlight box */
     color: var(--text-color);
-    padding: 0.12em 0.25em; /* Tighter padding */
-    border-radius: 3px;
-    font-size: 0.85em; /* Smaller inline code font */
+    padding: 0.2em 0.4em; /* Spacious padding */
+    border-radius: 5px;
+    font-size: 0.8em; /* Smaller inline code font */
 }
 
 body.theme-sans-dark #markdown-body pre code {

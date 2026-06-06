@@ -1,5 +1,5 @@
 /* ================================================================
-   sans.css — Clean sans-serif theme
+   sans.css — Clean sans-serif theme matching light visuals
    ================================================================ */
 
 body.theme-sans {
@@ -12,13 +12,13 @@ body.theme-sans {
   --markdown-shadow: none;
   --markdown-hr: #eeeeee;
   --markdown-table-border: #cccccc;
-  --markdown-table-header-bg: #ffffff;
+  --markdown-table-header-bg: #f8f9fa;
   --markdown-table-row-bg: #ffffff;
   --markdown-table-header-color: #333333;
-  --markdown-table-hover-bg: #fdfdfd;
+  --markdown-table-hover-bg: #f5f5f5;
   --code-bg: #f8f8f8;
   --code-border: #eeeeee;
-  --code-highlight: rgba(157, 193, 200, 0.5);
+  --code-highlight: rgba(64, 120, 192, 0.15);
   --code-copied-bg: #eeeeee;
   --code-color: #333333;
   --code-button-color: #999999;
@@ -32,13 +32,13 @@ body.theme-sans {
   --tree-indent-line-color: #eeeeee;
   --tree-active-bg: #e2ecf7;
   --tree-active-color: #4078c0;
-  --blockquote-bg: transparent;
-  --blockquote-indicator-color: #dddddd;
-  --blockquote-text-color: #777777;
+  --blockquote-bg: #f5f7fa;
+  --blockquote-indicator-color: #4078c0;
+  --blockquote-text-color: #555555;
   --task-completed-color: #777777;
   --task-completed-bg: transparent;
   --task-pending-color: var(--text-color);
-  --highlight-bg: rgba(255, 230, 102, 0.5);
+  --highlight-bg: rgba(255, 230, 102, 0.4);
   --search-hover-color: #4078c0;
   --search-overlay-bg: rgba(255, 255, 255, 0.95);
   --search-overlay-shadow: rgba(0, 0, 0, 0.05);
@@ -68,7 +68,8 @@ body.theme-sans {
 /* ── Typography and font overrides for sans theme ── */
 body.theme-sans,
 body.theme-sans #markdown-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 16px; /* Baseline overall doc font-size */
 }
 
 body.theme-sans #markdown-body h1,
@@ -77,30 +78,48 @@ body.theme-sans #markdown-body h3,
 body.theme-sans #markdown-body h4,
 body.theme-sans #markdown-body h5,
 body.theme-sans #markdown-body h6 {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-weight: 600;
+  font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600; /* Distinct bold headings */
   color: #333333;
 }
+
+/* Progressive heading sizes starting from h6 (16px) up to h1 (28.8px) */
+body.theme-sans #markdown-body h1 { font-size: 1.8em; border-bottom: 1px solid #eeeeee; padding-bottom: 0.3em; }
+body.theme-sans #markdown-body h2 { font-size: 1.55em; border-bottom: 1px solid #eeeeee; padding-bottom: 0.3em; }
+body.theme-sans #markdown-body h3 { font-size: 1.35em; }
+body.theme-sans #markdown-body h4 { font-size: 1.2em; }
+body.theme-sans #markdown-body h5 { font-size: 1.1em; }
+body.theme-sans #markdown-body h6 { font-size: 1em; }
 
 body.theme-sans #markdown-body code,
 body.theme-sans #markdown-body tt {
   font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-  background-color: rgba(0, 0, 0, 0.04);
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.04); /* Softer highlight box */
+  color: var(--text-color);
+  padding: 0.2em 0.4em; /* Spacious padding */
+  border-radius: 5px;
+  font-size: 0.8em; /* Smaller inline code font */
 }
 
 body.theme-sans #markdown-body pre code {
   background-color: transparent;
   padding: 0;
   border-radius: 0;
+  font-size: inherit;
 }
 
 body.theme-sans #markdown-body pre {
   background-color: #f8f8f8;
+  border: 1px solid #eeeeee;
+  border-radius: 8px; /* Rounder corners */
+  padding: 12px; /* Slightly reduced padding */
+  font-size: 0.85em; /* Scaled relative to the 16px baseline */
+}
+
+/* Subtler and thinner horizontal rules */
+body.theme-sans #markdown-body hr {
   border: none;
-  border-radius: 3px;
-  padding: 16px;
+  border-top: 1px solid var(--markdown-hr);
 }
 
 /* Table rows styling */
@@ -141,4 +160,11 @@ body.theme-sans code::selection {
 
 body.theme-sans a::selection {
   background-color: rgba(255, 230, 102, 0.2);
+}
+
+/* ── Mermaid Connector Contrast ── */
+body.theme-sans .theme-light .edgePaths .edgePath .path,
+body.theme-sans .theme-light .marker {
+  stroke: #333333 !important;
+  fill: #333333 !important;
 }
