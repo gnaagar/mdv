@@ -45,8 +45,8 @@ const MDV_CLASSES = Object.freeze({
    ---------------------------------------------------------- */
 function mdvGetTheme() {
   var stored = localStorage.getItem('theme');
-  if (stored === 'light') stored = 'std-light';
-  if (stored === 'dark') stored = 'std-dark';
+  if (stored === 'light' || stored === 'std-light') stored = 'sans';
+  if (stored === 'dark' || stored === 'std-dark') stored = 'sans-dark';
   
   if (stored && window.MDV_THEMES && window.MDV_THEMES.indexOf(stored) >= 0) {
     return stored;
@@ -60,7 +60,7 @@ function mdvGetTheme() {
     }
   }
   
-  return 'std-light';
+  return 'sans';
 }
 
 function mdvGetActiveTheme() {
@@ -82,8 +82,8 @@ function mdvIsDark() {
 
 function mdvSetTheme(name) {
   // Migrate legacy names
-  if (name === 'light') name = 'std-light';
-  if (name === 'dark') name = 'std-dark';
+  if (name === 'light' || name === 'std-light') name = 'sans';
+  if (name === 'dark' || name === 'std-dark') name = 'sans-dark';
 
   localStorage.setItem('theme', name);
 
@@ -130,7 +130,7 @@ function mdvSetTheme(name) {
 }
 
 function mdvToggleTheme() {
-  var themes = window.MDV_THEMES || ['std-light', 'std-dark'];
+  var themes = window.MDV_THEMES || ['sans', 'sans-dark'];
   var current = mdvGetTheme();
   var idx = themes.indexOf(current);
   if (idx < 0) idx = 0;

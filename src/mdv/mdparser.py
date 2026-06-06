@@ -3,7 +3,6 @@ import html
 from html.parser import HTMLParser
 
 from markdown_it import MarkdownIt
-from markdown_it.token import Token
 from mdit_py_plugins.anchors import anchors_plugin
 from mdit_py_plugins.dollarmath import dollarmath_plugin
 from mdit_py_plugins.tasklists import tasklists_plugin
@@ -15,6 +14,7 @@ from pygments.formatters import HtmlFormatter
 
 _html_formatter = HtmlFormatter(nowrap=True)
 
+
 # Highlighting function
 def highlight_code(code, lang, attrs):
     try:
@@ -23,33 +23,44 @@ def highlight_code(code, lang, attrs):
         lexer = get_lexer_by_name("text")
     return highlight(code, lexer, _html_formatter)
 
-mdparser = MarkdownIt('commonmark', {"highlight": highlight_code}).enable('table').use(anchors_plugin, max_level=3).use(dollarmath_plugin, double_inline=True).use(tasklists_plugin).use(front_matter_plugin)
+
+mdparser = (
+    MarkdownIt("commonmark", {"highlight": highlight_code})
+    .enable("table")
+    .use(anchors_plugin, max_level=3)
+    .use(dollarmath_plugin, double_inline=True)
+    .use(tasklists_plugin)
+    .use(front_matter_plugin)
+)
+
 
 # Custom plugin to add target="_blank" only to external <a> tags
 def add_target_blank(md):
     def link_open_with_target_blank(tokens, idx, options, env):
         token = tokens[idx]
-        
-        href = token.attrGet('href')
-        if href and (href.startswith('http://') or href.startswith('https://')):
+
+        href = token.attrGet("href")
+        if href and (href.startswith("http://") or href.startswith("https://")):
             if token.attrs is None:
                 token.attrs = []
-            token.attrSet('target', '_blank')
+            token.attrSet("target", "_blank")
 
         return md.renderer.renderToken(tokens, idx, options, env)
 
-    md.renderer.rules['link_open'] = link_open_with_target_blank
+    md.renderer.rules["link_open"] = link_open_with_target_blank
+
 
 # Custom plugin to add source line numbers to all block elements
 def inject_line_numbers(md):
     def core_inject(state):
         for token in state.tokens:
-            if getattr(token, 'map', None):
+            if getattr(token, "map", None):
                 if token.attrs is None:
                     token.attrs = []
-                token.attrSet('data-source-line', str(token.map[0] + 1))
-    
-    md.core.ruler.push('inject_line_numbers', core_inject)
+                token.attrSet("data-source-line", str(token.map[0] + 1))
+
+    md.core.ruler.push("inject_line_numbers", core_inject)
+
 
 # Apply the plugins
 add_target_blank(mdparser)
@@ -64,7 +75,17 @@ class SanitizingHTMLParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         tag_lower = tag.lower()
-        if tag_lower in {'script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base', 'form'}:
+        if tag_lower in {
+            "script",
+            "iframe",
+            "object",
+            "embed",
+            "applet",
+            "meta",
+            "link",
+            "base",
+            "form",
+        }:
             self.dangerous_tag_depth += 1
             return
         if self.dangerous_tag_depth > 0:
@@ -73,11 +94,15 @@ class SanitizingHTMLParser(HTMLParser):
         cleaned_attrs = []
         for name, value in attrs:
             name_lower = name.lower()
-            if name_lower.startswith('on'):
+            if name_lower.startswith("on"):
                 continue
-            if name_lower in ('href', 'src'):
-                val_lower = (value or '').strip().lower()
-                if val_lower.startswith('javascript:') or val_lower.startswith('vbscript:') or val_lower.startswith('data:text/html'):
+            if name_lower in ("href", "src"):
+                val_lower = (value or "").strip().lower()
+                if (
+                    val_lower.startswith("javascript:")
+                    or val_lower.startswith("vbscript:")
+                    or val_lower.startswith("data:text/html")
+                ):
                     continue
             cleaned_attrs.append((name, value))
 
@@ -87,21 +112,31 @@ class SanitizingHTMLParser(HTMLParser):
                 f'{k}="{html.escape(v)}"' if v is not None else k
                 for k, v in cleaned_attrs
             )
-        
-        if tag_lower in {'img', 'br', 'hr', 'input', 'meta', 'link'}:
+
+        if tag_lower in {"img", "br", "hr", "input", "meta", "link"}:
             self.result.append(f"<{tag}{attr_str} />")
         else:
             self.result.append(f"<{tag}{attr_str}>")
 
     def handle_endtag(self, tag):
         tag_lower = tag.lower()
-        if tag_lower in {'script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link', 'base', 'form'}:
+        if tag_lower in {
+            "script",
+            "iframe",
+            "object",
+            "embed",
+            "applet",
+            "meta",
+            "link",
+            "base",
+            "form",
+        }:
             self.dangerous_tag_depth = max(0, self.dangerous_tag_depth - 1)
             return
         if self.dangerous_tag_depth > 0:
             return
 
-        if tag_lower not in {'img', 'br', 'hr', 'input', 'meta', 'link'}:
+        if tag_lower not in {"img", "br", "hr", "input", "meta", "link"}:
             self.result.append(f"</{tag}>")
 
     def handle_data(self, data):
@@ -118,23 +153,30 @@ class SanitizingHTMLParser(HTMLParser):
 
 
 class MarkdownParser:
-    
+    _MATH_BLOCK_RE = re.compile(
+        r"(?P<code_fence>```[\s\S]*?```|~~~[\s\S]*?~~~)|\$\$(?P<math>[\s\S]*?)\$\$",
+        re.MULTILINE,
+    )
+
     @staticmethod
     def _clean_math(content: str) -> str:
         # Merge all lines inside $$...$$, remove leading > and whitespace from each line
-        def replacer(m):
-            inner = m.group(1)
-            lines = [re.sub(r'^\s*>?\s?', '', line) for line in inner.splitlines()]
-            merged = ' '.join(lines)
-            return '$$' + merged.replace('\\', '\\\\') + '$$'
-        content = re.sub(r'\$\$(.*?)\$\$', replacer, content, flags=re.DOTALL)
-        return content
+        # Skip math block processing if it's inside fenced code blocks
+        def replacer(m: re.Match) -> str:
+            if m.group("code_fence"):
+                return m.group(0)
+            inner = m.group("math")
+            lines = [re.sub(r"^\s*>?\s?", "", line) for line in inner.splitlines()]
+            merged = " ".join(lines)
+            return "$$" + merged.replace("\\", "\\\\") + "$$"
+
+        return MarkdownParser._MATH_BLOCK_RE.sub(replacer, content)
 
     @staticmethod
     def parse(mdcontent: str) -> str:
         mdcontent = MarkdownParser._clean_math(mdcontent)
         raw_html = mdparser.render(mdcontent)
-        
+
         # Sanitize HTML using lightweight stdlib parser
         parser = SanitizingHTMLParser()
         parser.feed(raw_html)

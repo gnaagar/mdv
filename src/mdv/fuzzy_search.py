@@ -7,14 +7,17 @@ matching first, then subsequence scoring as fallback.
 """
 
 import re
+from typing import List, Dict, Optional, Tuple, Any
 
-_HEADING_RE = re.compile(r'^(#{1,6})\s+(.+)')
-_LINK_RE = re.compile(r'\[.*?\]\(.*?\)|https?://\S+')
-_LIST_RE = re.compile(r'^\s*[-*+]\s|^\s*\d+\.\s')
-_FENCE_RE = re.compile(r'^\s*(`{3,}|~{3,})')
+_HEADING_RE = re.compile(r"^(#{1,6})\s+(.+)")
+_LINK_RE = re.compile(r"\[.*?\]\(.*?\)|https?://\S+")
+_LIST_RE = re.compile(r"^\s*[-*+]\s|^\s*\d+\.\s")
+_FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 
 
-def _classify_line(raw_line, in_code_fence):
+def _classify_line(
+    raw_line: str, in_code_fence: bool
+) -> Tuple[Optional[str], int, Optional[str], bool]:
     """Return (line_type, heading_level, display_text, still_in_fence)."""
     stripped = raw_line.rstrip()
 
@@ -23,26 +26,26 @@ def _classify_line(raw_line, in_code_fence):
         return None, 0, None, not in_code_fence
 
     if in_code_fence:
-        return 'code', 0, stripped, True
+        return "code", 0, stripped, True
 
     # Heading
     m = _HEADING_RE.match(stripped)
     if m:
-        return 'heading', len(m.group(1)), m.group(2).strip(), False
+        return "heading", len(m.group(1)), m.group(2).strip(), False
 
     # Link
     if _LINK_RE.search(stripped):
-        return 'link', 0, stripped, False
+        return "link", 0, stripped, False
 
     # List item
     if _LIST_RE.match(stripped):
-        return 'list', 0, stripped, False
+        return "list", 0, stripped, False
 
     # Plain text
-    return 'text', 0, stripped, False
+    return "text", 0, stripped, False
 
 
-def _subsequence_score(query, text):
+def _subsequence_score(query: str, text: str) -> int:
     """
     Check if query is a subsequence of text (case-insensitive).
     Returns a score based on tightness of match, or -1 if no match.
@@ -78,13 +81,15 @@ def _subsequence_score(query, text):
     score = int(tightness * 50)  # 0-50 range
 
     # Bonus: match starts at word boundary
-    if positions[0] == 0 or t_lower[positions[0] - 1] in ' \t_-./':
+    if positions[0] == 0 or t_lower[positions[0] - 1] in " \t_-./":
         score += 10
 
     return max(score, 1)
 
 
-def _substring_score(query_original, query_lower, text_lower, text_original):
+def _substring_score(
+    query_original: str, query_lower: str, text_lower: str, text_original: str
+) -> int:
     """
     Score a substring match. Returns score or -1 if no substring match.
     """
@@ -95,7 +100,7 @@ def _substring_score(query_original, query_lower, text_lower, text_original):
     score = 100  # Base score for any substring match
 
     # Bonus: match at start of text or word boundary
-    if idx == 0 or text_lower[idx - 1] in ' \t_-./':
+    if idx == 0 or text_lower[idx - 1] in " \t_-./":
         score += 20
 
     # Bonus: case-sensitive match
@@ -112,10 +117,12 @@ def _substring_score(query_original, query_lower, text_lower, text_original):
 class LineIndex:
     """Pre-built line index for fzf-style searching."""
 
-    def __init__(self):
-        self._lines = []  # list of tuples: (path, lineno, display_text, line_type, level, text_lower)
+    def __init__(self) -> None:
+        self._lines: List[
+            Tuple[str, int, str, str, int, str]
+        ] = []  # list of tuples: (path, lineno, display_text, line_type, level, text_lower)
 
-    def build(self, node_map):
+    def build(self, node_map: Dict[str, Any]) -> None:
         """Build the line index from the node map."""
         lines = []
         for node in node_map.values():
@@ -133,21 +140,25 @@ class LineIndex:
                 line_type, level, display, in_fence = _classify_line(raw_line, in_fence)
 
                 # Skip fence markers themselves
-                if line_type is None:
+                if line_type is None or display is None:
                     continue
 
-                lines.append((
-                    path,
-                    idx + 1,        # 1-indexed line number
-                    display,
-                    line_type,
-                    level,
-                    display.lower(),  # Pre-computed for fast search
-                ))
+                lines.append(
+                    (
+                        path,
+                        idx + 1,  # 1-indexed line number
+                        display,
+                        line_type,
+                        level,
+                        display.lower(),  # Pre-computed for fast search
+                    )
+                )
 
         self._lines = lines
 
-    def search(self, query, limit=30, types=None):
+    def search(
+        self, query: str, limit: int = 30, types: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         """
         Search the line index.
         Returns list of {path, lineno, line, line_type, level?} dicts.
@@ -177,7 +188,7 @@ class LineIndex:
                 score = 100
                 for w in query_words:
                     idx = text_lower.find(w)
-                    if idx == 0 or (idx > 0 and text_lower[idx - 1] in ' \t_-./'):
+                    if idx == 0 or (idx > 0 and text_lower[idx - 1] in " \t_-./"):
                         score += 10
                 # Tighter lines score higher
                 ratio = len(query_lower) / max(len(text_lower), 1)
@@ -191,7 +202,7 @@ class LineIndex:
                     continue
 
             # Heading boost: headings get a ranking bonus
-            if line_type == 'heading':
+            if line_type == "heading":
                 score += 15
 
             results.append((score, path, lineno, display, line_type, level))
@@ -201,14 +212,14 @@ class LineIndex:
 
         output = []
         for score, path, lineno, display, line_type, level in results[:limit]:
-            item = {
-                'path': path,
-                'lineno': lineno,
-                'line': display,
-                'line_type': line_type,
+            item: Dict[str, Any] = {
+                "path": path,
+                "lineno": lineno,
+                "line": display,
+                "line_type": line_type,
             }
-            if line_type == 'heading':
-                item['level'] = level
+            if line_type == "heading":
+                item["level"] = level
             output.append(item)
 
         return output

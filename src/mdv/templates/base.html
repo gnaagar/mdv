@@ -27,14 +27,14 @@
     }
   </style>
   <link rel="stylesheet" href="/static/markdown.css">
-  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme | default('std-light') }}.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme | default('sans') }}.css">
   {% block styles %}
   {% endblock %}
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
 
 </head>
-<body class="theme-{{ theme | default('std-light') }}">
+<body class="theme-{{ theme | default('sans') }}">
   <script>
     var MDV_THEMES = {{ themes | tojson }};
     (function() {
@@ -43,12 +43,12 @@
       var preferred = themeParam || localStorage.getItem('theme');
       
       // Migrate old theme names
-      if (preferred === 'light') preferred = 'std-light';
-      if (preferred === 'dark') preferred = 'std-dark';
+      if (preferred === 'light' || preferred === 'std-light') preferred = 'sans';
+      if (preferred === 'dark' || preferred === 'std-dark') preferred = 'sans-dark';
       
       var active = preferred;
       if (!active || MDV_THEMES.indexOf(active) < 0) {
-        active = '{{ theme | default("std-light") }}';
+        active = '{{ theme | default("sans") }}';
       }
       
       document.body.className = 'theme-' + active;
