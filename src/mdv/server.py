@@ -80,6 +80,7 @@ url_map = Map(
         Rule("/static/<path:filename>", endpoint="static"),  # handled by middleware
         Rule("/_/", endpoint="index"),
         Rule("/_/<path:filename>", endpoint="view"),
+        Rule("/d/<doc_id>", endpoint="view_by_id"),
         Rule("/api/tree", endpoint="dirtree"),
         Rule("/api/search", endpoint="search"),
         Rule("/api/themes", endpoint="themes"),
@@ -136,6 +137,8 @@ class App:
     # -----------------------------------------------------
 
     def render_markdown(self, template: str, content: str) -> Response:
+        doc_map = self.state.get_doc_id_map()
+        content = MarkdownParser.rewrite_doc_id_links(content, doc_map)
         html = env.get_template(template).render(
             content=content, theme=self.theme, themes=self.themes
         )
@@ -202,9 +205,17 @@ class App:
     def on_view(self, request: Request, filename: str) -> Response:
         return self.handle_common(filename, template="viewer.html", prefix="_")
 
+    def on_view_by_id(self, request: Request, doc_id: str) -> Response:
+        doc_map = self.state.get_doc_id_map()
+        if doc_id in doc_map:
+            return Response(status=302, headers={"Location": f"/_/{doc_map[doc_id]}"})
+        return Response(f"Document with ID '{doc_id}' not found", status=404, mimetype="text/plain")
+
     def on_api_render(self, request: Request) -> Response:
         raw_md = request.get_data(as_text=True)
         html = MarkdownParser.parse(raw_md)
+        doc_map = self.state.get_doc_id_map()
+        html = MarkdownParser.rewrite_doc_id_links(html, doc_map)
         return Response(html, mimetype="text/html")
 
     def on_live(self, request: Request) -> Response:

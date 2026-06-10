@@ -26,9 +26,11 @@ class FileNode:
     raw: Optional[str] = None
     parsed: Optional[str] = None
     last_updated: Optional[float] = None
+    doc_id: Optional[str] = None
     lock: threading.RLock = field(
         default_factory=threading.RLock, init=False, repr=False, compare=False
     )
+
 
 
 class MdViewerState:
@@ -71,6 +73,7 @@ class MdViewerState:
                     logger.debug(f"Clearing stale content of node {node.id}")
                 node.raw = None  # Invalidate raw content
                 node.parsed = None
+                node.doc_id = None
                 node.last_updated = last_updated
                 return True  # Changed
             return False  # Unchanged
@@ -174,12 +177,26 @@ class MdViewerState:
                     raw_content = f.read()
                 node.raw = raw_content
                 node.parsed = MarkdownParser.parse(raw_content)
+                node.doc_id = MarkdownParser.extract_frontmatter(raw_content).get("id")
             except Exception as e:
                 logger.error(f"Error reading file {full_path}: {e}")
 
     def is_file(self, path: str) -> bool:
         with self._map_lock:
             return path in self._node_map
+
+    def get_doc_id_map(self) -> Dict[str, str]:
+        doc_map = {}
+        with self._map_lock:
+            nodes = list(self._node_map.values())
+        for node in nodes:
+            if node.raw is None:
+                self._refresh_node(node)
+            with node.lock:
+                if node.doc_id:
+                    doc_map[node.doc_id] = node.id
+        return doc_map
+
 
     def get_content(self, id: str, raw: bool = False) -> str:
         with self._map_lock:
