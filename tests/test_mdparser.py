@@ -86,3 +86,49 @@ class TestMarkdownParser(unittest.TestCase):
         cleaned = MarkdownParser._clean_math(md)
         # Should be completely identical because it's inside a code fence!
         self.assertEqual(cleaned, md)
+
+    def test_extract_frontmatter(self):
+        # Empty or no frontmatter
+        self.assertEqual(MarkdownParser.extract_frontmatter(""), {})
+        self.assertEqual(MarkdownParser.extract_frontmatter("Hello world"), {})
+        self.assertEqual(MarkdownParser.extract_frontmatter("---\n---"), {})
+
+        # Basic frontmatter
+        md = "---\nid: my-doc-1\ntitle: hello\n---\nbody content"
+        meta = MarkdownParser.extract_frontmatter(md)
+        self.assertEqual(meta.get("id"), "my-doc-1")
+        self.assertEqual(meta.get("title"), "hello")
+
+        # Quoted values
+        md = "---\nid: \"my-doc-1\"\ntitle: 'hello world'\n---\nbody"
+        meta = MarkdownParser.extract_frontmatter(md)
+        self.assertEqual(meta.get("id"), "my-doc-1")
+        self.assertEqual(meta.get("title"), "hello world")
+
+    def test_rewrite_doc_id_links(self):
+        doc_map = {"my-doc-1": "subfolder/another_file.md", "doc-2": "some_file.md"}
+        
+        # Test basic /d/ link rewriting
+        html = '<a href="/d/my-doc-1">Link 1</a>'
+        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
+        self.assertEqual(rewritten, '<a href="/_/subfolder/another_file.md">Link 1</a>')
+        
+        # Test basic /d/ link rewriting with another doc
+        html = '<a href="/d/doc-2">Link 2</a>'
+        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
+        self.assertEqual(rewritten, '<a href="/_/some_file.md">Link 2</a>')
+        
+        # Test hash/anchor preservation
+        html = '<a href="/d/my-doc-1#section-title">Link 4</a>'
+        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
+        self.assertEqual(rewritten, '<a href="/_/subfolder/another_file.md#section-title">Link 4</a>')
+        
+        # Test unknown ID is left unchanged
+        html = '<a href="/d/unknown-id">Link 6</a>'
+        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
+        self.assertEqual(rewritten, html)
+
+        # Test external/non-id link remains unchanged
+        html = '<a href="https://google.com">Google</a>'
+        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
+        self.assertEqual(rewritten, html)

@@ -181,3 +181,48 @@ class MarkdownParser:
         parser = SanitizingHTMLParser()
         parser.feed(raw_html)
         return "".join(parser.result)
+
+    @staticmethod
+    def extract_frontmatter(content: str) -> dict[str, str]:
+        # Match standard yaml frontmatter starting at the beginning of the file
+        match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n', content, re.DOTALL)
+        if not match:
+            return {}
+        frontmatter_content = match.group(1)
+        metadata = {}
+        for line in frontmatter_content.splitlines():
+            parts = line.split(':', 1)
+            if len(parts) == 2:
+                key = parts[0].strip()
+                val = parts[1].strip()
+                # Strip outer quotes if present
+                if len(val) >= 2 and val[0] in ('"', "'") and val[-1] == val[0]:
+                    val = val[1:-1]
+                metadata[key] = val
+        return metadata
+
+    @staticmethod
+    def rewrite_doc_id_links(html_content: str, doc_to_file_map: dict[str, str]) -> str:
+        def replacer(match: re.Match) -> str:
+            quote = match.group(1)
+            url = match.group(2)
+            
+            # The URL starts with /d/
+            rest = url[3:]
+                
+            if "#" in rest:
+                doc_id, anchor = rest.split("#", 1)
+                anchor = "#" + anchor
+            else:
+                doc_id = rest
+                anchor = ""
+                
+            if doc_id in doc_to_file_map:
+                new_path = "/_/" + doc_to_file_map[doc_id] + anchor
+                return f'href={quote}{new_path}{quote}'
+                
+            return match.group(0)
+
+        pattern = r'href=(["\'])(/d/[^\s"\'>]+)\1'
+        return re.sub(pattern, replacer, html_content)
+
