@@ -654,7 +654,7 @@ function scrollToSourceLine(lineno, highlightQuery, { behavior = 'smooth', block
 }
 
 function getCurrentFilePath() {
-  const match = window.location.pathname.match(/\/v\/(.+)/);
+  const match = window.location.pathname.match(/\/_\/(.+)/);
   return match ? match[1] : null;
 }
 
@@ -833,7 +833,7 @@ function getDirTreeIds() {
 }
 
 function extractPath(url) {
-  const match = url.match(/\/v\/([^?#]+)/);
+  const match = url.match(/\/_\/([^?#]+)/);
   return match ? match[1] : null;
 }
 
