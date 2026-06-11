@@ -60,7 +60,7 @@ function mdvGetTheme() {
     }
   }
   
-  return 'sans';
+  return window.MDV_THEMES && window.MDV_THEMES[0] ? window.MDV_THEMES[0] : 'sans';
 }
 
 function mdvGetActiveTheme() {
