@@ -27,14 +27,14 @@
     }
   </style>
   <link rel="stylesheet" href="/static/markdown.css">
-  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme | default('sans') }}.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme or 'sans' }}.css">
   {% block styles %}
   {% endblock %}
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
 
 </head>
-<body class="theme-{{ theme | default('sans') }}">
+<body class="theme-{{ theme or 'sans' }}">
   <script>
     var MDV_THEMES = {{ themes | tojson }};
     (function() {
@@ -48,7 +48,13 @@
       
       var active = preferred;
       if (!active || MDV_THEMES.indexOf(active) < 0) {
-        active = '{{ theme | default("sans") }}';
+        var serverTheme = '{{ theme }}';
+        if (serverTheme && MDV_THEMES.indexOf(serverTheme) >= 0) {
+          active = serverTheme;
+        } else {
+          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          active = systemDark ? 'sans-dark' : 'sans';
+        }
       }
       
       document.body.className = 'theme-' + active;

@@ -102,8 +102,8 @@ class App:
         self.config = config
         self.state = MdViewerState(config)
         self.themes = get_available_themes()
-        initial = config.get("theme", "sans")
-        self.theme = initial if initial in self.themes else "sans"
+        initial = config.get("theme")
+        self.theme = initial if (initial and initial in self.themes) else ""
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -260,7 +260,7 @@ def main() -> None:
     parser.add_argument(
         "--theme",
         "-t",
-        default="sans",
+        default=None,
         help="Theme name (e.g., sans, sans-dark)",
     )
     parser.add_argument(
