@@ -13,7 +13,7 @@ from mdv.mdparser import MarkdownParser
 from mdv.sv_state import MdViewerState
 
 from jinja2 import Environment, PackageLoader, select_autoescape
-from werkzeug.serving import run_simple, make_server
+from werkzeug.serving import make_server
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound
@@ -255,7 +255,7 @@ def main() -> None:
     parser.add_argument(
         "target", nargs="?", default=".", help="Target directory or file to view"
     )
-    parser.add_argument("--port", "-p", type=int, default=8000)
+    parser.add_argument("--port", "-p", type=int, default=None)
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument(
         "--theme",
@@ -284,13 +284,18 @@ def main() -> None:
 
     app = App(config=config)
 
+    # Determine port: if user provided a port, use it. Otherwise, use 0 (random port).
+    port = args.port if args.port is not None else 0
+
+    srv = make_server(args.host, port, app, threaded=True)
+    actual_port = srv.port
+
     if lite_mode:
-        port = 0
-        srv = make_server(args.host, port, app, threaded=True)
-        actual_port = srv.port
         url = f"http://{args.host}:{actual_port}/_/{config['lite_file']}"
         print(f"Lite mode: serving {target_path} on {url}")
-        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
-        srv.serve_forever()
     else:
-        run_simple(args.host, args.port, app, use_reloader=True, threaded=True)
+        url = f"http://{args.host}:{actual_port}/"
+        print(f"Directory mode: serving {target_path} on {url}")
+
+    threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    srv.serve_forever()
