@@ -27,14 +27,14 @@
     }
   </style>
   <link rel="stylesheet" href="/static/markdown.css">
-  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme | default('sans') }}.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme or (themes and themes[0]) or 'sans' }}.css">
   {% block styles %}
   {% endblock %}
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
 
 </head>
-<body class="theme-{{ theme | default('sans') }}">
+<body class="theme-{{ theme or (themes and themes[0]) or 'sans' }}">
   <script>
     var MDV_THEMES = {{ themes | tojson }};
     (function() {
@@ -48,7 +48,17 @@
       
       var active = preferred;
       if (!active || MDV_THEMES.indexOf(active) < 0) {
-        active = '{{ theme | default("sans") }}';
+        var serverTheme = '{{ theme }}';
+        if (serverTheme && MDV_THEMES.indexOf(serverTheme) >= 0) {
+          active = serverTheme;
+        } else {
+          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (systemDark) {
+            active = MDV_THEMES.find(function(t) { return t.includes('dark'); }) || MDV_THEMES[0] || 'sans';
+          } else {
+            active = MDV_THEMES.find(function(t) { return !t.includes('dark'); }) || MDV_THEMES[0] || 'sans';
+          }
+        }
       }
       
       document.body.className = 'theme-' + active;
@@ -91,9 +101,12 @@
   <!-- Directory Explorer Modal -->
   <div id="dir-modal" class="modal-box hidden">
     <div class="modal-header">
-      <input type="text" id="dir-filter-input" placeholder="Filter directories..." autocomplete="off">
+      <input type="text" id="dir-filter-input" placeholder="Search files or browse tree..." autocomplete="off">
     </div>
-    <div id="dtree-container" class="modal-body"></div>
+    <div id="dtree-container" class="modal-body">
+      <div id="dir-tree-view" class="dir-modal-view"></div>
+      <div id="dir-search-view" class="dir-modal-view hidden"></div>
+    </div>
   </div>
 
   <!-- Search Modal -->
