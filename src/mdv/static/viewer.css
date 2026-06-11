@@ -975,3 +975,96 @@ body {
   font-weight: 700;
   font-size: 1rem;
 }
+
+/* ================================================================
+   DIRECTORY TREE MODAL
+   ================================================================ */
+
+.dir-modal-view {
+  width: 100%;
+}
+
+.modal-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.5rem;
+}
+.modal-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.modal-tree-folder-wrapper,
+.modal-tree-file-wrapper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.modal-tree .tree-folder-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  border-radius: 6px;
+  color: var(--text-color);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  transition: background 0.12s ease-in-out;
+  user-select: none;
+}
+.modal-tree .tree-folder-header:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.modal-tree .tree-folder-header .folder-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  color: var(--text-muted);
+}
+.modal-tree .tree-folder-header.expanded .folder-arrow {
+  transform: rotate(90deg);
+}
+.modal-tree .tree-folder-header .folder-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.modal-tree .folder-children.collapsed {
+  display: none;
+}
+.modal-tree .tree-file-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--tree-entry-color);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  transition: all 0.12s ease-in-out;
+}
+.modal-tree .tree-file-link:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.modal-tree .tree-file-link .file-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.modal-tree .tree-file-link.current-file {
+  border-left: 2px solid var(--tree-active-color);
+  color: var(--tree-active-color);
+  font-weight: 600;
+}
+.modal-tree .keyboard-active {
+  background: var(--tree-active-bg) !important;
+  color: var(--tree-active-color) !important;
+}
+

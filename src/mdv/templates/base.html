@@ -91,9 +91,12 @@
   <!-- Directory Explorer Modal -->
   <div id="dir-modal" class="modal-box hidden">
     <div class="modal-header">
-      <input type="text" id="dir-filter-input" placeholder="Filter directories..." autocomplete="off">
+      <input type="text" id="dir-filter-input" placeholder="Search files or browse tree..." autocomplete="off">
     </div>
-    <div id="dtree-container" class="modal-body"></div>
+    <div id="dtree-container" class="modal-body">
+      <div id="dir-tree-view" class="dir-modal-view"></div>
+      <div id="dir-search-view" class="dir-modal-view hidden"></div>
+    </div>
   </div>
 
   <!-- Search Modal -->

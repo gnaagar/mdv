@@ -18,9 +18,11 @@ document.addEventListener('DOMContentLoaded', onPageLoad);
 let MD_BODY = null;
 let DIR_TREE = null;
 let TOC_TREE = null;
+let dirFilterInput = null;
 
 const dirTreeState = {
   entryMap: {},
+  treeEntryMap: {},
   cachedLis: null,
   cachedEntries: null,
 };
@@ -83,7 +85,7 @@ function setupModalsAndHeader() {
   const btnFocusExit = document.getElementById('btn-focus-exit');
   const container = document.querySelector('.container');
 
-  const dirFilterInput = document.getElementById('dir-filter-input');
+  dirFilterInput = document.getElementById('dir-filter-input');
   const searchInput = document.getElementById('search-input');
 
   if (!overlay || !btnTheme) return; // fail gracefully
@@ -136,6 +138,12 @@ function setupModalsAndHeader() {
     if (searchModal) searchModal.classList.add('hidden');
     if (themeModal) themeModal.classList.add('hidden');
     activeModal = null;
+    if (dirKeyboardActiveEntry) {
+      dirKeyboardActiveEntry.classList.remove('keyboard-active');
+    }
+    if (searchKeyboardActiveItem) {
+      searchKeyboardActiveItem.classList.remove('keyboard-active');
+    }
     dirKeyboardIndex = -1;
     searchKeyboardIndex = -1;
     dirKeyboardActiveEntry = null;
@@ -146,16 +154,15 @@ function setupModalsAndHeader() {
   if (btnDir) {
       btnDir.addEventListener('click', () => {
         // Refresh the directory tree on every open to reflect latest file system state
-        dirTreeState.entryMap = {};
+        dirTreeState.treeEntryMap = {};
+        if (dirFilterInput) dirFilterInput.value = '';
+        const treeView = document.getElementById('dir-tree-view');
+        const searchView = document.getElementById('dir-search-view');
+        if (treeView) treeView.classList.remove('hidden');
+        if (searchView) searchView.classList.add('hidden');
+        
         loadDirTree(DIR_TREE).then(() => {
-          // Re-apply filter if one is active
-          const q = dirFilterInput.value.trim().toLowerCase();
-          if (q) {
-            dirFilterInput.dispatchEvent(new Event('input'));
-          } else {
-            // Auto-select first entry
-            autoSelectFirstDirEntry();
-          }
+          highlightCurrentFileInModalTree();
         });
         openModal(dirModal, dirFilterInput);
       });
@@ -174,11 +181,11 @@ function setupModalsAndHeader() {
 
     // Handle arrow keys & enter in modals
     if (activeModal) {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         if (activeModal === dirModal) {
           handleDirKeyboard(e);
         } else if (activeModal === searchModal) {
-          handleSearchKeyboard(e);
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') handleSearchKeyboard(e);
         } else if (activeModal === themeModal) {
           if (e.key === 'Enter') { e.preventDefault(); document.activeElement && document.activeElement.click(); }
           return;
@@ -209,39 +216,46 @@ function setupModalsAndHeader() {
       dirFilterInput.addEventListener('input', (e) => {
         dirKeyboardIndex = -1; // Reset keyboard selection on filter change
         const q = e.target.value.trim().toLowerCase();
-        // Use cached references instead of re-querying DOM each keystroke
-        const allLis = dirTreeState.cachedLis;
-        const entries = dirTreeState.cachedEntries;
-        if (!allLis || !entries) return;
+        
+        const treeView = document.getElementById('dir-tree-view');
+        const searchView = document.getElementById('dir-search-view');
         
         if (q === '') {
-          for (let i = 0; i < allLis.length; i++) allLis[i].style.display = '';
-          for (let i = 0; i < entries.length; i++) {
-            if (entries[i].dataset.fullPath) entries[i].textContent = entries[i].dataset.fullPath;
-          }
-          autoSelectFirstDirEntry();
+          if (treeView) treeView.classList.remove('hidden');
+          if (searchView) searchView.classList.add('hidden');
+          
+          // Select current file in tree
+          highlightCurrentFileInModalTree();
           return;
         }
 
+        if (treeView) treeView.classList.add('hidden');
+        if (searchView) searchView.classList.remove('hidden');
+
+        // Fuzzy filter flat files in searchView
+        const allLis = dirTreeState.cachedLis;
+        const entries = dirTreeState.cachedEntries;
+        if (!allLis || !entries) return;
+
         const highlight = createHighlighter(q);
 
-        // Fast reveal for fuzzy matches without tree hierarchy calculations
         for (let i = 0; i < entries.length; i++) {
            const entry = entries[i];
            const pathName = entry.dataset.fullPath || '';
            if (fuzzyMatch(pathName, q)) {
-              entry.parentElement.style.display = '';
+              allLis[i].style.display = '';
               if (pathName.toLowerCase().includes(q)) {
                   entry.innerHTML = highlight(escapeHtml(pathName));
               } else {
                   entry.textContent = pathName;
               }
            } else {
-              entry.parentElement.style.display = 'none';
+              allLis[i].style.display = 'none';
               entry.textContent = pathName;
            }
         }
-        // Auto-select first visible dir entry after filtering
+        
+        // Auto-select first visible match in search mode
         autoSelectFirstDirEntry();
       });
   }
@@ -289,9 +303,31 @@ function autoSelectFirstSearchResult() {
   }
 }
 
+function getVisibleDirTreeItems() {
+  const treeView = document.getElementById('dir-tree-view');
+  if (!treeView) return [];
+  const items = Array.from(treeView.querySelectorAll('.tree-folder-header, .tree-file-link'));
+  return items.filter(item => {
+    let parent = item.parentElement;
+    while (parent && parent !== treeView) {
+      if (parent.classList.contains('folder-children') && parent.classList.contains('collapsed')) {
+        return false;
+      }
+      parent = parent.parentElement;
+    }
+    return true;
+  });
+}
+
 function getVisibleDirEntries() {
-  if (!dirTreeState.cachedLis) return [];
-  return dirTreeState.cachedLis.filter(li => li.style.display !== 'none');
+  const q = dirFilterInput ? dirFilterInput.value.trim().toLowerCase() : '';
+  if (q) {
+    const searchView = document.getElementById('dir-search-view');
+    if (!searchView) return [];
+    return Array.from(searchView.querySelectorAll('li')).filter(li => li.style.display !== 'none');
+  } else {
+    return getVisibleDirTreeItems();
+  }
 }
 
 function handleDirKeyboard(e) {
@@ -309,26 +345,68 @@ function handleDirKeyboard(e) {
   } else if (e.key === 'Enter') {
     e.preventDefault();
     if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
-      const entry = visible[dirKeyboardIndex].querySelector('.tree-entry');
-      if (entry && entry.href) {
-        window.location.href = entry.href;
+      const entry = visible[dirKeyboardIndex];
+      if (entry.classList.contains('tree-folder-header')) {
+        entry.click();
+        setTimeout(() => {
+          const newVisible = getVisibleDirEntries();
+          dirKeyboardIndex = newVisible.indexOf(entry);
+          updateDirKeyboardHighlight(newVisible);
+        }, 10);
+      } else {
+        let link = entry;
+        if (entry.tagName === 'LI') {
+          link = entry.querySelector('a');
+        }
+        if (link && link.href) {
+          window.location.href = link.href;
+        }
+      }
+    }
+  } else if (e.key === 'ArrowRight') {
+    if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
+      const entry = visible[dirKeyboardIndex];
+      if (entry.classList.contains('tree-folder-header') && !entry.classList.contains('expanded')) {
+        e.preventDefault();
+        entry.click();
+        setTimeout(() => {
+          const newVisible = getVisibleDirEntries();
+          dirKeyboardIndex = newVisible.indexOf(entry);
+          updateDirKeyboardHighlight(newVisible);
+        }, 10);
+      }
+    }
+  } else if (e.key === 'ArrowLeft') {
+    if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
+      const entry = visible[dirKeyboardIndex];
+      if (entry.classList.contains('tree-folder-header') && entry.classList.contains('expanded')) {
+        e.preventDefault();
+        entry.click();
+        setTimeout(() => {
+          const newVisible = getVisibleDirEntries();
+          dirKeyboardIndex = newVisible.indexOf(entry);
+          updateDirKeyboardHighlight(newVisible);
+        }, 10);
       }
     }
   }
 }
 
 function updateDirKeyboardHighlight(visible) {
-  // O(1): clear only the previously active entry instead of iterating all
   if (dirKeyboardActiveEntry) {
     dirKeyboardActiveEntry.classList.remove('keyboard-active');
     dirKeyboardActiveEntry = null;
   }
   if (dirKeyboardIndex >= 0 && dirKeyboardIndex < visible.length) {
-    const entry = visible[dirKeyboardIndex].querySelector('.tree-entry');
+    const entry = visible[dirKeyboardIndex];
     if (entry) {
-      entry.classList.add('keyboard-active');
-      entry.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-      dirKeyboardActiveEntry = entry;
+      let targetHighlight = entry;
+      if (entry.tagName === 'LI') {
+        targetHighlight = entry.querySelector('.tree-entry') || entry;
+      }
+      targetHighlight.classList.add('keyboard-active');
+      targetHighlight.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      dirKeyboardActiveEntry = targetHighlight;
     }
   }
 }
@@ -838,19 +916,33 @@ function extractPath(url) {
 }
 
 // Helper to expand and highlight the current file in the directory tree
-function highlightCurrentFileInDirTree() {
-  const id=extractPath(window.location.pathname);
-  if (!id) return;
+function highlightCurrentFileInModalTree() {
+  const currentFilePath = extractPath(window.location.pathname);
+  if (!currentFilePath) return;
 
-  if (id == null || !(id in dirTreeState.entryMap)) {
-    return;
+  const fileLink = dirTreeState.treeEntryMap[currentFilePath];
+  if (fileLink) {
+    fileLink.classList.add('current-file');
+    
+    const q = dirFilterInput ? dirFilterInput.value.trim().toLowerCase() : '';
+    if (!q) {
+      const visible = getVisibleDirEntries();
+      const idx = visible.indexOf(fileLink);
+      if (idx >= 0) {
+        dirKeyboardIndex = idx;
+        updateDirKeyboardHighlight(visible);
+      }
+    }
+    
+    setTimeout(() => {
+      fileLink.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 150);
   }
-  const entry = dirTreeState.entryMap[id];
-  entry.classList.add('current-file');
-  setTimeout(() => entry.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100);
 }
 
 // Dir tree related
+let workspaceTreeData = null;
+
 function loadDirTree(container, callback) {
   function flattenDirTree(tree, flatList = [], pathPrefix = '') {
     tree.forEach(item => {
@@ -872,9 +964,23 @@ function loadDirTree(container, callback) {
   return fetch('/api/tree')
     .then((res) => res.json())
     .then((tree) => {
-      const flatFiles = flattenDirTree(tree);
-      renderFlatTree(container, flatFiles);
-      highlightCurrentFileInDirTree();
+      workspaceTreeData = tree;
+      
+      // 1. Render Hierarchical Tree View in #dir-tree-view
+      const treeView = document.getElementById('dir-tree-view');
+      if (treeView) {
+        renderModalTreeView(treeView, tree);
+      }
+      
+      // 2. Render Flat Search View in #dir-search-view
+      const searchView = document.getElementById('dir-search-view');
+      if (searchView) {
+        const flatFiles = flattenDirTree(tree);
+        renderFlatTree(searchView, flatFiles);
+      }
+
+      // 3. Highlight current file in the tree
+      highlightCurrentFileInModalTree();
     });
 }
 
@@ -968,4 +1074,117 @@ function renderTree(container, tree) {
 
 function addTempHighlight(el, duration, transitionMs) {
   mdvAddTempHighlight(el, duration, transitionMs);
+}
+
+function renderModalTreeView(container, tree) {
+  const ul = document.createElement('ul');
+  ul.className = 'modal-tree';
+  
+  let expandedFolders = new Set(JSON.parse(localStorage.getItem('modal-expanded-folders') || '[]'));
+  
+  const currentFilePath = extractPath(window.location.pathname);
+  if (currentFilePath) {
+    const parts = currentFilePath.split('/');
+    let accum = '';
+    for (let i = 0; i < parts.length - 1; i++) {
+      accum = accum ? `${accum}/${parts[i]}` : parts[i];
+      expandedFolders.add(accum);
+    }
+    localStorage.setItem('modal-expanded-folders', JSON.stringify(Array.from(expandedFolders)));
+  }
+
+  function createTreeItem(item, pathPrefix = '') {
+    const li = document.createElement('li');
+    const itemPath = pathPrefix ? `${pathPrefix}/${item.name}` : item.name;
+    
+    if (item.type === 'directory') {
+      li.className = 'modal-tree-folder-wrapper';
+      
+      const folderHeader = document.createElement('div');
+      folderHeader.className = 'tree-folder-header';
+      folderHeader.dataset.path = itemPath;
+      
+      const isExpanded = expandedFolders.has(itemPath);
+      if (isExpanded) {
+        folderHeader.classList.add('expanded');
+      }
+      
+      const arrowIcon = document.createElement('span');
+      arrowIcon.className = 'folder-arrow';
+      arrowIcon.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+      
+      const folderIcon = document.createElement('span');
+      folderIcon.className = 'folder-icon';
+      folderIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+      
+      const label = document.createElement('span');
+      label.className = 'folder-label';
+      label.textContent = item.name;
+      
+      folderHeader.appendChild(arrowIcon);
+      folderHeader.appendChild(folderIcon);
+      folderHeader.appendChild(label);
+      li.appendChild(folderHeader);
+      
+      const childrenUl = document.createElement('ul');
+      childrenUl.className = 'folder-children';
+      if (!isExpanded) {
+        childrenUl.classList.add('collapsed');
+      }
+      
+      (item.children || []).forEach(child => {
+        childrenUl.appendChild(createTreeItem(child, itemPath));
+      });
+      
+      li.appendChild(childrenUl);
+      
+      folderHeader.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const expanded = folderHeader.classList.toggle('expanded');
+        childrenUl.classList.toggle('collapsed', !expanded);
+        
+        let currentExpanded = new Set(JSON.parse(localStorage.getItem('modal-expanded-folders') || '[]'));
+        if (expanded) {
+          currentExpanded.add(itemPath);
+        } else {
+          currentExpanded.delete(itemPath);
+        }
+        localStorage.setItem('modal-expanded-folders', JSON.stringify(Array.from(currentExpanded)));
+      });
+      
+    } else {
+      li.className = 'modal-tree-file-wrapper';
+      
+      const fileLink = document.createElement('a');
+      fileLink.className = 'tree-file-link';
+      fileLink.href = '/_/' + item.path;
+      
+      if (item.path === currentFilePath) {
+        fileLink.classList.add('current-file');
+      }
+      
+      const fileIcon = document.createElement('span');
+      fileIcon.className = 'file-icon';
+      fileIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+      
+      const label = document.createElement('span');
+      label.className = 'file-label';
+      label.textContent = item.name;
+      
+      fileLink.appendChild(fileIcon);
+      fileLink.appendChild(label);
+      li.appendChild(fileLink);
+      
+      dirTreeState.treeEntryMap[item.path] = fileLink;
+    }
+    
+    return li;
+  }
+
+  tree.forEach(item => {
+    ul.appendChild(createTreeItem(item));
+  });
+  
+  container.innerHTML = '';
+  container.appendChild(ul);
 }
