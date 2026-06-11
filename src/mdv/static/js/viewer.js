@@ -237,21 +237,27 @@ function setupModalsAndHeader() {
         const entries = dirTreeState.cachedEntries;
         if (!allLis || !entries) return;
 
-        const highlight = createHighlighter(q);
+        // Custom directory highlighter that splits on space/slash to avoid highlighting the › separator
+        const terms = q.split(/[\/\s]+/).filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const highlight = terms.length > 0 ? (text) => {
+          const regex = new RegExp(`(${terms.join('|')})`, 'gi');
+          return text.replace(regex, '<mark>$1</mark>');
+        } : (text) => text;
 
         for (let i = 0; i < entries.length; i++) {
            const entry = entries[i];
            const pathName = entry.dataset.fullPath || '';
+           const displayPath = pathName.split('/').join(' › ');
            if (fuzzyMatch(pathName, q)) {
               allLis[i].style.display = '';
-              if (pathName.toLowerCase().includes(q)) {
-                  entry.innerHTML = highlight(escapeHtml(pathName));
+              if (terms.length > 0) {
+                  entry.innerHTML = highlight(escapeHtml(displayPath));
               } else {
-                  entry.textContent = pathName;
+                  entry.textContent = displayPath;
               }
            } else {
               allLis[i].style.display = 'none';
-              entry.textContent = pathName;
+              entry.textContent = displayPath;
            }
         }
         
@@ -997,7 +1003,7 @@ function renderFlatTree(container, flatFiles) {
     
     const entry = document.createElement('a');
     entry.classList.add(treeClasses.entry);
-    entry.textContent = item.fullPath;
+    entry.textContent = item.fullPath.split('/').join(' › ');
     entry.style.setProperty('--tree-depth', 0);
     entry.title = item.fullPath;
     entry.href = item.href;
