@@ -185,6 +185,7 @@ body {
   font-size: 0.9rem;
   background-color: transparent;
   border-collapse: collapse;
+  margin: 0;
 }
 #markdown-body th,
 #markdown-body td {
