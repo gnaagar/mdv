@@ -119,34 +119,65 @@ body {
   font-family: "JetBrains Mono", monospace;
   font-variant-ligatures: none;
 }
-#markdown-body .md-table,
 #markdown-body .md-image {
   overflow-x: auto;
   max-width: 100%;
   margin-bottom: 20px;
   padding-bottom: 0.5px;
 }
-#markdown-body table {
+#markdown-body .md-table {
+  overflow-x: auto;
   max-width: 100%;
-  width: auto;
-  display: inline;
-  font-size: 0.95rem;
+  margin: 1.5rem 0;
+  border: 1px solid var(--markdown-table-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  background-color: var(--markdown-table-row-bg);
+}
+#markdown-body .md-table::-webkit-scrollbar {
+  height: 6px;
+}
+#markdown-body .md-table::-webkit-scrollbar-track {
+  background: transparent;
+}
+#markdown-body .md-table::-webkit-scrollbar-thumb {
+  background: var(--border-color-light, rgba(0, 0, 0, 0.15));
+  border-radius: 3px;
+}
+#markdown-body table {
+  width: 100%;
+  display: table;
+  font-size: 0.9rem;
   background-color: transparent;
   border-collapse: collapse;
 }
 #markdown-body th,
 #markdown-body td {
-  text-align: left;
+  padding: 0.65rem 0.95rem;
+  border-bottom: 1px solid var(--markdown-table-border);
+  border-right: 1px solid var(--markdown-table-border);
   vertical-align: top;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid var(--markdown-table-border);
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.45;
+}
+#markdown-body th:last-child,
+#markdown-body td:last-child {
+  border-right: none;
+}
+#markdown-body tr:last-child td {
+  border-bottom: none;
 }
 #markdown-body th {
   font-weight: 600;
+  color: var(--markdown-table-header-color);
   background-color: var(--markdown-table-header-bg);
+  text-align: left;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid var(--markdown-table-border);
+}
+#markdown-body tr:nth-child(even) {
+  background-color: var(--markdown-table-row-bg);
 }
 #markdown-body tr:hover {
   background-color: var(--markdown-table-hover-bg);
