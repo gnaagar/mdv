@@ -125,14 +125,49 @@ body {
   margin-bottom: 20px;
   padding-bottom: 0.5px;
 }
-#markdown-body .md-table {
-  overflow-x: auto;
+#markdown-body .md-table-container {
+  position: relative;
+  width: fit-content;
   max-width: 100%;
   margin: 1.5rem 0;
   border: 1px solid var(--markdown-table-border);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   background-color: var(--markdown-table-row-bg);
+  overflow: hidden;
+}
+#markdown-body .md-table-container::before,
+#markdown-body .md-table-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+#markdown-body .md-table-container::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.08), transparent);
+}
+#markdown-body .md-table-container::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.08), transparent);
+}
+#markdown-body .md-table-container.scroll-left-active::before {
+  opacity: 1;
+}
+#markdown-body .md-table-container.scroll-right-active::after {
+  opacity: 1;
+}
+#markdown-body .md-table {
+  overflow-x: auto;
+  max-width: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 #markdown-body .md-table::-webkit-scrollbar {
   height: 6px;
@@ -158,6 +193,7 @@ body {
   border-right: 1px solid var(--markdown-table-border);
   vertical-align: top;
   line-height: 1.45;
+  min-width: 100px;
 }
 #markdown-body th:last-child,
 #markdown-body td:last-child {
@@ -175,6 +211,10 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   border-bottom: 2px solid var(--markdown-table-border);
+  white-space: nowrap;
+}
+#markdown-body td code {
+  white-space: nowrap;
 }
 #markdown-body tr:nth-child(even) {
   background-color: var(--markdown-table-row-bg);

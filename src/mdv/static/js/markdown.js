@@ -117,13 +117,31 @@ function genCopyButtons(container) {
 }
 
 function wrapTablesAndImages(container) {
-  // Wrap tables in .md-table
+  // Wrap tables in .md-table-container > .md-table
   container.querySelectorAll('table').forEach(table => {
     if (table.parentElement.classList.contains('md-table')) return;
+    
+    const containerDiv = document.createElement('div');
+    containerDiv.className = 'md-table-container';
+    
     const wrapper = document.createElement('div');
     wrapper.className = 'md-table';
-    table.parentNode.insertBefore(wrapper, table);
+    
+    table.parentNode.insertBefore(containerDiv, table);
+    containerDiv.appendChild(wrapper);
     wrapper.appendChild(table);
+
+    function updateScrollShadows() {
+      const scrollLeft = wrapper.scrollLeft;
+      const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+      
+      containerDiv.classList.toggle('scroll-left-active', scrollLeft > 1);
+      containerDiv.classList.toggle('scroll-right-active', maxScroll > 1 && scrollLeft < maxScroll - 1);
+    }
+
+    wrapper.addEventListener('scroll', updateScrollShadows);
+    setTimeout(updateScrollShadows, 50);
+    window.addEventListener('resize', updateScrollShadows);
   });
 
   // Wrap images in .md-image
