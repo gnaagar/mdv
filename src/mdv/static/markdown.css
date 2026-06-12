@@ -194,7 +194,6 @@ body {
   border-right: 1px solid var(--markdown-table-border);
   vertical-align: top;
   line-height: 1.45;
-  min-width: 100px;
 }
 #markdown-body th:last-child,
 #markdown-body td:last-child {
