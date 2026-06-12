@@ -66,3 +66,24 @@ A table with mismatched column counts, missing cells, or incorrect cell alignmen
 | Mismatched | rows |
 | Missing | third | column | here |
 | Extra | pipe | at the end | | |
+
+---
+
+## 7. Small Key-Value Table
+A compact table typically used for metadata or basic settings.
+
+| Setting | Value |
+| :--- | :--- |
+| Version | 1.4.2 |
+| Environment | Production |
+
+---
+
+## 8. Small 3x2 Matrix (Feature checklist)
+A small comparison or checklist table.
+
+| Feature | Core | Lite |
+| :--- | :---: | :---: |
+| Autocomplete | ✓ | ✗ |
+| Search | ✓ | ✓ |
+
