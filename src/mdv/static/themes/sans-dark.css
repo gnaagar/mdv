@@ -12,10 +12,11 @@ body.theme-sans-dark {
     --markdown-shadow: none;
     --markdown-hr: #4a4d52;
     --markdown-table-border: #3c4043;
-    --markdown-table-header-bg: #2b2c2f;
-    --markdown-table-row-bg: #202124;
+    --markdown-table-header-bg: var(--markdown-bg);
+    --markdown-table-row-bg: #1b1c1e;
+    --markdown-table-row-alt-bg: #161719;
     --markdown-table-header-color: #cccccc;
-    --markdown-table-hover-bg: #2d2f32;
+    --markdown-table-hover-bg: #222326;
     --code-bg: #18191b;
     --code-border: #303134;
     --code-highlight: rgba(138, 180, 248, 0.2);
@@ -123,16 +124,6 @@ body.theme-sans-dark #markdown-body hr {
     border-top: 1px solid var(--markdown-hr);
 }
 
-/* Table rows styling */
-body.theme-sans-dark #markdown-body table tr:nth-child(2n) {
-    background-color: #161616;
-}
-
-body.theme-sans-dark #markdown-body table th,
-body.theme-sans-dark #markdown-body table td {
-    border: 1px solid #3a3a3a;
-    padding: 6px 13px;
-}
 
 /* Selection colors inverted cleanly for dark mode */
 body.theme-sans-dark ::selection {

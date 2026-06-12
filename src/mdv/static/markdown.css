@@ -217,8 +217,11 @@ body {
 #markdown-body td code {
   white-space: nowrap;
 }
-#markdown-body tr:nth-child(even) {
+#markdown-body tr:nth-child(odd) {
   background-color: var(--markdown-table-row-bg);
+}
+#markdown-body tr:nth-child(even) {
+  background-color: var(--markdown-table-row-alt-bg);
 }
 #markdown-body tr:hover {
   background-color: var(--markdown-table-hover-bg);
