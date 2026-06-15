@@ -142,7 +142,7 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 24px;
+  width: 40px;
   pointer-events: none;
   z-index: 10;
   opacity: 0;
@@ -150,11 +150,11 @@ body {
 }
 #markdown-body .md-table-container::before {
   left: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.08), transparent);
+  background: linear-gradient(to right, var(--markdown-table-row-bg) 25%, transparent);
 }
 #markdown-body .md-table-container::after {
   right: 0;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.08), transparent);
+  background: linear-gradient(to left, var(--markdown-table-row-bg) 25%, transparent);
 }
 #markdown-body .md-table-container.scroll-left-active::before {
   opacity: 1;

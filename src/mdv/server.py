@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import random
 import threading
 import webbrowser
 from importlib.resources import files
@@ -284,10 +285,25 @@ def main() -> None:
 
     app = App(config=config)
 
-    # Determine port: if user provided a port, use it. Otherwise, use 0 (random port).
-    port = args.port if args.port is not None else 0
+    # Determine port: if user provided a port, use it. Otherwise, select randomly from 9000-9020.
+    if args.port is not None:
+        srv = make_server(args.host, args.port, app, threaded=True)
+    else:
+        ports = list(range(9000, 9021))
+        random.shuffle(ports)
+        srv = None
+        for port in ports:
+            try:
+                srv = make_server(args.host, port, app, threaded=True)
+                break
+            except OSError as e:
+                logger.info(f"Port {port} in use, trying another... ({e})")
+                continue
+        if srv is None:
+            # Fallback to random dynamic port if entire range is occupied
+            logger.warning("All ports in range 9000-9020 are occupied. Falling back to dynamic port allocation.")
+            srv = make_server(args.host, 0, app, threaded=True)
 
-    srv = make_server(args.host, port, app, threaded=True)
     actual_port = srv.port
 
     if lite_mode:
