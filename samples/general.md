@@ -45,6 +45,8 @@ def hello_world():
 
 [GitHub](https://github.com)
 
+[`Inline code link`](https://github.com)
+
 ## Images
 
 ![Sample Image](https://via.placeholder.com/150)

@@ -346,8 +346,9 @@ body {
   color: var(--link-hover-color);
   text-decoration: underline;
 }
-#markdown-body a code {
-  color: inherit;
+#markdown-body a code,
+#markdown-body a tt {
+  color: inherit !important;
   text-decoration: inherit;
 }
 

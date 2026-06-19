@@ -2,14 +2,13 @@
 
 import argparse
 import json
-import random
 import threading
 import webbrowser
 from importlib.resources import files
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from mdv.logger import get_logger
+from mdv.logger import get_logger, configure_logging
 from mdv.mdparser import MarkdownParser
 from mdv.sv_state import MdViewerState
 
@@ -271,7 +270,14 @@ def main() -> None:
         default=[],
         help="Additional directory names to ignore (dot-directories are always ignored)",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode and request logging",
+    )
     args = parser.parse_args()
+
+    configure_logging(debug=args.debug)
 
     target_path = Path(args.target).resolve()
     lite_mode = target_path.is_file()
@@ -285,12 +291,11 @@ def main() -> None:
 
     app = App(config=config)
 
-    # Determine port: if user provided a port, use it. Otherwise, select randomly from 9000-9020.
+    # Determine port: if user provided a port, use it. Otherwise, allocate sequentially starting from 9000 up to 9020.
     if args.port is not None:
         srv = make_server(args.host, args.port, app, threaded=True)
     else:
-        ports = list(range(9000, 9021))
-        random.shuffle(ports)
+        ports = range(9000, 9021)
         srv = None
         for port in ports:
             try:

@@ -15,3 +15,20 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         logger.setLevel(logging.INFO)
         logger.propagate = False
     return logger
+
+
+# Quiet Werkzeug request logging by default
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
+
+
+def configure_logging(debug: bool = False) -> None:
+    level = logging.DEBUG if debug else logging.INFO
+    # Set level for the main package logger
+    logging.getLogger(_LOGGER_NAME).setLevel(level)
+    # Set level for all dynamically registered child loggers
+    for name in logging.root.manager.loggerDict:
+        if name.startswith(_LOGGER_NAME):
+            logging.getLogger(name).setLevel(level)
+
+    # Set level for the werkzeug logger
+    logging.getLogger("werkzeug").setLevel(logging.INFO if debug else logging.WARNING)

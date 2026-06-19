@@ -68,3 +68,22 @@ class TestMdViewerState(unittest.TestCase):
             # Request non-existent doc ID
             response = client.get("/d/non-existent-id")
             self.assertEqual(response.status_code, 404)
+
+
+
+    def test_configure_logging(self):
+        import logging
+        from mdv.logger import configure_logging
+        
+        # Test default/False debug mode
+        configure_logging(debug=False)
+        self.assertEqual(logging.getLogger("werkzeug").getEffectiveLevel(), logging.WARNING)
+        self.assertEqual(logging.getLogger("mdv").getEffectiveLevel(), logging.INFO)
+        
+        # Test True debug mode
+        configure_logging(debug=True)
+        self.assertEqual(logging.getLogger("werkzeug").getEffectiveLevel(), logging.INFO)
+        self.assertEqual(logging.getLogger("mdv").getEffectiveLevel(), logging.DEBUG)
+        
+        # Restore defaults for logging
+        configure_logging(debug=False)
