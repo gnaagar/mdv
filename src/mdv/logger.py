@@ -15,3 +15,13 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         logger.setLevel(logging.INFO)
         logger.propagate = False
     return logger
+
+
+class IgnoreStaticFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return "/static/" not in message and "favicon.ico" not in message
+
+
+# Suppress verbose static asset and favicon logs from Werkzeug
+logging.getLogger("werkzeug").addFilter(IgnoreStaticFilter())
