@@ -8,7 +8,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from mdv.logger import get_logger
+from mdv.logger import get_logger, configure_logging
 from mdv.mdparser import MarkdownParser
 from mdv.sv_state import MdViewerState
 
@@ -270,7 +270,14 @@ def main() -> None:
         default=[],
         help="Additional directory names to ignore (dot-directories are always ignored)",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode and request logging",
+    )
     args = parser.parse_args()
+
+    configure_logging(debug=args.debug)
 
     target_path = Path(args.target).resolve()
     lite_mode = target_path.is_file()

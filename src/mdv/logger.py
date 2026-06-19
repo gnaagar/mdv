@@ -25,3 +25,17 @@ class IgnoreStaticFilter(logging.Filter):
 
 # Suppress verbose static asset and favicon logs from Werkzeug
 logging.getLogger("werkzeug").addFilter(IgnoreStaticFilter())
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
+
+
+def configure_logging(debug: bool = False) -> None:
+    level = logging.DEBUG if debug else logging.INFO
+    # Set level for the main package logger
+    logging.getLogger(_LOGGER_NAME).setLevel(level)
+    # Set level for all dynamically registered child loggers
+    for name in logging.root.manager.loggerDict:
+        if name.startswith(_LOGGER_NAME):
+            logging.getLogger(name).setLevel(level)
+
+    # Set level for the werkzeug logger
+    logging.getLogger("werkzeug").setLevel(logging.INFO if debug else logging.WARNING)
