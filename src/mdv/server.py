@@ -313,10 +313,20 @@ def main() -> None:
 
     if lite_mode:
         url = f"http://{args.host}:{actual_port}/_/{config['lite_file']}"
-        print(f"Lite mode: serving {target_path} on {url}")
     else:
         url = f"http://{args.host}:{actual_port}/"
-        print(f"Directory mode: serving {target_path} on {url}")
+
+    banner_art = r"""
+    __  ___ ____   _    __
+   /  |/  // __ \ | |  / /
+  / /|_/ // / / / | | / / 
+ / /  / // /_/ /  | |/ /  
+/_/  /_//_____/   |___/   """
+    print(f"\033[1;36m{banner_art}\033[0m")
+    print(f"  \033[1;32mMarkdown Viewer is running!\033[0m")
+    print(f"  \033[1mServing:\033[0m      {target_path} ({'Lite mode' if lite_mode else 'Directory mode'})")
+    print(f"  \033[1mLocal URL:\033[0m    \033[1;4;36m{url}\033[0m")
+    print()
 
     threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     srv.serve_forever()
