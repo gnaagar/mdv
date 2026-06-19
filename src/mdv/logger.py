@@ -20,7 +20,12 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 class IgnoreStaticFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
-        return "/static/" not in message and "favicon.ico" not in message
+        return (
+            "/static/" not in message
+            and "favicon.ico" not in message
+            and "/_/" not in message
+            and "/api/tree" not in message
+        )
 
 
 # Suppress verbose static asset and favicon logs from Werkzeug

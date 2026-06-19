@@ -89,10 +89,14 @@ class TestMdViewerState(unittest.TestCase):
         # Should be filtered out (returns False)
         self.assertFalse(log_filter.filter(make_record("GET /static/markdown.css HTTP/1.1")))
         self.assertFalse(log_filter.filter(make_record("GET /favicon.ico HTTP/1.1")))
+        self.assertFalse(log_filter.filter(make_record("GET /_/ HTTP/1.1")))
+        self.assertFalse(log_filter.filter(make_record("GET /_/some_doc.md HTTP/1.1")))
+        self.assertFalse(log_filter.filter(make_record("GET /api/tree HTTP/1.1")))
         
         # Should be allowed (returns True)
         self.assertTrue(log_filter.filter(make_record("GET /_index HTTP/1.1")))
         self.assertTrue(log_filter.filter(make_record("GET /d/my-doc HTTP/1.1")))
+        self.assertTrue(log_filter.filter(make_record("GET /api/search?query=abc HTTP/1.1")))
 
     def test_configure_logging(self):
         import logging
