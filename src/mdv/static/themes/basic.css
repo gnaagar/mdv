@@ -63,11 +63,25 @@ body.theme-basic #markdown-body .code-wrapper {
 body.theme-basic #markdown-body .copy-btn {
   display: none;
 }
+body.theme-basic #markdown-body .md-table-container {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow: visible;
+}
+body.theme-basic #markdown-body .md-table-container::before,
+body.theme-basic #markdown-body .md-table-container::after {
+  content: none;
+}
 body.theme-basic #markdown-body table {
   display: table;
   font-size: inherit;
   background: transparent;
   border-collapse: collapse;
+}
+body.theme-basic #markdown-body tr {
+  background: transparent !important;
 }
 body.theme-basic #markdown-body th,
 body.theme-basic #markdown-body td {
