@@ -44,7 +44,11 @@ const MDV_CLASSES = Object.freeze({
    Theme Utilities
    ---------------------------------------------------------- */
 function mdvGetTheme() {
-  var stored = localStorage.getItem('theme');
+  var cookieMatch = document.cookie.match(/(^|;)\s*theme\s*=\s*([^;]+)/);
+  var stored = cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
+  if (!stored) {
+    stored = localStorage.getItem('theme');
+  }
   if (stored === 'light' || stored === 'std-light') stored = 'sans';
   if (stored === 'dark' || stored === 'std-dark') stored = 'sans-dark';
   
@@ -86,6 +90,7 @@ function mdvSetTheme(name) {
   if (name === 'dark' || name === 'std-dark') name = 'sans-dark';
 
   localStorage.setItem('theme', name);
+  document.cookie = "theme=" + encodeURIComponent(name) + "; path=/; max-age=31536000; SameSite=Lax";
 
   // Apply to html and body elements
   document.documentElement.className = 'theme-' + name;

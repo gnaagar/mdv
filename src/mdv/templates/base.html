@@ -40,7 +40,11 @@
     (function() {
       var params = new URLSearchParams(window.location.search);
       var themeParam = params.get('theme');
-      var preferred = themeParam || localStorage.getItem('theme');
+      
+      var cookieMatch = document.cookie.match(/(^|;)\s*theme\s*=\s*([^;]+)/);
+      var cookieTheme = cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
+      
+      var preferred = themeParam || cookieTheme || localStorage.getItem('theme');
       
       // Migrate old theme names
       if (preferred === 'light' || preferred === 'std-light') preferred = 'sans';
@@ -70,7 +74,10 @@
         linkEl.href = '/static/themes/' + active + '.css';
       }
       
-      if (themeParam) localStorage.setItem('theme', themeParam);
+      if (themeParam) {
+        localStorage.setItem('theme', themeParam);
+        document.cookie = "theme=" + encodeURIComponent(themeParam) + "; path=/; max-age=31536000; SameSite=Lax";
+      }
     })();
   </script>
   {% block body %}
