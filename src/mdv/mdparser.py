@@ -24,10 +24,40 @@ def highlight_code(code, lang, attrs):
     return highlight(code, lexer, _html_formatter)
 
 
+import threading
+
+_slug_state = threading.local()
+
+
+def custom_slugify(text: str) -> str:
+    text = text.lower()
+    # Find all sequences of Unicode alphanumeric characters (excluding underscores)
+    words = re.findall(r'[^\W_]+', text)
+    words = words[:4]
+    base_slug = "-".join(words)
+
+    if not base_slug:
+        base_slug = "heading"
+
+    used_slugs = getattr(_slug_state, "used_slugs", None)
+    if used_slugs is None:
+        used_slugs = {}
+        _slug_state.used_slugs = used_slugs
+
+    if base_slug not in used_slugs:
+        used_slugs[base_slug] = 0
+        slug = base_slug
+    else:
+        used_slugs[base_slug] += 1
+        slug = f"{base_slug}-{used_slugs[base_slug]}"
+
+    return slug
+
+
 mdparser = (
     MarkdownIt("commonmark", {"highlight": highlight_code})
     .enable("table")
-    .use(anchors_plugin, max_level=3)
+    .use(anchors_plugin, max_level=3, slug_func=custom_slugify)
     .use(dollarmath_plugin, double_inline=True)
     .use(tasklists_plugin)
     .use(front_matter_plugin)
@@ -174,6 +204,7 @@ class MarkdownParser:
 
     @staticmethod
     def parse(mdcontent: str) -> str:
+        _slug_state.used_slugs = {}
         mdcontent = MarkdownParser._clean_math(mdcontent)
         raw_html = mdparser.render(mdcontent)
 

@@ -132,19 +132,27 @@ class App:
             logger.exception("Internal server error")
             return Response("Internal server error", status=500, mimetype="text/plain")
 
+    def get_active_theme(self, request: Request) -> str:
+        if self.theme:
+            return self.theme
+        cookie_theme = request.cookies.get("theme")
+        if cookie_theme and cookie_theme in self.themes:
+            return cookie_theme
+        return ""
+
     # -----------------------------------------------------
     # Render helpers
     # -----------------------------------------------------
 
-    def render_markdown(self, template: str, content: str) -> Response:
+    def render_markdown(self, template: str, content: str, theme: str = "") -> Response:
         doc_map = self.state.get_doc_id_map()
         content = MarkdownParser.rewrite_doc_id_links(content, doc_map)
         html = env.get_template(template).render(
-            content=content, theme=self.theme, themes=self.themes
+            content=content, theme=theme, themes=self.themes
         )
         return Response(html, mimetype="text/html")
 
-    def render_tree(self, template: str, prefix: str, filename: str) -> Response:
+    def render_tree(self, template: str, prefix: str, filename: str, theme: str = "") -> Response:
         tree = get_children(self.state.get_tree(), filename)
         if tree is None:
             return Response("Not found", status=404, mimetype="text/plain")
@@ -153,17 +161,17 @@ class App:
             tree=tree, path=prefix, root="/" + filename
         )
         parsed = MarkdownParser.parse(tree_md)
-        return self.render_markdown(template, parsed)
+        return self.render_markdown(template, parsed, theme=theme)
 
-    def render_file(self, template: str, filename: str) -> Response:
+    def render_file(self, template: str, filename: str, theme: str = "") -> Response:
         # Always read fresh in lite_mode to avoid caching delays
         md_html = self.state.get_content(filename)
-        return self.render_markdown(template, md_html)
+        return self.render_markdown(template, md_html, theme=theme)
 
-    def handle_common(self, filename: str, template: str, prefix: str) -> Response:
+    def handle_common(self, filename: str, template: str, prefix: str, theme: str = "") -> Response:
         if self.state.is_file(filename):
-            return self.render_file(template, filename)
-        return self.render_tree(template, prefix, filename)
+            return self.render_file(template, filename, theme=theme)
+        return self.render_tree(template, prefix, filename, theme=theme)
 
     # -----------------------------------------------------
     # Handlers
@@ -179,8 +187,9 @@ class App:
     def on_index(self, request: Request) -> Response:
         self.state.refresh()
         data = self.state.get_dashboard_data()
+        theme = self.get_active_theme(request)
         html = env.get_template("dashboard.html").render(
-            theme=self.theme, themes=self.themes, **data
+            theme=theme, themes=self.themes, **data
         )
         return Response(html, mimetype="text/html")
 
@@ -203,7 +212,8 @@ class App:
         return Response(json.dumps(self.themes), mimetype="application/json")
 
     def on_view(self, request: Request, filename: str) -> Response:
-        return self.handle_common(filename, template="viewer.html", prefix="_")
+        theme = self.get_active_theme(request)
+        return self.handle_common(filename, template="viewer.html", prefix="_", theme=theme)
 
     def on_view_by_id(self, request: Request, doc_id: str) -> Response:
         doc_map = self.state.get_doc_id_map()
@@ -219,8 +229,9 @@ class App:
         return Response(html, mimetype="text/html")
 
     def on_live(self, request: Request) -> Response:
+        theme = self.get_active_theme(request)
         html = env.get_template("live.html").render(
-            theme=self.theme, themes=self.themes
+            theme=theme, themes=self.themes
         )
         return Response(html, mimetype="text/html")
 
@@ -291,23 +302,11 @@ def main() -> None:
 
     app = App(config=config)
 
-    # Determine port: if user provided a port, use it. Otherwise, allocate sequentially starting from 9000 up to 9020.
+    # Determine port: if user provided a port, use it. Otherwise, allocate a fully random port by binding to 0.
     if args.port is not None:
         srv = make_server(args.host, args.port, app, threaded=True)
     else:
-        ports = range(9000, 9021)
-        srv = None
-        for port in ports:
-            try:
-                srv = make_server(args.host, port, app, threaded=True)
-                break
-            except OSError as e:
-                logger.info(f"Port {port} in use, trying another... ({e})")
-                continue
-        if srv is None:
-            # Fallback to random dynamic port if entire range is occupied
-            logger.warning("All ports in range 9000-9020 are occupied. Falling back to dynamic port allocation.")
-            srv = make_server(args.host, 0, app, threaded=True)
+        srv = make_server(args.host, 0, app, threaded=True)
 
     actual_port = srv.port
 

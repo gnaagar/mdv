@@ -69,7 +69,28 @@ class TestMdViewerState(unittest.TestCase):
             response = client.get("/d/non-existent-id")
             self.assertEqual(response.status_code, 404)
 
-
+    def test_server_theme_cookies(self):
+        from werkzeug.test import Client
+        from mdv.server import App
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = {
+                "dir": tmpdir,
+                "precache": True,
+            }
+            app = App(config)
+            client = Client(app)
+            
+            # Default theme (empty config, no cookie) should fall back to default template rendering theme (basic)
+            response = client.get("/_/")
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'href="/static/themes/basic.css"', response.data)
+            
+            # Request with theme cookie set
+            client.set_cookie("theme", "sans-dark")
+            response = client.get("/_/")
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'href="/static/themes/sans-dark.css"', response.data)
 
     def test_configure_logging(self):
         import logging
