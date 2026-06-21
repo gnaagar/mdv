@@ -1,6 +1,7 @@
 body.theme-basic {
   font-family: serif;
   color-scheme: light;
+  font-size: 16px;
 }
 
 /* ── Markdown body: plain HTML ── */
