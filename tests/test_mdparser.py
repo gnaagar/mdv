@@ -15,6 +15,24 @@ class TestMarkdownParser(unittest.TestCase):
         html = MarkdownParser.parse(md)
         self.assertIn('<h1 id="my-heading" data-source-line="1">My Heading</h1>', html)
 
+    def test_headings_slugify_limits_and_rules(self):
+        # 4 words limit, lowercase, no consecutive dashes/hyphens
+        md = "# This Is A Heading With Too Many Words!"
+        html = MarkdownParser.parse(md)
+        self.assertIn('id="this-is-a-heading"', html)
+
+        md = "# Hello — World!!! - Nice -- To — Meet You"
+        html = MarkdownParser.parse(md)
+        self.assertIn('id="hello-world-nice-to"', html)
+
+    def test_headings_slugify_duplicates(self):
+        # Duplicate resolution suffixing
+        md = "# Hello World\n# Hello World\n# Hello World"
+        html = MarkdownParser.parse(md)
+        self.assertIn('id="hello-world"', html)
+        self.assertIn('id="hello-world-1"', html)
+        self.assertIn('id="hello-world-2"', html)
+
     def test_tables(self):
         # Table rendering should work
         md = "| Header 1 | Header 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |"
