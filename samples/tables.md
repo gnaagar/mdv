@@ -87,3 +87,32 @@ A small comparison or checklist table.
 | Autocomplete | ✓ | ✗ |
 | Search | ✓ | ✓ |
 
+---
+
+## 9. Massive Sales Dataset (10 Columns x 20 Rows)
+A wide, dense table containing transaction logs to test high-density responsive grids, scroll shadows, and full-screen exploration zoom/pan widgets.
+
+| TX ID | Region | Product Class | Unit Price | Units Sold | Gross Rev | Tax Rate | Net Rev | Shipping | Delivery Status |
+| :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| TX-801 | North America | Electronics | $399.99 | 150 | $59,998.50 | 8.5% | $54,898.63 | Express | Delivered |
+| TX-802 | Europe | Home Appliance | $189.50 | 320 | $60,640.00 | 20.0% | $48,512.00 | Standard | In Transit |
+| TX-803 | Asia-Pacific | Office Supplies | $12.75 | 1200 | $15,300.00 | 10.0% | $13,770.00 | Economy | Delivered |
+| TX-804 | South America | Automotive | $85.00 | 450 | $38,250.00 | 12.0% | $33,660.00 | Standard | Processing |
+| TX-805 | Middle East | Industrial | $1250.00 | 30 | $37,500.00 | 5.0% | $35,625.00 | Express | Out for Delivery |
+| TX-806 | Africa | Telecommunications | $45.00 | 950 | $42,750.00 | 15.0% | $36,337.50 | Standard | Delivered |
+| TX-807 | North America | Apparel & Shoes | $65.00 | 1100 | $71,500.00 | 8.5% | $65,422.50 | Priority | Delivered |
+| TX-808 | Europe | Food & Beverage | $4.25 | 8500 | $36,125.00 | 7.0% | $33,596.25 | Economy | Delivered |
+| TX-809 | Asia-Pacific | Sports & Outdoors | $120.00 | 250 | $30,000.00 | 10.0% | $27,000.00 | Express | Processing |
+| TX-810 | North America | Furniture & Decor | $450.00 | 80 | $36,000.00 | 6.0% | $33,840.00 | Standard | In Transit |
+| TX-811 | Europe | Health & Beauty | $35.00 | 1450 | $50,750.00 | 18.0% | $41,615.00 | Standard | Delivered |
+| TX-812 | Asia-Pacific | Video Games | $59.99 | 980 | $58,790.20 | 8.0% | $54,086.98 | Priority | Delivered |
+| TX-813 | South America | Toys & Hobbies | $24.99 | 1800 | $44,982.00 | 12.0% | $39,584.16 | Economy | In Transit |
+| TX-814 | Middle East | Construction | $320.00 | 140 | $44,800.00 | 5.0% | $42,560.00 | Express | Delivered |
+| TX-815 | Africa | Agriculture | $15.50 | 3100 | $48,050.00 | 10.0% | $43,245.00 | Standard | Processing |
+| TX-816 | North America | Musical Instruments | $899.00 | 65 | $58,435.00 | 8.5% | $53,468.03 | Priority | Out for Delivery |
+| TX-817 | Europe | Books & Media | $14.95 | 4200 | $62,790.00 | 5.0% | $59,650.50 | Economy | Delivered |
+| TX-818 | Asia-Pacific | Pet Supplies | $28.50 | 1650 | $47,025.00 | 10.0% | $42,322.50 | Standard | Delivered |
+| TX-819 | South America | Health & Fitness | $110.00 | 480 | $52,800.00 | 15.0% | $44,880.00 | Priority | Delivered |
+| TX-820 | North America | Hardware Tools | $75.00 | 680 | $51,000.00 | 8.5% | $46,665.00 | Standard | In Transit |
+
+

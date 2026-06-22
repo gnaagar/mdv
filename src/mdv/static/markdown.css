@@ -456,6 +456,7 @@ body {
 }
 
 .mermaid-modal-container {
+  position: relative;
   width: 100vw;
   height: 100vh;
   background: var(--markdown-bg, #ffffff);
@@ -483,37 +484,10 @@ body.theme-dark .mermaid-modal-container {
   }
 }
 
-.mermaid-modal-header {
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border-color-light, rgba(0, 0, 0, 0.1));
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--code-block-bg, #f6f8fa);
-}
-
-body.theme-dark .mermaid-modal-header {
-  background: var(--code-block-bg, #252526);
-  border-color: var(--border-color-light, rgba(255, 255, 255, 0.1));
-}
-
-.mermaid-modal-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--text-color, #24292f);
-}
-
-body.theme-dark .mermaid-modal-title {
-  color: var(--text-color, #c9d1d9);
-}
-
-.mermaid-modal-toolbar {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.mermaid-modal-btn {
+.mermaid-modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -524,35 +498,38 @@ body.theme-dark .mermaid-modal-title {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100000;
+  opacity: 0;
+  pointer-events: none;
   transition: all 0.15s ease;
   padding: 0;
 }
 
-body.theme-dark .mermaid-modal-btn {
+body.theme-dark .mermaid-modal-close-btn {
   background: var(--markdown-bg, #2d2e30);
   border-color: var(--border-color-light, rgba(255, 255, 255, 0.1));
   color: var(--text-color, #c9d1d9);
 }
 
-.mermaid-modal-btn:hover {
-  background: var(--tree-entry-highlight-bg, #f1f3f4);
-  color: var(--link-color, #0969da);
-  border-color: var(--link-color, #0969da);
+.mermaid-modal:hover .mermaid-modal-close-btn {
+  opacity: 0.15;
+  pointer-events: auto;
 }
 
-body.theme-dark .mermaid-modal-btn:hover {
-  background: var(--tree-entry-highlight-bg, rgba(255, 255, 255, 0.1));
-  color: var(--link-color, #58a6ff);
-  border-color: var(--link-color, #58a6ff);
+.mermaid-modal:hover .mermaid-modal-close-btn:hover {
+  opacity: 1 !important;
+  background: var(--tree-entry-highlight-bg, #f1f3f4) !important;
+  color: var(--link-color, #0969da) !important;
+  border-color: var(--link-color, #0969da) !important;
 }
 
-.mermaid-modal-btn.m-close:hover {
-  background: #ea4335;
-  color: #ffffff;
-  border-color: #ea4335;
+body.theme-dark .mermaid-modal:hover .mermaid-modal-close-btn:hover {
+  background: var(--tree-entry-highlight-bg, rgba(255, 255, 255, 0.1)) !important;
+  color: var(--link-color, #58a6ff) !important;
+  border-color: var(--link-color, #58a6ff) !important;
 }
 
-.mermaid-modal-btn svg {
+.mermaid-modal-close-btn svg {
   width: 15px;
   height: 15px;
   stroke: currentColor;
@@ -560,8 +537,8 @@ body.theme-dark .mermaid-modal-btn:hover {
 
 .mermaid-modal-viewport {
   flex: 1;
+  min-height: 0;
   width: 100%;
-  height: 100%;
   overflow: hidden;
   position: relative;
   cursor: grab;
@@ -653,6 +630,184 @@ body.theme-dark .mermaid-modal-slider::-moz-range-thumb {
 .mermaid-modal-slider::-moz-range-thumb:hover {
   transform: scale(1.2);
 }
+
+/* ===== Table Explore Button Styles ===== */
+#markdown-body .table-explore-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  opacity: 0;
+  display: none;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  color: var(--code-button-color, #57606a);
+  background: var(--markdown-bg, #ffffff);
+  border: 1px solid var(--border-color-light, rgba(0, 0, 0, 0.15));
+  padding: 6px;
+  margin: 0;
+  line-height: 0;
+  cursor: pointer;
+  z-index: 20; /* Keep it above the shadow overlays */
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+body.theme-dark #markdown-body .table-explore-btn {
+  background: var(--markdown-bg, #2d2e30);
+  border-color: var(--border-color-light, rgba(255, 255, 255, 0.15));
+}
+
+#markdown-body .md-table-container.table-scrollable .table-explore-btn {
+  display: block;
+}
+
+#markdown-body .md-table-container.table-scrollable:hover .table-explore-btn {
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+#markdown-body .md-table-container.table-scrollable:hover .table-explore-btn:hover {
+  opacity: 1;
+  color: var(--link-color, #0969da);
+  border-color: var(--link-color, #0969da);
+}
+
+#markdown-body .table-explore-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+/* ===== Explore Modal Table Custom Styles ===== */
+.mermaid-modal table {
+  width: auto;
+  max-width: 95%;
+  background-color: var(--markdown-bg, #ffffff);
+  border-collapse: collapse;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+body.theme-dark .mermaid-modal table {
+  background-color: var(--markdown-bg, #1e1e1e);
+}
+
+.mermaid-modal th,
+.mermaid-modal td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--markdown-table-border, #e0e0e0);
+  border-right: 1px solid var(--markdown-table-border, #e0e0e0);
+  vertical-align: top;
+  line-height: 1.45;
+  color: var(--text-color, #24292f);
+}
+
+body.theme-dark .mermaid-modal th,
+body.theme-dark .mermaid-modal td {
+  border-color: var(--markdown-table-border, #3c4043);
+  color: var(--text-color, #c9d1d9);
+}
+
+.mermaid-modal th:last-child,
+.mermaid-modal td:last-child {
+  border-right: none;
+}
+
+.mermaid-modal tr:last-child td {
+  border-bottom: none;
+}
+
+.mermaid-modal th {
+  font-weight: 600;
+  color: var(--markdown-table-header-color, #24292f);
+  background-color: var(--markdown-table-header-bg, #f6f8fa);
+  text-align: left;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid var(--markdown-table-border, #e0e0e0);
+  white-space: nowrap;
+}
+
+body.theme-dark .mermaid-modal th {
+  color: var(--markdown-table-header-color, #c9d1d9);
+  background-color: var(--markdown-table-header-bg, #252526);
+  border-bottom-color: var(--markdown-table-border, #3c4043);
+}
+
+.mermaid-modal tr:nth-child(odd) {
+  background-color: var(--markdown-table-row-bg, #ffffff);
+}
+
+body.theme-dark .mermaid-modal tr:nth-child(odd) {
+  background-color: var(--markdown-table-row-bg, #1e1e1e);
+}
+
+.mermaid-modal tr:nth-child(even) {
+  background-color: var(--markdown-table-row-alt-bg, #f8f9fa);
+}
+
+body.theme-dark .mermaid-modal tr:nth-child(even) {
+  background-color: var(--markdown-table-row-alt-bg, #252526);
+}
+
+.mermaid-modal tr:hover {
+  background-color: var(--markdown-table-hover-bg, #f1f3f4);
+}
+
+body.theme-dark .mermaid-modal tr:hover {
+  background-color: var(--markdown-table-hover-bg, #2d2d30);
+}
+
+/* ===== Modal Table Explore Mode Custom Adjustments ===== */
+
+
+/* Set modal viewport to support standard 2D scrolling natively */
+.mermaid-modal.modal-type-table .mermaid-modal-viewport {
+  overflow: auto;
+  cursor: default;
+  display: block;
+  padding: 0;
+  box-sizing: border-box;
+  height: auto;
+  min-height: 0;
+}
+
+/* Ensure content size matches table dimensions and takes full width of the page */
+.mermaid-modal.modal-type-table .mermaid-modal-content {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+/* Override table constraints to occupy full width and allow sticky headers */
+.mermaid-modal.modal-type-table table {
+  width: 100% !important;
+  max-width: none !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Make table headers sticky/locked */
+.mermaid-modal.modal-type-table th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Lock background scrolling when modal is open */
+body.modal-open,
+body.modal-open .section-main,
+body.modal-open .nav-sidebar {
+  overflow: hidden !important;
+}
+
+
 
 
 
