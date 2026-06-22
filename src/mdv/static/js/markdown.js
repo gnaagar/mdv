@@ -40,6 +40,10 @@ let mTouchStartDist = 0;
 let zoomSlider = null;
 
 function updateModalTransform() {
+  if (exploreModal && exploreModal.classList.contains('modal-type-table')) {
+    if (modalContent) modalContent.style.transform = '';
+    return;
+  }
   if (modalContent) {
     modalContent.style.transform = `translate(${mTranslateX}px, ${mTranslateY}px) scale(${mScale})`;
   }
@@ -57,24 +61,9 @@ function getOrCreateExploreModal() {
   
   exploreModal.innerHTML = `
     <div class="mermaid-modal-container">
-      <div class="mermaid-modal-header">
-        <span class="mermaid-modal-title" id="mermaid-modal-title">Explore Diagram</span>
-        <div class="mermaid-modal-toolbar">
-          <button class="mermaid-modal-btn m-zoom-out" title="Zoom Out">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          </button>
-          <input type="range" class="mermaid-modal-slider m-zoom-slider" min="0.15" max="5" step="0.05" value="1" title="Zoom Slider">
-          <button class="mermaid-modal-btn m-zoom-in" title="Zoom In">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          </button>
-          <button class="mermaid-modal-btn m-reset" title="Reset View">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          </button>
-          <button class="mermaid-modal-btn m-close" title="Close Explorer">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-      </div>
+      <button class="mermaid-modal-close-btn m-close" title="Close Explorer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
       <div class="mermaid-modal-viewport" id="mermaid-modal-viewport">
         <div class="mermaid-modal-content" id="mermaid-modal-content"></div>
       </div>
@@ -89,43 +78,58 @@ function getOrCreateExploreModal() {
   zoomSlider = exploreModal.querySelector('.m-zoom-slider');
 
   // Slider listener
-  zoomSlider.addEventListener('input', (e) => {
-    mScale = parseFloat(e.target.value);
-    if (modalContent) {
-      modalContent.style.transform = `translate(${mTranslateX}px, ${mTranslateY}px) scale(${mScale})`;
-    }
-  });
+  if (zoomSlider) {
+    zoomSlider.addEventListener('input', (e) => {
+      mScale = parseFloat(e.target.value);
+      if (modalContent) {
+        modalContent.style.transform = `translate(${mTranslateX}px, ${mTranslateY}px) scale(${mScale})`;
+      }
+    });
+  }
 
   // Button Listeners
-  exploreModal.querySelector('.m-zoom-in').addEventListener('click', (e) => {
-    e.stopPropagation();
-    mScale = Math.min(mScale + 0.15, 5);
-    updateModalTransform();
-  });
+  const btnZoomIn = exploreModal.querySelector('.m-zoom-in');
+  if (btnZoomIn) {
+    btnZoomIn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mScale = Math.min(mScale + 0.15, 5);
+      updateModalTransform();
+    });
+  }
 
-  exploreModal.querySelector('.m-zoom-out').addEventListener('click', (e) => {
-    e.stopPropagation();
-    mScale = Math.max(mScale - 0.15, 0.15);
-    updateModalTransform();
-  });
+  const btnZoomOut = exploreModal.querySelector('.m-zoom-out');
+  if (btnZoomOut) {
+    btnZoomOut.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mScale = Math.max(mScale - 0.15, 0.15);
+      updateModalTransform();
+    });
+  }
 
-  exploreModal.querySelector('.m-reset').addEventListener('click', (e) => {
-    e.stopPropagation();
-    mScale = 1;
-    mTranslateX = 0;
-    mTranslateY = 0;
-    updateModalTransform();
-  });
+  const btnReset = exploreModal.querySelector('.m-reset');
+  if (btnReset) {
+    btnReset.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mScale = 1;
+      mTranslateX = 0;
+      mTranslateY = 0;
+      updateModalTransform();
+    });
+  }
 
   const closeModal = () => {
     exploreModal.classList.remove('active');
     modalContent.innerHTML = '';
+    document.body.classList.remove('modal-open');
   };
 
-  exploreModal.querySelector('.m-close').addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeModal();
-  });
+  const btnClose = exploreModal.querySelector('.m-close');
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+  }
 
 
 
@@ -146,7 +150,10 @@ function getOrCreateExploreModal() {
     }
   };
 
+
+
   modalViewport.addEventListener('mousedown', (e) => {
+    if (exploreModal && exploreModal.classList.contains('modal-type-table')) return;
     if (e.button !== 0) return;
     if (e.target.closest('.mermaid-modal-btn')) return;
 
@@ -188,6 +195,7 @@ function getOrCreateExploreModal() {
   };
 
   modalViewport.addEventListener('touchstart', (e) => {
+    if (exploreModal && exploreModal.classList.contains('modal-type-table')) return;
     if (e.target.closest('.mermaid-modal-btn')) return;
 
     if (e.touches.length === 1) {
@@ -207,14 +215,49 @@ function getOrCreateExploreModal() {
     }
   });
 
+  modalViewport.addEventListener('wheel', (e) => {
+    if (exploreModal && exploreModal.classList.contains('modal-type-table')) return;
+    
+    e.preventDefault();
+
+    // Determine zoom factor
+    const zoomFactor = 0.001;
+    let delta = -e.deltaY;
+    
+    // Account for line-based scrolling differences
+    if (e.deltaMode === 1) {
+      delta *= 15;
+    }
+    
+    const oldScale = mScale;
+    const factor = Math.exp(delta * zoomFactor);
+    mScale = Math.min(Math.max(mScale * factor, 0.15), 6);
+    
+    // Zoom centered on the cursor position
+    const rect = modalViewport.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    const contentX = (mouseX - rect.width / 2 - mTranslateX) / oldScale;
+    const contentY = (mouseY - rect.height / 2 - mTranslateY) / oldScale;
+    
+    mTranslateX = mouseX - rect.width / 2 - contentX * mScale;
+    mTranslateY = mouseY - rect.height / 2 - contentY * mScale;
+
+    updateModalTransform();
+  }, { passive: false });
+
   return exploreModal;
 }
 
-function openExploreModal(titleText, svgHtml) {
+function openExploreModal(fullTitle, contentHtml, contentType) {
   const modal = getOrCreateExploreModal();
   
-  modalTitle.textContent = `Explore: ${titleText || 'Diagram'}`;
-  modalContent.innerHTML = svgHtml;
+  modal.classList.remove('modal-type-diagram', 'modal-type-table');
+  modal.classList.add(`modal-type-${contentType}`);
+  
+  if (modalTitle) modalTitle.textContent = fullTitle;
+  modalContent.innerHTML = contentHtml;
   
   mScale = 1;
   mTranslateX = 0;
@@ -222,6 +265,7 @@ function openExploreModal(titleText, svgHtml) {
   updateModalTransform();
   
   modal.classList.add('active');
+  document.body.classList.add('modal-open');
 }
 
 function renderMermaidDiagrams() {
@@ -269,7 +313,7 @@ function renderMermaidDiagrams() {
         prev = prev.previousElementSibling;
       }
 
-      openExploreModal(title, div.innerHTML);
+      openExploreModal(`Explore: ${title || 'Diagram'}`, div.innerHTML, 'diagram');
     });
   });
 
@@ -291,6 +335,7 @@ document.addEventListener('themeChanged', (e) => {
     modal.classList.remove('active');
     const content = modal.querySelector('#mermaid-modal-content');
     if (content) content.innerHTML = '';
+    document.body.classList.remove('modal-open');
   }
 
   document.querySelectorAll('.mermaid').forEach(div => {
@@ -370,9 +415,39 @@ function wrapTablesAndImages(container) {
     containerDiv.appendChild(wrapper);
     wrapper.appendChild(table);
 
+    // Create explore/maximize button for tables
+    const btnExplore = document.createElement("button");
+    btnExplore.className = "table-explore-btn";
+    btnExplore.title = "Maximize Table";
+    btnExplore.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>`;
+    containerDiv.appendChild(btnExplore);
+
+    btnExplore.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      // Find the nearest preceding heading to use as the title
+      let title = "";
+      let prev = containerDiv.previousElementSibling;
+      while (prev) {
+        if (/^H[1-6]$/i.test(prev.tagName)) {
+          title = prev.textContent.trim();
+          break;
+        }
+        if (prev.classList.contains('md-table-container') || prev.classList.contains('mermaid-wrapper') || prev.tagName === 'PRE') {
+          break;
+        }
+        prev = prev.previousElementSibling;
+      }
+
+      openExploreModal(`Explore: ${title || 'Table'}`, table.outerHTML, 'table');
+    });
+
     function updateScrollShadows() {
       const scrollLeft = wrapper.scrollLeft;
       const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+      
+      const isScrollable = wrapper.scrollWidth > wrapper.clientWidth;
+      containerDiv.classList.toggle('table-scrollable', isScrollable);
       
       containerDiv.classList.toggle('scroll-left-active', scrollLeft > 1);
       containerDiv.classList.toggle('scroll-right-active', maxScroll > 1 && scrollLeft < maxScroll - 1);
