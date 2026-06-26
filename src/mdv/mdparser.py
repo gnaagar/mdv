@@ -1,6 +1,8 @@
 import re
 import html
+import urllib.parse
 from html.parser import HTMLParser
+from typing import Any
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.anchors import anchors_plugin
@@ -97,11 +99,16 @@ add_target_blank(mdparser)
 inject_line_numbers(mdparser)
 
 
+WIKILINK_RE = re.compile(r'\[\[([^\]|]+)(?:\|([^\]]+))?\]\]')
+
+
 class SanitizingHTMLParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.result = []
         self.dangerous_tag_depth = 0
+        self.in_skip_wikilink_tag = 0
+        self.skip_wikilink_tags = {"pre", "code", "a", "script", "style", "iframe", "textarea"}
 
     def handle_starttag(self, tag, attrs):
         tag_lower = tag.lower()
@@ -120,6 +127,9 @@ class SanitizingHTMLParser(HTMLParser):
             return
         if self.dangerous_tag_depth > 0:
             return
+
+        if tag_lower in self.skip_wikilink_tags:
+            self.in_skip_wikilink_tag += 1
 
         cleaned_attrs = []
         for name, value in attrs:
@@ -166,12 +176,27 @@ class SanitizingHTMLParser(HTMLParser):
         if self.dangerous_tag_depth > 0:
             return
 
+        if tag_lower in self.skip_wikilink_tags:
+            self.in_skip_wikilink_tag = max(0, self.in_skip_wikilink_tag - 1)
+
         if tag_lower not in {"img", "br", "hr", "input", "meta", "link"}:
             self.result.append(f"</{tag}>")
 
     def handle_data(self, data):
         if self.dangerous_tag_depth == 0:
-            self.result.append(data)
+            if self.in_skip_wikilink_tag > 0:
+                self.result.append(data)
+            else:
+                last_idx = 0
+                for match in WIKILINK_RE.finditer(data):
+                    self.result.append(data[last_idx:match.start()])
+                    target = match.group(1).strip()
+                    label = match.group(2).strip() if match.group(2) else target
+                    safe_target = html.escape(target)
+                    safe_label = html.escape(label)
+                    self.result.append(f'<a href="/w/{safe_target}" class="wikilink">{safe_label}</a>')
+                    last_idx = match.end()
+                self.result.append(data[last_idx:])
 
     def handle_entityref(self, name):
         if self.dangerous_tag_depth == 0:
@@ -213,47 +238,43 @@ class MarkdownParser:
         parser.feed(raw_html)
         return "".join(parser.result)
 
-    @staticmethod
-    def extract_frontmatter(content: str) -> dict[str, str]:
-        # Match standard yaml frontmatter starting at the beginning of the file
-        match = re.match(r'^---\r?\n(.*?)\r?\n---\r?\n', content, re.DOTALL)
-        if not match:
-            return {}
-        frontmatter_content = match.group(1)
-        metadata = {}
-        for line in frontmatter_content.splitlines():
-            parts = line.split(':', 1)
-            if len(parts) == 2:
-                key = parts[0].strip()
-                val = parts[1].strip()
-                # Strip outer quotes if present
-                if len(val) >= 2 and val[0] in ('"', "'") and val[-1] == val[0]:
-                    val = val[1:-1]
-                metadata[key] = val
-        return metadata
+
 
     @staticmethod
-    def rewrite_doc_id_links(html_content: str, doc_to_file_map: dict[str, str]) -> str:
+    def rewrite_wikilinks(html_content: str, wikilink_map: dict[str, Any], current_file: str = "") -> str:
         def replacer(match: re.Match) -> str:
             quote = match.group(1)
-            url = match.group(2)
+            target_url = match.group(2)
+            label = match.group(3)
             
-            # The URL starts with /d/
-            rest = url[3:]
-                
-            if "#" in rest:
-                doc_id, anchor = rest.split("#", 1)
+            # The target_url starts with /w/
+            target = target_url[3:]
+            
+            if "#" in target:
+                target_name, anchor = target.split("#", 1)
                 anchor = "#" + anchor
             else:
-                doc_id = rest
+                target_name = target
                 anchor = ""
                 
-            if doc_id in doc_to_file_map:
-                new_path = "/_/" + doc_to_file_map[doc_id] + anchor
-                return f'href={quote}{new_path}{quote}'
+            target_name = html.unescape(urllib.parse.unquote(target_name))
+            target_key = target_name.lower().strip()
+            
+            paths = wikilink_map.get(target_key)
+            if not paths or len(paths) > 1:
+                # Return styled broken link
+                return f'<a href="#" class="wikilink broken-link" title="Page not found">{label}</a>'
                 
-            return match.group(0)
+            resolved_path = paths[0]
+            
+            if anchor:
+                anchor_slug = custom_slugify(anchor[1:])
+                anchor = "#" + anchor_slug
+                
+            new_url = "/_/" + resolved_path + anchor
+            return f'<a href="{new_url}" class="wikilink">{label}</a>'
 
-        pattern = r'href=(["\'])(/d/[^\s"\'>]+)\1'
+        pattern = r'<a href=(["\'])(/w/[^\s"\'>]+)\1 class="wikilink">(.*?)</a>'
         return re.sub(pattern, replacer, html_content)
+
 

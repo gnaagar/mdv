@@ -105,48 +105,66 @@ class TestMarkdownParser(unittest.TestCase):
         # Should be completely identical because it's inside a code fence!
         self.assertEqual(cleaned, md)
 
-    def test_extract_frontmatter(self):
-        # Empty or no frontmatter
-        self.assertEqual(MarkdownParser.extract_frontmatter(""), {})
-        self.assertEqual(MarkdownParser.extract_frontmatter("Hello world"), {})
-        self.assertEqual(MarkdownParser.extract_frontmatter("---\n---"), {})
 
-        # Basic frontmatter
-        md = "---\nid: my-doc-1\ntitle: hello\n---\nbody content"
-        meta = MarkdownParser.extract_frontmatter(md)
-        self.assertEqual(meta.get("id"), "my-doc-1")
-        self.assertEqual(meta.get("title"), "hello")
 
-        # Quoted values
-        md = "---\nid: \"my-doc-1\"\ntitle: 'hello world'\n---\nbody"
-        meta = MarkdownParser.extract_frontmatter(md)
-        self.assertEqual(meta.get("id"), "my-doc-1")
-        self.assertEqual(meta.get("title"), "hello world")
+    def test_wikilink_parsing(self):
+        # Normal wikilinks
+        md = "See [[apple-pie]] and [[banana-cake|banana cake recipe]]"
+        html = MarkdownParser.parse(md)
+        self.assertIn('<a href="/w/apple-pie" class="wikilink">apple-pie</a>', html)
+        self.assertIn('<a href="/w/banana-cake" class="wikilink">banana cake recipe</a>', html)
 
-    def test_rewrite_doc_id_links(self):
-        doc_map = {"my-doc-1": "subfolder/another_file.md", "doc-2": "some_file.md"}
-        
-        # Test basic /d/ link rewriting
-        html = '<a href="/d/my-doc-1">Link 1</a>'
-        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
-        self.assertEqual(rewritten, '<a href="/_/subfolder/another_file.md">Link 1</a>')
-        
-        # Test basic /d/ link rewriting with another doc
-        html = '<a href="/d/doc-2">Link 2</a>'
-        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
-        self.assertEqual(rewritten, '<a href="/_/some_file.md">Link 2</a>')
-        
-        # Test hash/anchor preservation
-        html = '<a href="/d/my-doc-1#section-title">Link 4</a>'
-        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
-        self.assertEqual(rewritten, '<a href="/_/subfolder/another_file.md#section-title">Link 4</a>')
-        
-        # Test unknown ID is left unchanged
-        html = '<a href="/d/unknown-id">Link 6</a>'
-        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
-        self.assertEqual(rewritten, html)
+        # Wikilinks inside skip tags (code block, inline code, links) should NOT be parsed
+        md_code = "```text\n[[apple-pie]]\n```\n`[[banana-cake]]`\n[link [[target]]](http://test.com)"
+        html_code = MarkdownParser.parse(md_code)
+        self.assertNotIn('class="wikilink"', html_code)
+        self.assertIn('[[apple-pie]]', html_code)
+        self.assertIn('[[banana-cake]]', html_code)
 
-        # Test external/non-id link remains unchanged
-        html = '<a href="https://google.com">Google</a>'
-        rewritten = MarkdownParser.rewrite_doc_id_links(html, doc_map)
-        self.assertEqual(rewritten, html)
+    def test_rewrite_wikilinks(self):
+        wikilink_map = {
+            "apple-pie": ["recipes/apple-pie.md"],
+            "apple-pie.md": ["recipes/apple-pie.md"],
+            "recipes/apple-pie": ["recipes/apple-pie.md"],
+            "recipes/apple-pie.md": ["recipes/apple-pie.md"],
+            "desserts": ["a/desserts.md", "b/desserts.md"],
+            "a/desserts": ["a/desserts.md"],
+            "a/desserts.md": ["a/desserts.md"],
+            "b/desserts": ["b/desserts.md"],
+            "b/desserts.md": ["b/desserts.md"],
+        }
+
+        # Basic rewrite
+        html = '<a href="/w/apple-pie" class="wikilink">apple-pie</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md" class="wikilink">apple-pie</a>')
+
+        # Custom label rewrite
+        html = '<a href="/w/apple-pie" class="wikilink">Custom Label</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md" class="wikilink">Custom Label</a>')
+
+        # Rewrite with anchor
+        html = '<a href="/w/apple-pie#Ingredients" class="wikilink">apple-pie</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md#ingredients" class="wikilink">apple-pie</a>')
+
+        # Broken link rewrite (unknown file)
+        html = '<a href="/w/unknown-file" class="wikilink">unknown-file</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="#" class="wikilink broken-link" title="Page not found">unknown-file</a>')
+
+        # Broken link rewrite (collision / ambiguous target)
+        html = '<a href="/w/desserts" class="wikilink">desserts</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="#" class="wikilink broken-link" title="Page not found">desserts</a>')
+
+        # Resolves uniquely when longer path suffix is specified
+        html = '<a href="/w/a/desserts" class="wikilink">a/desserts</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="/_/a/desserts.md" class="wikilink">a/desserts</a>')
+
+        html = '<a href="/w/b/desserts" class="wikilink">b/desserts</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        self.assertEqual(rewritten, '<a href="/_/b/desserts.md" class="wikilink">b/desserts</a>')
+
