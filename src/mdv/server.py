@@ -80,7 +80,6 @@ url_map = Map(
         Rule("/static/<path:filename>", endpoint="static"),  # handled by middleware
         Rule("/_/", endpoint="index"),
         Rule("/_/<path:filename>", endpoint="view"),
-        Rule("/d/<doc_id>", endpoint="view_by_id"),
         Rule("/api/tree", endpoint="dirtree"),
         Rule("/api/search", endpoint="search"),
         Rule("/api/themes", endpoint="themes"),
@@ -144,9 +143,9 @@ class App:
     # Render helpers
     # -----------------------------------------------------
 
-    def render_markdown(self, template: str, content: str, theme: str = "") -> Response:
-        doc_map = self.state.get_doc_id_map()
-        content = MarkdownParser.rewrite_doc_id_links(content, doc_map)
+    def render_markdown(self, template: str, content: str, current_file: str = "", theme: str = "") -> Response:
+        wikilink_map = self.state.get_wikilink_map()
+        content = MarkdownParser.rewrite_wikilinks(content, wikilink_map, current_file=current_file)
         html = env.get_template(template).render(
             content=content, theme=theme, themes=self.themes
         )
@@ -166,7 +165,7 @@ class App:
     def render_file(self, template: str, filename: str, theme: str = "") -> Response:
         # Always read fresh in lite_mode to avoid caching delays
         md_html = self.state.get_content(filename)
-        return self.render_markdown(template, md_html, theme=theme)
+        return self.render_markdown(template, md_html, current_file=filename, theme=theme)
 
     def handle_common(self, filename: str, template: str, prefix: str, theme: str = "") -> Response:
         if self.state.is_file(filename):
@@ -215,17 +214,11 @@ class App:
         theme = self.get_active_theme(request)
         return self.handle_common(filename, template="viewer.html", prefix="_", theme=theme)
 
-    def on_view_by_id(self, request: Request, doc_id: str) -> Response:
-        doc_map = self.state.get_doc_id_map()
-        if doc_id in doc_map:
-            return Response(status=302, headers={"Location": f"/_/{doc_map[doc_id]}"})
-        return Response(f"Document with ID '{doc_id}' not found", status=404, mimetype="text/plain")
-
     def on_api_render(self, request: Request) -> Response:
         raw_md = request.get_data(as_text=True)
         html = MarkdownParser.parse(raw_md)
-        doc_map = self.state.get_doc_id_map()
-        html = MarkdownParser.rewrite_doc_id_links(html, doc_map)
+        wikilink_map = self.state.get_wikilink_map()
+        html = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
         return Response(html, mimetype="text/html")
 
     def on_live(self, request: Request) -> Response:

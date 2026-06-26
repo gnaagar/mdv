@@ -26,7 +26,6 @@ class FileNode:
     raw: Optional[str] = None
     parsed: Optional[str] = None
     last_updated: Optional[float] = None
-    doc_id: Optional[str] = None
     lock: threading.RLock = field(
         default_factory=threading.RLock, init=False, repr=False, compare=False
     )
@@ -73,7 +72,6 @@ class MdViewerState:
                     logger.debug(f"Clearing stale content of node {node.id}")
                 node.raw = None  # Invalidate raw content
                 node.parsed = None
-                node.doc_id = None
                 node.last_updated = last_updated
                 return True  # Changed
             return False  # Unchanged
@@ -136,6 +134,8 @@ class MdViewerState:
 
             if changed:
                 self._search_index_dirty = True
+        if changed:
+            self._log_wikilink_conflicts()
 
     def _build_full_cache(self) -> None:
         try:
@@ -160,6 +160,7 @@ class MdViewerState:
                     size += len(node.raw or "")
                     size += len(node.parsed or "")
             logger.debug(f"Built full cache of {size} bytes worth of content")
+            self._log_wikilink_conflicts()
         except Exception as e:
             logger.error(f"Error building full cache: {e}")
 
@@ -177,7 +178,6 @@ class MdViewerState:
                     raw_content = f.read()
                 node.raw = raw_content
                 node.parsed = MarkdownParser.parse(raw_content)
-                node.doc_id = MarkdownParser.extract_frontmatter(raw_content).get("id")
             except Exception as e:
                 logger.error(f"Error reading file {full_path}: {e}")
 
@@ -185,17 +185,48 @@ class MdViewerState:
         with self._map_lock:
             return path in self._node_map
 
-    def get_doc_id_map(self) -> Dict[str, str]:
-        doc_map = {}
+    def get_wikilink_map(self) -> Dict[str, List[str]]:
+        wikilink_map = {}
         with self._map_lock:
             nodes = list(self._node_map.values())
         for node in nodes:
             if node.raw is None:
                 self._refresh_node(node)
             with node.lock:
-                if node.doc_id:
-                    doc_map[node.doc_id] = node.id
-        return doc_map
+                rel_path = node.id
+                
+            # 1. Suffixes without extension
+            path_no_ext, _ = os.path.splitext(rel_path)
+            parts = path_no_ext.split('/')
+            for i in range(1, len(parts) + 1):
+                suffix_key = "/".join(parts[-i:]).lower()
+                if suffix_key not in wikilink_map:
+                    wikilink_map[suffix_key] = []
+                if rel_path not in wikilink_map[suffix_key]:
+                    wikilink_map[suffix_key].append(rel_path)
+                    
+            # 2. Suffixes with extension
+            parts_ext = rel_path.split('/')
+            for i in range(1, len(parts_ext) + 1):
+                suffix_key = "/".join(parts_ext[-i:]).lower()
+                if suffix_key not in wikilink_map:
+                    wikilink_map[suffix_key] = []
+                if rel_path not in wikilink_map[suffix_key]:
+                    wikilink_map[suffix_key].append(rel_path)
+                    
+        return wikilink_map
+
+    def _log_wikilink_conflicts(self) -> None:
+        wikilink_map = self.get_wikilink_map()
+        conflicts = {}
+        for key, paths in wikilink_map.items():
+            if "/" not in key and len(paths) > 1:
+                conflicts[key] = paths
+                
+        if conflicts:
+            logger.warning("Wikilink collisions detected (these targets will not resolve uniquely):")
+            for key, paths in conflicts.items():
+                logger.warning(f"  Target [[{key}]] matches multiple files: {paths}")
 
 
     def get_content(self, id: str, raw: bool = False) -> str:
