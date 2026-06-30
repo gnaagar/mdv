@@ -144,8 +144,7 @@ class App:
     # -----------------------------------------------------
 
     def render_markdown(self, template: str, content: str, current_file: str = "", theme: str = "") -> Response:
-        wikilink_map = self.state.get_wikilink_map()
-        content = MarkdownParser.rewrite_wikilinks(content, wikilink_map, current_file=current_file)
+        content = MarkdownParser.rewrite_wikilinks(content, lambda t: self.state.resolve_wikilink(t, current_file))
         html = env.get_template(template).render(
             content=content, theme=theme, themes=self.themes
         )
@@ -217,8 +216,7 @@ class App:
     def on_api_render(self, request: Request) -> Response:
         raw_md = request.get_data(as_text=True)
         html = MarkdownParser.parse(raw_md)
-        wikilink_map = self.state.get_wikilink_map()
-        html = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        html = MarkdownParser.rewrite_wikilinks(html, lambda t: self.state.resolve_wikilink(t, ""))
         return Response(html, mimetype="text/html")
 
     def on_live(self, request: Request) -> Response:

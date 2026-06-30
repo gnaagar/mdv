@@ -43,6 +43,10 @@ class MdViewerState:
         # Build ignore set: all dot-directories by default, plus user-specified dirs
         self._extra_ignore_dirs = set(cfg.get("ignore_dirs", []))
 
+        self._wikilink_suffix_map: Optional[Dict[str, List[str]]] = None
+        self._wikilink_resolution_cache: Dict[Tuple[str, str], Optional[str]] = {}
+        self._resolution_lock = threading.Lock()
+
         self._last_refresh_time = 0.0
         self._search_index_dirty = True
 
@@ -135,6 +139,10 @@ class MdViewerState:
             if changed:
                 self._search_index_dirty = True
         if changed:
+            with self._map_lock:
+                self._wikilink_suffix_map = None
+            with self._resolution_lock:
+                self._wikilink_resolution_cache.clear()
             self._log_wikilink_conflicts()
 
     def _build_full_cache(self) -> None:
@@ -186,6 +194,10 @@ class MdViewerState:
             return path in self._node_map
 
     def get_wikilink_map(self) -> Dict[str, List[str]]:
+        with self._map_lock:
+            if self._wikilink_suffix_map is not None:
+                return self._wikilink_suffix_map
+
         wikilink_map = {}
         with self._map_lock:
             nodes = list(self._node_map.values())
@@ -214,7 +226,57 @@ class MdViewerState:
                 if rel_path not in wikilink_map[suffix_key]:
                     wikilink_map[suffix_key].append(rel_path)
                     
+        with self._map_lock:
+            self._wikilink_suffix_map = wikilink_map
         return wikilink_map
+
+    def resolve_wikilink(self, target: str, current_file: str) -> Optional[str]:
+        target_key = target.lower().strip()
+        cache_key = (current_file, target_key)
+        
+        with self._resolution_lock:
+            if cache_key in self._wikilink_resolution_cache:
+                return self._wikilink_resolution_cache[cache_key]
+                
+        wikilink_map = self.get_wikilink_map()
+        paths = wikilink_map.get(target_key)
+        
+        resolved_path = None
+        if paths:
+            if len(paths) == 1:
+                resolved_path = paths[0]
+            else:
+                if current_file:
+                    src_dir = os.path.dirname(current_file).replace(os.path.sep, "/")
+                    src_parts = [p for p in src_dir.split("/") if p]
+                    
+                    candidates_with_distance = []
+                    for path in paths:
+                        cand_dir = os.path.dirname(path).replace(os.path.sep, "/")
+                        cand_parts = [p for p in cand_dir.split("/") if p]
+                        
+                        common_len = 0
+                        for s_part, c_part in zip(src_parts, cand_parts):
+                            if s_part == c_part:
+                                common_len += 1
+                            else:
+                                break
+                        d_up = len(src_parts) - common_len
+                        d_down = len(cand_parts) - common_len
+                        candidates_with_distance.append((d_up, d_down, path))
+                        
+                    candidates_with_distance.sort(key=lambda x: (x[0], x[1]))
+                    
+                    min_dist = (candidates_with_distance[0][0], candidates_with_distance[0][1])
+                    closest_candidates = [x for x in candidates_with_distance if (x[0], x[1]) == min_dist]
+                    if len(closest_candidates) == 1:
+                        resolved_path = closest_candidates[0][2]
+                else:
+                    pass
+                    
+        with self._resolution_lock:
+            self._wikilink_resolution_cache[cache_key] = resolved_path
+        return resolved_path
 
     def _log_wikilink_conflicts(self) -> None:
         wikilink_map = self.get_wikilink_map()
