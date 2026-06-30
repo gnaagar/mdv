@@ -241,7 +241,7 @@ class MarkdownParser:
 
 
     @staticmethod
-    def rewrite_wikilinks(html_content: str, wikilink_map: dict[str, Any], current_file: str = "") -> str:
+    def rewrite_wikilinks(html_content: str, resolve_func: Any) -> str:
         def replacer(match: re.Match) -> str:
             quote = match.group(1)
             target_url = match.group(2)
@@ -258,15 +258,12 @@ class MarkdownParser:
                 anchor = ""
                 
             target_name = html.unescape(urllib.parse.unquote(target_name))
-            target_key = target_name.lower().strip()
             
-            paths = wikilink_map.get(target_key)
-            if not paths or len(paths) > 1:
+            resolved_path = resolve_func(target_name)
+            if not resolved_path:
                 # Return styled broken link
                 return f'<a href="#" class="wikilink broken-link" title="Page not found">{label}</a>'
                 
-            resolved_path = paths[0]
-            
             if anchor:
                 anchor_slug = custom_slugify(anchor[1:])
                 anchor = "#" + anchor_slug

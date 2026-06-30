@@ -122,49 +122,47 @@ class TestMarkdownParser(unittest.TestCase):
         self.assertIn('[[banana-cake]]', html_code)
 
     def test_rewrite_wikilinks(self):
-        wikilink_map = {
-            "apple-pie": ["recipes/apple-pie.md"],
-            "apple-pie.md": ["recipes/apple-pie.md"],
-            "recipes/apple-pie": ["recipes/apple-pie.md"],
-            "recipes/apple-pie.md": ["recipes/apple-pie.md"],
-            "desserts": ["a/desserts.md", "b/desserts.md"],
-            "a/desserts": ["a/desserts.md"],
-            "a/desserts.md": ["a/desserts.md"],
-            "b/desserts": ["b/desserts.md"],
-            "b/desserts.md": ["b/desserts.md"],
-        }
+        def mock_resolve(target):
+            t = target.lower()
+            if t == "apple-pie":
+                return "recipes/apple-pie.md"
+            if t == "a/desserts":
+                return "a/desserts.md"
+            if t == "b/desserts":
+                return "b/desserts.md"
+            return None
 
         # Basic rewrite
         html = '<a href="/w/apple-pie" class="wikilink">apple-pie</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md" class="wikilink">apple-pie</a>')
 
         # Custom label rewrite
         html = '<a href="/w/apple-pie" class="wikilink">Custom Label</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md" class="wikilink">Custom Label</a>')
 
         # Rewrite with anchor
         html = '<a href="/w/apple-pie#Ingredients" class="wikilink">apple-pie</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md#ingredients" class="wikilink">apple-pie</a>')
 
         # Broken link rewrite (unknown file)
         html = '<a href="/w/unknown-file" class="wikilink">unknown-file</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="#" class="wikilink broken-link" title="Page not found">unknown-file</a>')
 
         # Broken link rewrite (collision / ambiguous target)
         html = '<a href="/w/desserts" class="wikilink">desserts</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="#" class="wikilink broken-link" title="Page not found">desserts</a>')
 
         # Resolves uniquely when longer path suffix is specified
         html = '<a href="/w/a/desserts" class="wikilink">a/desserts</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/a/desserts.md" class="wikilink">a/desserts</a>')
 
         html = '<a href="/w/b/desserts" class="wikilink">b/desserts</a>'
-        rewritten = MarkdownParser.rewrite_wikilinks(html, wikilink_map)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/b/desserts.md" class="wikilink">b/desserts</a>')
 
