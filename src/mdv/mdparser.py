@@ -31,7 +31,7 @@ import threading
 _slug_state = threading.local()
 
 
-def custom_slugify(text: str) -> str:
+def custom_slugify(text: str, register: bool = True) -> str:
     text = text.lower()
     # Find all sequences of Unicode alphanumeric characters (excluding underscores)
     words = re.findall(r'[^\W_]+', text)
@@ -40,6 +40,9 @@ def custom_slugify(text: str) -> str:
 
     if not base_slug:
         base_slug = "heading"
+
+    if not register:
+        return base_slug
 
     used_slugs = getattr(_slug_state, "used_slugs", None)
     if used_slugs is None:
@@ -191,7 +194,17 @@ class SanitizingHTMLParser(HTMLParser):
                 for match in WIKILINK_RE.finditer(data):
                     self.result.append(data[last_idx:match.start()])
                     target = match.group(1).strip()
-                    label = match.group(2).strip() if match.group(2) else target
+                    if match.group(2):
+                        label = match.group(2).strip()
+                    else:
+                        if "#" in target:
+                            _, heading_part = target.split("#", 1)
+                            heading_part = urllib.parse.unquote(heading_part.strip())
+                            if len(heading_part) > 20:
+                                heading_part = heading_part[:20] + "..."
+                            label = heading_part
+                        else:
+                            label = target
                     safe_target = html.escape(target)
                     safe_label = html.escape(label)
                     self.result.append(f'<a href="/w/{safe_target}" class="wikilink">{safe_label}</a>')
@@ -265,13 +278,14 @@ class MarkdownParser:
                 return f'<a href="#" class="wikilink broken-link" title="Page not found">{label}</a>'
                 
             if anchor:
-                anchor_slug = custom_slugify(anchor[1:])
+                decoded_anchor = html.unescape(urllib.parse.unquote(anchor[1:]))
+                anchor_slug = custom_slugify(decoded_anchor, register=False)
                 anchor = "#" + anchor_slug
                 
             new_url = "/_/" + resolved_path + anchor
             return f'<a href="{new_url}" class="wikilink">{label}</a>'
 
-        pattern = r'<a href=(["\'])(/w/[^\s"\'>]+)\1 class="wikilink">(.*?)</a>'
+        pattern = r'<a href=(["\'])(/w/[^"\'>]+)\1 class="wikilink">(.*?)</a>'
         return re.sub(pattern, replacer, html_content)
 
 
