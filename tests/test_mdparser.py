@@ -114,6 +114,12 @@ class TestMarkdownParser(unittest.TestCase):
         self.assertIn('<a href="/w/apple-pie" class="wikilink">apple-pie</a>', html)
         self.assertIn('<a href="/w/banana-cake" class="wikilink">banana cake recipe</a>', html)
 
+        # Wikilinks with anchors (breadcrumbs and truncation)
+        md_anchors = "See [[a#Heading 1]] and [[#Long Heading Exceeding Twenty Characters]]"
+        html_anchors = MarkdownParser.parse(md_anchors)
+        self.assertIn('<a href="/w/a#Heading 1" class="wikilink">Heading 1</a>', html_anchors)
+        self.assertIn('<a href="/w/#Long Heading Exceeding Twenty Characters" class="wikilink">Long Heading Exceedi...</a>', html_anchors)
+
         # Wikilinks inside skip tags (code block, inline code, links) should NOT be parsed
         md_code = "```text\n[[apple-pie]]\n```\n`[[banana-cake]]`\n[link [[target]]](http://test.com)"
         html_code = MarkdownParser.parse(md_code)
@@ -124,7 +130,7 @@ class TestMarkdownParser(unittest.TestCase):
     def test_rewrite_wikilinks(self):
         def mock_resolve(target):
             t = target.lower()
-            if t == "apple-pie":
+            if t == "apple-pie" or t == "apple pie":
                 return "recipes/apple-pie.md"
             if t == "a/desserts":
                 return "a/desserts.md"
@@ -147,6 +153,16 @@ class TestMarkdownParser(unittest.TestCase):
         rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md#ingredients" class="wikilink">apple-pie</a>')
 
+        # Rewrite with anchor containing spaces
+        html = '<a href="/w/apple-pie#Ingredients%20List" class="wikilink">apple-pie</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
+        self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md#ingredients-list" class="wikilink">apple-pie</a>')
+
+        # Target containing spaces
+        html = '<a href="/w/apple pie" class="wikilink">apple pie</a>'
+        rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
+        self.assertEqual(rewritten, '<a href="/_/recipes/apple-pie.md" class="wikilink">apple pie</a>')
+
         # Broken link rewrite (unknown file)
         html = '<a href="/w/unknown-file" class="wikilink">unknown-file</a>'
         rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
@@ -165,4 +181,11 @@ class TestMarkdownParser(unittest.TestCase):
         html = '<a href="/w/b/desserts" class="wikilink">b/desserts</a>'
         rewritten = MarkdownParser.rewrite_wikilinks(html, mock_resolve)
         self.assertEqual(rewritten, '<a href="/_/b/desserts.md" class="wikilink">b/desserts</a>')
+
+    def test_wikilink_anchor_does_not_increment_duplicate_slug_counter(self):
+        md = "# Heading 1\n\n[[#Heading 1]]"
+        html = MarkdownParser.parse(md)
+        rewritten = MarkdownParser.rewrite_wikilinks(html, lambda t: "current_file.md" if t == "" else None)
+        self.assertIn('<h1 id="heading-1" data-source-line="1">Heading 1</h1>', rewritten)
+        self.assertIn('<a href="/_/current_file.md#heading-1" class="wikilink">Heading 1</a>', rewritten)
 

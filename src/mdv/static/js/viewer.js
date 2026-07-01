@@ -90,17 +90,52 @@ function setupModalsAndHeader() {
 
   if (!overlay || !btnTheme) return; // fail gracefully
 
+  let focusMouseMoveHandler = null;
+  let focusThrottleTimeout = null;
+
   function setFocusMode(active) {
     if (active) {
       if (container) container.classList.add('sidebar-hidden');
       if (MD_BODY) MD_BODY.classList.add('focus-layout');
       if (btnFocusExit) btnFocusExit.classList.remove('hidden');
       localStorage.setItem('focus-mode', 'true');
+
+      // Bind mousemove ONLY while Focus Mode is active
+      if (!focusMouseMoveHandler && btnFocusExit) {
+        let isVisible = false; // local cache to prevent redundant DOM operations
+        focusMouseMoveHandler = (e) => {
+          if (focusThrottleTimeout) return;
+          const x = e.clientX;
+          const y = e.clientY;
+          focusThrottleTimeout = setTimeout(() => {
+            focusThrottleTimeout = null;
+            const shouldShow = (x < 120 && y < 120) || (document.activeElement === btnFocusExit);
+            if (shouldShow !== isVisible) {
+              isVisible = shouldShow;
+              btnFocusExit.classList.toggle('visible', isVisible);
+            }
+          }, 50); // check at most once every 50ms (20 FPS)
+        };
+        window.addEventListener('mousemove', focusMouseMoveHandler, { passive: true });
+      }
     } else {
       if (container) container.classList.remove('sidebar-hidden');
       if (MD_BODY) MD_BODY.classList.remove('focus-layout');
-      if (btnFocusExit) btnFocusExit.classList.add('hidden');
+      if (btnFocusExit) {
+        btnFocusExit.classList.add('hidden');
+        btnFocusExit.classList.remove('visible');
+      }
       localStorage.setItem('focus-mode', 'false');
+
+      // Unbind mousemove completely on exiting Focus Mode
+      if (focusMouseMoveHandler) {
+        window.removeEventListener('mousemove', focusMouseMoveHandler);
+        focusMouseMoveHandler = null;
+      }
+      if (focusThrottleTimeout) {
+        clearTimeout(focusThrottleTimeout);
+        focusThrottleTimeout = null;
+      }
     }
   }
 
@@ -113,6 +148,16 @@ function setupModalsAndHeader() {
   if (btnFocusExit) {
     btnFocusExit.addEventListener('click', () => {
       setFocusMode(false);
+    });
+    btnFocusExit.addEventListener('focus', () => {
+      btnFocusExit.classList.add('visible');
+    });
+    btnFocusExit.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (document.activeElement !== btnFocusExit) {
+          btnFocusExit.classList.remove('visible');
+        }
+      }, 100);
     });
   }
 
