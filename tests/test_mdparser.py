@@ -91,6 +91,16 @@ class TestMarkdownParser(unittest.TestCase):
         # Markdown parser leaves it as text because it's javascript: scheme (validation fails by default)
         self.assertNotIn('href="javascript:', html)
 
+        # XSS in code block and general text escaping
+        md_code = "```text\n<script>alert(1)</script>\n```"
+        html_code = MarkdownParser.parse(md_code)
+        self.assertNotIn("<script>", html_code)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", html_code)
+
+        md_text = "This is a & another one"
+        html_text = MarkdownParser.parse(md_text)
+        self.assertIn("This is a &amp; another one", html_text)
+
     def test_math_cleaning(self):
         # Test basic math cleaning (merging lines and escaping backslashes)
         md = "$$\n\\frac{1}{2}\n$$"

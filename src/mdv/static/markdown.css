@@ -98,21 +98,32 @@ body {
   right: 6px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease-in-out;
-  color: var(--code-button-color);
-  background: none;
-  border: none;
+  transition: all 0.2s ease-in-out;
+  color: var(--text-muted);
+  background: var(--markdown-bg);
+  background: color-mix(in srgb, var(--markdown-bg) 85%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid var(--border-color-light);
+  border-radius: 6px;
   padding: 6px;
   margin: 0;
   line-height: 0;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 #markdown-body .copy-btn .svg {
   display: block;
 }
 #markdown-body .code-wrapper:hover .copy-btn {
-  opacity: 1;
+  opacity: 0.4;
   pointer-events: auto;
+}
+#markdown-body .code-wrapper .copy-btn:hover {
+  opacity: 1;
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+  border-color: var(--border-color-light);
 }
 #markdown-body code {
   color: var(--inline-code-color);
@@ -383,9 +394,25 @@ body {
   text-decoration: none !important;
 }
 
+#markdown-body td a.wikilink {
+  white-space: nowrap;
+}
+
 /*Focus Mode Styles*/
-.focus-exit-btn {
+.focus-exit-wrapper {
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+  z-index: 1000;
+  background: transparent;
+}
+.focus-exit-wrapper.hidden {
+  display: none !important;
+}
+.focus-exit-btn {
+  position: absolute;
   top: 1rem;
   left: 1.5rem;
   width: 40px;
@@ -399,24 +426,22 @@ body {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  pointer-events: none;
   transition: all 0.2s ease;
-  z-index: 1000;
   box-shadow: 0 4px 12px var(--markdown-shadow);
 }
-.focus-exit-btn.visible {
+.focus-exit-wrapper:hover .focus-exit-btn,
+.focus-exit-wrapper:focus-within .focus-exit-btn,
+.focus-exit-btn:focus {
   opacity: 0.8;
-  pointer-events: auto;
 }
-.focus-exit-btn:hover, .focus-exit-btn.visible:hover {
+.focus-exit-wrapper .focus-exit-btn:hover {
   opacity: 1;
   background: var(--tree-entry-highlight-bg);
   color: var(--tree-entry-highlight-color);
   border-color: var(--border-color-light);
-  pointer-events: auto;
 }
 @media print {
-  .focus-exit-btn { display: none !important; }
+  .focus-exit-wrapper { display: none !important; }
 }
 
 .focus-layout {
@@ -842,6 +867,247 @@ body.modal-open,
 body.modal-open .section-main,
 body.modal-open .nav-sidebar {
   overflow: hidden !important;
+}
+
+/* Compact sidebar top header */
+.container .nav-sidebar {
+  padding: 0.75rem 1.5rem !important;
+}
+.sidebar-top-header {
+  padding-bottom: 0.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Allow sticky breadcrumbs by letting the window handle the scroll context */
+.container .section-main {
+  overflow: visible !important;
+}
+
+/* Remove default markdown bullet list styling for the directory index view */
+#markdown-body .dash-recent-list {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0 !important;
+}
+#markdown-body .dash-recent-list li {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#markdown-body .dash-recent-list li::before {
+  content: none !important;
+}
+#markdown-body .dash-recent-entry,
+#markdown-body .dash-recent-entry:hover {
+  text-decoration: none !important;
+}
+
+/* Dashboard layout styles */
+.dashboard {
+  display: flex !important;
+  flex-direction: column !important;
+  height: calc(100vh - 5.5rem) !important;
+  box-sizing: border-box !important;
+}
+.dash-body {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+.dash-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+.dash-body-grid > .dash-card {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  margin-bottom: 0 !important;
+  min-height: 0 !important;
+}
+.dash-body-grid .dash-recent-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+}
+.dash-footer {
+  flex-shrink: 0 !important;
+  margin-top: 1rem !important;
+}
+.dash-card-title {
+  font-size: 0.72rem !important;
+  opacity: 0.55 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+@media (max-width: 768px) {
+  .dash-body-grid {
+    grid-template-columns: 1fr;
+    height: auto !important;
+  }
+  .dashboard {
+    height: auto !important;
+  }
+}
+
+/* Force 1-column layout for single-column list lists */
+.single-column-list {
+  grid-template-columns: 1fr !important;
+  gap: 0.4rem !important;
+  align-content: start !important;
+}
+.single-column-list .dash-recent-info {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.dash-recent-entry {
+  padding: 0.35rem 0.65rem !important;
+}
+.dash-recent-entry:hover {
+  transform: none !important;
+}
+
+/* ===== Sticky Breadcrumbs Bar ===== */
+.breadcrumb-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  box-sizing: border-box;
+  height: 52px;
+  background: var(--markdown-bg);
+  background: color-mix(in srgb, var(--markdown-bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  margin: -1.5rem -3rem 1.5rem -3rem;
+  padding: 0 3rem;
+  display: flex;
+  align-items: center;
+}
+.breadcrumb-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 1px;
+  background: var(--border-color-light);
+}
+
+/* Force 1-column layout for the directory listing list inside markdown body */
+#markdown-body .dash-recent-list {
+  grid-template-columns: 1fr !important;
+}
+/* Force single-line horizontal alignment for icons + names */
+#markdown-body .dash-recent-info {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.breadcrumb-bar.hidden {
+  display: none !important;
+}
+.breadcrumb-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  opacity: 0.55;
+  transition: opacity 0.2s ease-in-out;
+}
+.breadcrumb-bar:hover .breadcrumb-container {
+  opacity: 1;
+}
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.breadcrumb-link {
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+.breadcrumb-link:hover, .breadcrumb-link.open {
+  color: var(--text-color);
+  background: var(--tree-entry-highlight-bg);
+}
+.breadcrumb-link.active {
+  color: var(--text-color);
+  font-weight: 600;
+}
+.breadcrumb-separator {
+  color: var(--text-muted);
+  margin: 0 0.25rem;
+  user-select: none;
+}
+.breadcrumb-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  background: var(--markdown-bg);
+  border: 1px solid var(--border-color-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  max-width: 280px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1010;
+  display: none;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+.breadcrumb-dropdown-menu.show {
+  display: flex;
+}
+.breadcrumb-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.breadcrumb-dropdown-item:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.breadcrumb-dropdown-item.active {
+  font-weight: 600;
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.breadcrumb-dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+@media print {
+  .breadcrumb-bar { display: none !important; }
 }
 
 

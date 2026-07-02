@@ -155,11 +155,12 @@ class App:
         if tree is None:
             return Response("Not found", status=404, mimetype="text/plain")
 
-        tree_md = env.get_template("tree.md").render(
-            tree=tree, path=prefix, root="/" + filename
+        sorted_tree = sorted(tree, key=lambda x: (0 if x["type"] == "directory" else 1, x["name"].lower()))
+
+        tree_html = env.get_template("tree.html").render(
+            tree=sorted_tree, path=prefix, root="/" + filename
         )
-        parsed = MarkdownParser.parse(tree_md)
-        return self.render_markdown(template, parsed, theme=theme)
+        return self.render_markdown(template, tree_html, theme=theme)
 
     def render_file(self, template: str, filename: str, theme: str = "") -> Response:
         # Always read fresh in lite_mode to avoid caching delays
@@ -185,6 +186,11 @@ class App:
     def on_index(self, request: Request) -> Response:
         self.state.refresh()
         data = self.state.get_dashboard_data()
+        
+        # Get root level children sorted (folders first, then files)
+        root_tree = self.state.get_tree()
+        data["root_files"] = sorted(root_tree, key=lambda x: (0 if x["type"] == "directory" else 1, x["name"].lower()))
+
         theme = self.get_active_theme(request)
         html = env.get_template("dashboard.html").render(
             theme=theme, themes=self.themes, **data

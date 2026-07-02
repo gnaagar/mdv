@@ -188,11 +188,11 @@ class SanitizingHTMLParser(HTMLParser):
     def handle_data(self, data):
         if self.dangerous_tag_depth == 0:
             if self.in_skip_wikilink_tag > 0:
-                self.result.append(data)
+                self.result.append(html.escape(data))
             else:
                 last_idx = 0
                 for match in WIKILINK_RE.finditer(data):
-                    self.result.append(data[last_idx:match.start()])
+                    self.result.append(html.escape(data[last_idx:match.start()]))
                     target = match.group(1).strip()
                     if match.group(2):
                         label = match.group(2).strip()
@@ -209,7 +209,7 @@ class SanitizingHTMLParser(HTMLParser):
                     safe_label = html.escape(label)
                     self.result.append(f'<a href="/w/{safe_target}" class="wikilink">{safe_label}</a>')
                     last_idx = match.end()
-                self.result.append(data[last_idx:])
+                self.result.append(html.escape(data[last_idx:]))
 
     def handle_entityref(self, name):
         if self.dangerous_tag_depth == 0:

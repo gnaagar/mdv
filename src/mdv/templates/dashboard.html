@@ -40,32 +40,57 @@
         {{ theme_toggle_button() }}
       </div>
     </header>    <div class="dash-body">
-      <!-- Recent Files -->
-      <section class="dash-card dash-recent">
-        <h2 class="dash-card-title">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.37.65l2.5 1.5a.75.75 0 10.76-1.3L8.5 7.94V4.75z"/></svg>
-          Recent Files
-        </h2>
-        <ul class="dash-recent-list">
-          {% for file in recent_files %}
-          <li>
-            <a href="/_/{{ file.path }}" class="dash-recent-entry">
-              <div class="dash-recent-info">
-                <span class="dash-recent-name">{{ file.name }}</span>
-                <span class="dash-recent-path">{{ file.path }}</span>
-              </div>
-              <div class="dash-recent-meta">
-                <span class="dash-recent-time" data-mtime="{{ file.mtime }}">—</span>
-                <svg class="dash-recent-arrow" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5-5-5-5"/></svg>
-              </div>
-            </a>
-          </li>
-          {% endfor %}
-          {% if not recent_files %}
-          <li class="dash-empty">No files found.</li>
-          {% endif %}
-        </ul>
-      </section>
+      <div class="dash-body-grid">
+        <!-- Workspace Files (Column 1) -->
+        <section class="dash-card">
+          <h2 class="dash-card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Workspace Files
+          </h2>
+          <ul class="dash-recent-list single-column-list">
+            {% for item in root_files %}
+            <li>
+              <a href="/_/{{ item.path }}" class="dash-recent-entry">
+                <div class="dash-recent-info">
+                  {% if item.type == 'directory' %}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); flex-shrink: 0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  {% else %}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  {% endif %}
+                  <span class="dash-recent-name">{{ item.name }}</span>
+                </div>
+              </a>
+            </li>
+            {% endfor %}
+            {% if not root_files %}
+            <li class="dash-empty">Workspace is empty.</li>
+            {% endif %}
+          </ul>
+        </section>
+
+        <!-- Recent Files (Column 2) -->
+        <section class="dash-card">
+          <h2 class="dash-card-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="color: var(--text-muted);"><path d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.37.65l2.5 1.5a.75.75 0 10.76-1.3L8.5 7.94V4.75z"/></svg>
+            Recent Files
+          </h2>
+          <ul class="dash-recent-list single-column-list">
+            {% for file in recent_files %}
+            <li>
+              <a href="/_/{{ file.path }}" class="dash-recent-entry">
+                <div class="dash-recent-info">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span class="dash-recent-name">{{ file.name }}</span>
+                </div>
+              </a>
+            </li>
+            {% endfor %}
+            {% if not recent_files %}
+            <li class="dash-empty">No recent files found.</li>
+            {% endif %}
+          </ul>
+        </section>
+      </div>
     </div>
     <!-- Footer -->
     <footer class="dash-footer">

@@ -83,6 +83,7 @@ function setupModalsAndHeader() {
   const btnTheme = document.getElementById('btn-theme-toggle');
   const btnFocus = document.getElementById('btn-focus');
   const btnFocusExit = document.getElementById('btn-focus-exit');
+  const focusExitWrapper = document.getElementById('focus-exit-wrapper');
   const container = document.querySelector('.container');
 
   dirFilterInput = document.getElementById('dir-filter-input');
@@ -90,53 +91,19 @@ function setupModalsAndHeader() {
 
   if (!overlay || !btnTheme) return; // fail gracefully
 
-  let focusMouseMoveHandler = null;
-  let focusThrottleTimeout = null;
-
   function setFocusMode(active) {
     if (active) {
       if (container) container.classList.add('sidebar-hidden');
       if (MD_BODY) MD_BODY.classList.add('focus-layout');
-      if (btnFocusExit) btnFocusExit.classList.remove('hidden');
+      if (focusExitWrapper) focusExitWrapper.classList.remove('hidden');
       localStorage.setItem('focus-mode', 'true');
-
-      // Bind mousemove ONLY while Focus Mode is active
-      if (!focusMouseMoveHandler && btnFocusExit) {
-        let isVisible = false; // local cache to prevent redundant DOM operations
-        focusMouseMoveHandler = (e) => {
-          if (focusThrottleTimeout) return;
-          const x = e.clientX;
-          const y = e.clientY;
-          focusThrottleTimeout = setTimeout(() => {
-            focusThrottleTimeout = null;
-            const shouldShow = (x < 120 && y < 120) || (document.activeElement === btnFocusExit);
-            if (shouldShow !== isVisible) {
-              isVisible = shouldShow;
-              btnFocusExit.classList.toggle('visible', isVisible);
-            }
-          }, 50); // check at most once every 50ms (20 FPS)
-        };
-        window.addEventListener('mousemove', focusMouseMoveHandler, { passive: true });
-      }
     } else {
       if (container) container.classList.remove('sidebar-hidden');
       if (MD_BODY) MD_BODY.classList.remove('focus-layout');
-      if (btnFocusExit) {
-        btnFocusExit.classList.add('hidden');
-        btnFocusExit.classList.remove('visible');
-      }
+      if (focusExitWrapper) focusExitWrapper.classList.add('hidden');
       localStorage.setItem('focus-mode', 'false');
-
-      // Unbind mousemove completely on exiting Focus Mode
-      if (focusMouseMoveHandler) {
-        window.removeEventListener('mousemove', focusMouseMoveHandler);
-        focusMouseMoveHandler = null;
-      }
-      if (focusThrottleTimeout) {
-        clearTimeout(focusThrottleTimeout);
-        focusThrottleTimeout = null;
-      }
     }
+    updateBreadcrumbs();
   }
 
   if (btnFocus) {
@@ -148,16 +115,6 @@ function setupModalsAndHeader() {
   if (btnFocusExit) {
     btnFocusExit.addEventListener('click', () => {
       setFocusMode(false);
-    });
-    btnFocusExit.addEventListener('focus', () => {
-      btnFocusExit.classList.add('visible');
-    });
-    btnFocusExit.addEventListener('blur', () => {
-      setTimeout(() => {
-        if (document.activeElement !== btnFocusExit) {
-          btnFocusExit.classList.remove('visible');
-        }
-      }, 100);
     });
   }
 
@@ -1032,8 +989,136 @@ function loadDirTree(container, callback) {
 
       // 3. Highlight current file in the tree
       highlightCurrentFileInModalTree();
+      
+      // 4. Update breadcrumbs
+      updateBreadcrumbs();
     });
 }
+
+function updateBreadcrumbs() {
+  const bar = document.getElementById('breadcrumb-bar');
+  if (!bar) return;
+
+  bar.innerHTML = '';
+
+  if (MD_BODY && MD_BODY.classList.contains('focus-layout')) {
+    bar.classList.add('hidden');
+    return;
+  }
+  bar.classList.remove('hidden');
+
+  let pathStr = window.location.pathname.substring(3); // strip '/_/'
+  pathStr = decodeURIComponent(pathStr);
+  const pathParts = pathStr.split('/').filter(p => p);
+
+  if (pathParts.length === 0 || !workspaceTreeData) {
+    bar.classList.add('hidden');
+    return;
+  }
+
+  const container = document.createElement('div');
+  container.className = 'breadcrumb-container';
+
+  // Render each path part
+  pathParts.forEach((part, idx) => {
+    const isLast = (idx === pathParts.length - 1);
+    const item = document.createElement('div');
+    item.className = 'breadcrumb-item';
+
+    const btn = document.createElement('button');
+    btn.className = 'breadcrumb-link';
+    if (isLast) {
+      btn.classList.add('active');
+    }
+    btn.textContent = part;
+    item.appendChild(btn);
+
+    const parentParts = pathParts.slice(0, idx);
+    const siblings = getChildrenForPath(workspaceTreeData, parentParts);
+
+    if (siblings && siblings.length > 0) {
+      const menu = document.createElement('div');
+      menu.className = 'breadcrumb-dropdown-menu';
+      populateDropdownMenu(menu, siblings, part);
+      item.appendChild(menu);
+
+      setupDropdownToggle(btn, menu);
+    }
+
+    container.appendChild(item);
+
+    if (!isLast) {
+      const separator = document.createElement('span');
+      separator.className = 'breadcrumb-separator';
+      separator.textContent = '›';
+      container.appendChild(separator);
+    }
+  });
+
+  bar.appendChild(container);
+}
+
+function getChildrenForPath(tree, pathParts) {
+  let currentLevel = tree || [];
+  for (let part of pathParts) {
+    const match = currentLevel.find(item => item.name === part && item.type === 'directory');
+    if (match) {
+      currentLevel = match.children || [];
+    } else {
+      return [];
+    }
+  }
+  return currentLevel;
+}
+
+function populateDropdownMenu(menu, items, activeName) {
+  const sortedItems = [...items].sort((a, b) => {
+    if (a.type !== b.type) {
+      return a.type === 'directory' ? -1 : 1;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  sortedItems.forEach(item => {
+    const link = document.createElement('a');
+    link.className = 'breadcrumb-dropdown-item';
+    link.href = '/_/' + item.path;
+    if (item.name === activeName) {
+      link.classList.add('active');
+    }
+
+    const folderIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+    const fileIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+
+    link.innerHTML = (item.type === 'directory' ? folderIcon : fileIcon) + escapeHtml(item.name);
+    menu.appendChild(link);
+  });
+}
+
+function setupDropdownToggle(btn, menu) {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    document.querySelectorAll('.breadcrumb-dropdown-menu').forEach(m => {
+      if (m !== menu) m.classList.remove('show');
+    });
+    document.querySelectorAll('.breadcrumb-link').forEach(b => {
+      if (b !== btn) b.classList.remove('open');
+    });
+
+    menu.classList.toggle('show');
+    btn.classList.toggle('open');
+  });
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.breadcrumb-dropdown-menu').forEach(m => {
+    m.classList.remove('show');
+  });
+  document.querySelectorAll('.breadcrumb-link').forEach(b => {
+    b.classList.remove('open');
+  });
+});
 
 function renderFlatTree(container, flatFiles) {
   const frag = document.createDocumentFragment();
