@@ -364,39 +364,35 @@ body {
 }
 
 #markdown-body a.wikilink {
-  display: inline-flex;
-  align-items: center;
-  vertical-align: middle;
-  line-height: 1;
+  display: inline;
   color: var(--link-color);
-  background: rgba(44, 108, 207, 0.08);
-  background: color-mix(in srgb, var(--link-color) 8%, transparent);
-  padding: 3px 10px;
-  border-radius: 9999px;
-  font-size: 0.88em;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 1em;
   font-weight: 500;
-  transition: all 0.2s ease;
-  text-decoration: none !important;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
   white-space: nowrap;
+  text-decoration: underline dotted var(--link-color) !important;
+  text-underline-offset: 2px;
 }
 #markdown-body a.wikilink:hover, #markdown-body a.wikilink:focus {
-  background: rgba(44, 108, 207, 0.16);
-  background: color-mix(in srgb, var(--link-color) 16%, transparent);
+  background: transparent;
   color: var(--link-hover-color);
-  text-decoration: none !important;
+  text-decoration: underline solid var(--link-hover-color) !important;
 }
 #markdown-body a.wikilink.broken-link {
   color: var(--broken-link-color, #a8a8a8);
-  background: rgba(168, 168, 168, 0.08);
-  background: color-mix(in srgb, var(--broken-link-color, #a8a8a8) 8%, transparent);
+  background: transparent;
   opacity: 0.65;
   cursor: help;
+  text-decoration: underline dashed var(--broken-link-color, #a8a8a8) !important;
+  text-underline-offset: 2px;
 }
 #markdown-body a.wikilink.broken-link:hover, #markdown-body a.wikilink.broken-link:focus {
   opacity: 0.95;
-  background: rgba(168, 168, 168, 0.16);
-  background: color-mix(in srgb, var(--broken-link-color, #a8a8a8) 16%, transparent);
-  text-decoration: none !important;
+  background: transparent;
+  text-decoration: underline solid var(--broken-link-color, #a8a8a8) !important;
 }
 
 /*Focus Mode Styles*/
