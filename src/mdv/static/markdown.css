@@ -993,33 +993,29 @@ body.modal-open .nav-sidebar {
   width: fit-content;
   max-width: 100%;
   min-height: 36px;
-  background: color-mix(in srgb, var(--markdown-bg) 60%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--border-color-light) 50%, transparent);
+  background: var(--main-bg, #ffffff);
+  border: 1px solid var(--border-color-light, #cccccc);
   border-radius: 9999px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.02);
   padding: 4px 1.25rem;
   display: flex;
   align-items: center;
   
-  /* Hidden by default, fades/slides in on parent top-zone hover or when dropdown is open */
+  /* Hidden by default, fades in on parent top-zone hover or when dropdown is open */
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-8px);
-  transition: opacity 0.25s ease-in-out, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: opacity 0.2s ease-in-out, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .breadcrumb-hover-zone:hover .breadcrumb-bar,
 .breadcrumb-bar:has(.open) {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0);
 }
 
 .breadcrumb-bar:hover,
 .breadcrumb-bar:has(.open) {
-  border-color: color-mix(in srgb, var(--border-color-light) 90%, transparent);
+  border-color: var(--border-color-light, #cccccc);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09), 0 3px 6px rgba(0, 0, 0, 0.03);
 }
 
@@ -1043,7 +1039,6 @@ body.modal-open .nav-sidebar {
   gap: 0.25rem;
   font-family: inherit;
   font-size: 0.9rem;
-  opacity: 0.9;
 }
 .breadcrumb-item {
   display: flex;
@@ -1084,18 +1079,19 @@ body.modal-open .nav-sidebar {
   top: 100%;
   left: 0;
   margin-top: 6px;
-  background: var(--markdown-bg);
-  border: 1px solid var(--border-color-light);
+  background: var(--main-bg, #ffffff);
+  border: 1px solid var(--border-color-light, #cccccc);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   min-width: 180px;
   max-width: 280px;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
   z-index: 1010;
   display: none;
   flex-direction: column;
-  padding: 0.5rem 0;
+  padding: 4px;
+  gap: 2px;
 }
 .breadcrumb-dropdown-menu.show {
   display: flex;
@@ -1103,10 +1099,12 @@ body.modal-open .nav-sidebar {
 .breadcrumb-dropdown-item {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 6px 12px;
   color: var(--text-color);
   text-decoration: none;
   font-size: 0.85rem;
+  border-radius: 6px;
+  flex-shrink: 0;
   transition: background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
   overflow: hidden;
