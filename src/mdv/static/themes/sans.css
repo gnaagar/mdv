@@ -54,6 +54,7 @@ body.theme-sans {
   --transition-fast: 0.1s ease-in-out;
   --transition-normal: 0.15s ease-in-out;
   --transition-slow: 0.3s ease-in-out;
+  --top-strip-bg: #d9dddc;
 
   --theme-mode: light;
 

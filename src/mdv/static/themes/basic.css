@@ -155,6 +155,7 @@ body.theme-basic .header-btn:hover {
   color: #000;
 }
 body.theme-basic .container .nav-sidebar {
+  border-left: none;
   border-right: none;
   padding: 1em;
 }

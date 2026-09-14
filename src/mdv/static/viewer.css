@@ -20,26 +20,12 @@
   height: var(--top-strip-height);
   display: flex;
   align-items: center;
-  background: color-mix(in srgb, var(--main-bg) 93%, #000 7%);
+  background: var(--top-strip-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
   z-index: 1001;
 }
 
-body.theme-dark #top-strip {
-  background: color-mix(in srgb, var(--main-bg) 82%, #000 18%);
-}
-
-/* Left section: nav icon buttons, same width as sidebar */
-#top-strip-nav {
-  width: var(--sidebar-width);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  padding: 0;
-  height: 100%;
-}
-
-/* Right section: breadcrumb, fills the rest */
+/* Left section: breadcrumb, fills the rest */
 #top-strip-breadcrumb {
   flex: 1;
   min-width: 0;
@@ -54,6 +40,17 @@ body.theme-dark #top-strip {
 }
 #top-strip-breadcrumb::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+/* Right section: nav icon buttons, same width as sidebar */
+#top-strip-nav {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 0;
+  height: 100%;
 }
 
 /* ================================================================
@@ -82,23 +79,27 @@ body {
 }
 .container.sidebar-hidden .section-main {
   margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 .container .nav-sidebar {
   display: flex;
   flex-direction: column;
   position: fixed;
   top: var(--top-strip-height);
-  left: 0;
+  right: 0;
+  left: auto;
   width: var(--sidebar-width);
   height: calc(100vh - var(--top-strip-height));
   padding: 1rem 1.25rem;
   overflow: hidden;
-  border-right: 1px solid var(--border-color-light);
+  border-left: 1px solid var(--border-color-light);
+  border-right: none;
   background: var(--main-bg);
   z-index: 1000;
 }
 .container .section-main {
-  margin-left: var(--sidebar-width);
+  margin-left: 0;
+  margin-right: var(--sidebar-width);
   padding: calc(var(--top-strip-height) + 1.5rem) 3rem 4rem 3rem;
   position: relative;
 }
@@ -481,6 +482,7 @@ body {
 }
 @media (max-width: 768px) {
   #top-strip-nav {
+    border-left: none;
     border-right: none;
   }
   .container .nav-sidebar {
@@ -488,6 +490,7 @@ body {
   }
   .container .section-main {
     margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 }
 @media print {
