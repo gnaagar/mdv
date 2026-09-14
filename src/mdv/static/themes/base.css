@@ -79,6 +79,9 @@ body.theme-base {
   --transition-normal: 0.2s ease-in-out;
   --transition-slow: 0.5s ease-in-out;
 
+  /* -- Top strip -- */
+  --top-strip-bg: #ffffff;
+
   /* Theme type configuration */
   --theme-mode: light;
 
