@@ -5,10 +5,10 @@
 body.theme-sans-dark {
     color-scheme: dark;
 
-    --main-bg: #202124;
+    --main-bg: #161719;
     --text-color: #cccccc;
     --text-muted: #9aa0a6;
-    --markdown-bg: #202124;
+    --markdown-bg: #161719;
     --markdown-shadow: none;
     --markdown-hr: #4a4d52;
     --markdown-table-border: #3c4043;
@@ -55,7 +55,6 @@ body.theme-sans-dark {
     --transition-fast: 0.1s ease-in-out;
     --transition-normal: 0.15s ease-in-out;
     --transition-slow: 0.3s ease-in-out;
-    --top-strip-bg: #161719;
 
     --theme-mode: dark;
 
