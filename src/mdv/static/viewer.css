@@ -20,8 +20,8 @@
   height: var(--top-strip-height);
   display: flex;
   align-items: center;
-  background: var(--top-strip-bg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  background-color: var(--main-bg);
+  border-bottom: 1px solid var(--border-color-dark);
   z-index: 1001;
 }
 
@@ -92,7 +92,7 @@ body {
   height: calc(100vh - var(--top-strip-height));
   padding: 1rem 1.25rem;
   overflow: hidden;
-  border-left: 1px solid var(--border-color-light);
+  border-left: none;
   border-right: none;
   background: var(--main-bg);
   z-index: 1000;
