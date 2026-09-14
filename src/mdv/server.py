@@ -6,7 +6,7 @@ import threading
 import webbrowser
 from importlib.resources import files
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 
 from mdv.logger import get_logger, configure_logging
 from mdv.mdparser import MarkdownParser
@@ -19,15 +19,24 @@ from werkzeug.routing import Map, Rule
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 
+DEFAULT_LIGHT_THEME = "sans"
+DEFAULT_DARK_THEME = "sans-dark"
 
-def get_available_themes() -> List[str]:
-    themes_dir = files("mdv").joinpath("static", "themes")
-    themes: List[str] = []
-    if themes_dir.is_dir():
-        for f in sorted(themes_dir.iterdir()):
-            if f.suffix == ".css" and f.stem != "base":
-                themes.append(f.stem)
-    return themes or ["sans"]
+MDV_CONFIG_FILENAME = "mdv.json"
+
+
+def load_mdv_config(root_dir: str) -> Dict[str, Any]:
+    """Load mdv.json from the root directory, returning an empty dict if absent/invalid."""
+    config_path = Path(root_dir) / MDV_CONFIG_FILENAME
+    if config_path.is_file():
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+    return {}
 
 
 # ---------------------------------------------------------
@@ -47,8 +56,8 @@ logger = get_logger(__name__)
 
 
 def get_children(
-    tree: List[Dict[str, Any]], path: str
-) -> Optional[List[Dict[str, Any]]]:
+    tree, path: str
+) -> Optional[list]:
     parts = [p for p in path.split("/") if p]
 
     if not parts:
@@ -82,7 +91,6 @@ url_map = Map(
         Rule("/_/<path:filename>", endpoint="view"),
         Rule("/api/tree", endpoint="dirtree"),
         Rule("/api/search", endpoint="search"),
-        Rule("/api/themes", endpoint="themes"),
         Rule("/api/render", endpoint="api_render", methods=["POST"]),
         Rule("/live", endpoint="live"),
         Rule("/favicon.ico", endpoint="favicon"),
@@ -100,9 +108,12 @@ class App:
         self.url_map = url_map
         self.config = config
         self.state = MdViewerState(config)
-        self.themes = get_available_themes()
-        initial = config.get("theme")
-        self.theme = initial if (initial and initial in self.themes) else ""
+
+        # Load per-repo mdv.json for theme preferences
+        root_dir = config["dir"]
+        repo_cfg = load_mdv_config(root_dir)
+        self.light_theme = repo_cfg.get("light_theme", DEFAULT_LIGHT_THEME)
+        self.dark_theme = repo_cfg.get("dark_theme", DEFAULT_DARK_THEME)
 
         # ---- Static files (package-safe) ----
         static_dir = files("mdv").joinpath("static")
@@ -112,6 +123,13 @@ class App:
             {"/static": str(static_dir)},
             cache_timeout=86400,
         )
+
+    def _theme_ctx(self) -> Dict[str, str]:
+        """Return Jinja context keys for theme configuration."""
+        return {
+            "light_theme": self.light_theme,
+            "dark_theme": self.dark_theme,
+        }
 
     # Dispatcher
     def dispatch(self, request: Request) -> Response | HTTPException:
@@ -131,26 +149,18 @@ class App:
             logger.exception("Internal server error")
             return Response("Internal server error", status=500, mimetype="text/plain")
 
-    def get_active_theme(self, request: Request) -> str:
-        if self.theme:
-            return self.theme
-        cookie_theme = request.cookies.get("theme")
-        if cookie_theme and cookie_theme in self.themes:
-            return cookie_theme
-        return ""
-
     # -----------------------------------------------------
     # Render helpers
     # -----------------------------------------------------
 
-    def render_markdown(self, template: str, content: str, current_file: str = "", theme: str = "") -> Response:
+    def render_markdown(self, template: str, content: str, current_file: str = "") -> Response:
         content = MarkdownParser.rewrite_wikilinks(content, lambda t: self.state.resolve_wikilink(t, current_file))
         html = env.get_template(template).render(
-            content=content, theme=theme, themes=self.themes
+            content=content, **self._theme_ctx()
         )
         return Response(html, mimetype="text/html")
 
-    def render_tree(self, template: str, prefix: str, filename: str, theme: str = "") -> Response:
+    def render_tree(self, template: str, prefix: str, filename: str) -> Response:
         tree = get_children(self.state.get_tree(), filename)
         if tree is None:
             return Response("Not found", status=404, mimetype="text/plain")
@@ -160,17 +170,17 @@ class App:
         tree_html = env.get_template("tree.html").render(
             tree=sorted_tree, path=prefix, root="/" + filename
         )
-        return self.render_markdown(template, tree_html, theme=theme)
+        return self.render_markdown(template, tree_html)
 
-    def render_file(self, template: str, filename: str, theme: str = "") -> Response:
+    def render_file(self, template: str, filename: str) -> Response:
         # Always read fresh in lite_mode to avoid caching delays
         md_html = self.state.get_content(filename)
-        return self.render_markdown(template, md_html, current_file=filename, theme=theme)
+        return self.render_markdown(template, md_html, current_file=filename)
 
-    def handle_common(self, filename: str, template: str, prefix: str, theme: str = "") -> Response:
+    def handle_common(self, filename: str, template: str, prefix: str) -> Response:
         if self.state.is_file(filename):
-            return self.render_file(template, filename, theme=theme)
-        return self.render_tree(template, prefix, filename, theme=theme)
+            return self.render_file(template, filename)
+        return self.render_tree(template, prefix, filename)
 
     # -----------------------------------------------------
     # Handlers
@@ -186,14 +196,13 @@ class App:
     def on_index(self, request: Request) -> Response:
         self.state.refresh()
         data = self.state.get_dashboard_data()
-        
+
         # Get root level children sorted (folders first, then files)
         root_tree = self.state.get_tree()
         data["root_files"] = sorted(root_tree, key=lambda x: (0 if x["type"] == "directory" else 1, x["name"].lower()))
 
-        theme = self.get_active_theme(request)
         html = env.get_template("dashboard.html").render(
-            theme=theme, themes=self.themes, **data
+            **self._theme_ctx(), **data
         )
         return Response(html, mimetype="text/html")
 
@@ -212,12 +221,8 @@ class App:
         result = self.state.search(query, types=type_list)
         return Response(json.dumps(result), mimetype="application/json")
 
-    def on_themes(self, request: Request) -> Response:
-        return Response(json.dumps(self.themes), mimetype="application/json")
-
     def on_view(self, request: Request, filename: str) -> Response:
-        theme = self.get_active_theme(request)
-        return self.handle_common(filename, template="viewer.html", prefix="_", theme=theme)
+        return self.handle_common(filename, template="viewer.html", prefix="_")
 
     def on_api_render(self, request: Request) -> Response:
         raw_md = request.get_data(as_text=True)
@@ -226,10 +231,7 @@ class App:
         return Response(html, mimetype="text/html")
 
     def on_live(self, request: Request) -> Response:
-        theme = self.get_active_theme(request)
-        html = env.get_template("live.html").render(
-            theme=theme, themes=self.themes
-        )
+        html = env.get_template("live.html").render(**self._theme_ctx())
         return Response(html, mimetype="text/html")
 
     def on_favicon(self, request: Request) -> Response:
@@ -266,12 +268,6 @@ def main() -> None:
     parser.add_argument("--port", "-p", type=int, default=None)
     parser.add_argument("--host", "-H", default="localhost")
     parser.add_argument(
-        "--theme",
-        "-t",
-        default=None,
-        help="Theme name (e.g., sans, sans-dark)",
-    )
-    parser.add_argument(
         "--ignore",
         "-i",
         nargs="*",
@@ -292,7 +288,6 @@ def main() -> None:
 
     config = {
         "dir": str(target_path.parent) if lite_mode else str(target_path),
-        "theme": args.theme,
         "ignore_dirs": args.ignore,
         "lite_file": target_path.name if lite_mode else None,
     }

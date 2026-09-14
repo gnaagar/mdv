@@ -42,29 +42,40 @@ const MDV_CLASSES = Object.freeze({
 
 /* ----------------------------------------------------------
    Theme Utilities
+   Canonical stored values: "light" | "dark" | "system"
+   Resolved CSS stems come from MDV_LIGHT_THEME / MDV_DARK_THEME
+   injected by the server from mdv.json (defaults: sans / sans-dark).
    ---------------------------------------------------------- */
-function mdvGetTheme() {
+
+function mdvLightTheme() {
+  return window.MDV_LIGHT_THEME || 'sans';
+}
+
+function mdvDarkTheme() {
+  return window.MDV_DARK_THEME || 'sans-dark';
+}
+
+/** Returns "light" | "dark" | "system" — the canonical stored mode. */
+function mdvGetMode() {
   var cookieMatch = document.cookie.match(/(^|;)\s*theme\s*=\s*([^;]+)/);
   var stored = cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
-  if (!stored) {
-    stored = localStorage.getItem('theme');
-  }
-  if (stored === 'light' || stored === 'std-light') stored = 'sans';
-  if (stored === 'dark' || stored === 'std-dark') stored = 'sans-dark';
-  
-  if (stored && window.MDV_THEMES && window.MDV_THEMES.indexOf(stored) >= 0) {
-    return stored;
-  }
-  
-  if (document.body) {
-    const cls = document.body.className;
-    const m = cls.match(/\btheme-(\S+)/);
-    if (m && window.MDV_THEMES && window.MDV_THEMES.indexOf(m[1]) >= 0) {
-      return m[1];
-    }
-  }
-  
-  return window.MDV_THEMES && window.MDV_THEMES[0] ? window.MDV_THEMES[0] : 'sans';
+  if (!stored) stored = localStorage.getItem('theme');
+  if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
+  return 'system';
+}
+
+/** Resolves a canonical mode to the actual CSS file stem. */
+function mdvResolveStem(mode) {
+  if (mode === 'dark') return mdvDarkTheme();
+  if (mode === 'light') return mdvLightTheme();
+  // system: follow OS preference
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return prefersDark ? mdvDarkTheme() : mdvLightTheme();
+}
+
+/** Returns the currently active CSS file stem (e.g. "sans" or "sans-dark"). */
+function mdvGetTheme() {
+  return mdvResolveStem(mdvGetMode());
 }
 
 function mdvGetActiveTheme() {
@@ -78,34 +89,39 @@ function mdvIsDark() {
   if (mode === 'dark') return true;
   if (mode === 'light') return false;
 
-  // Fallbacks: active class or name matching
+  // Fallbacks
   if (document.documentElement.classList.contains('theme-dark')) return true;
   if (document.body && document.body.classList.contains('theme-dark')) return true;
-  return mdvGetActiveTheme().includes('dark');
+  return mdvGetTheme() === mdvDarkTheme();
 }
 
-function mdvSetTheme(name) {
-  // Migrate legacy names
-  if (name === 'light' || name === 'std-light') name = 'sans';
-  if (name === 'dark' || name === 'std-dark') name = 'sans-dark';
+/**
+ * Set the theme mode. Accepts: "light" | "dark" | "system".
+ * Resolves to a CSS stem and applies it.
+ */
+function mdvSetTheme(mode) {
+  // Normalise
+  if (mode !== 'light' && mode !== 'dark' && mode !== 'system') mode = 'system';
 
-  localStorage.setItem('theme', name);
-  document.cookie = "theme=" + encodeURIComponent(name) + "; path=/; max-age=31536000; SameSite=Lax";
+  localStorage.setItem('theme', mode);
+  document.cookie = "theme=" + encodeURIComponent(mode) + "; path=/; max-age=31536000; SameSite=Lax";
+
+  var stem = mdvResolveStem(mode);
+  var isDark = (stem === mdvDarkTheme());
 
   // Apply to html and body elements
-  document.documentElement.className = 'theme-' + name;
+  document.documentElement.className = 'theme-' + stem;
   if (document.body) {
-    document.body.className = 'theme-' + name;
+    document.body.className = 'theme-' + stem;
   }
 
-  var isDark = name.includes('dark');
   document.documentElement.classList.toggle('theme-dark', isDark);
   if (document.body) {
     document.body.classList.toggle('theme-dark', isDark);
   }
-  document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
+  document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark, mode, stem } }));
 
-  // Update dynamic stylesheet link with onload verification to prevent race conditions
+  // Update dynamic stylesheet link
   const linkEl = document.getElementById('theme-stylesheet');
   if (linkEl) {
     linkEl.onload = function() {
@@ -115,32 +131,28 @@ function mdvSetTheme(name) {
         if (document.body) {
           document.body.classList.toggle('theme-dark', accurateDark);
         }
-        document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: accurateDark } }));
+        document.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark: accurateDark, mode, stem } }));
       }
     };
-    linkEl.href = '/static/themes/' + name + '.css';
+    linkEl.href = '/static/themes/' + stem + '.css';
   }
 
-  // Update all toggle buttons
+  // Sync modal checkmarks
+  _mdvSyncThemeModal(mode);
+
+  // Update toggle button title
   const btns = document.querySelectorAll('#btn-theme-toggle');
-  btns.forEach(function(b) { b.title = 'Switch Theme (' + name + ')'; });
-
-  // Sync modal checkmark
-  const modal = document.getElementById('theme-modal');
-  if (modal) {
-    modal.querySelectorAll('.theme-option-check').forEach(function(c) { c.style.display = 'none'; });
-    var sel = modal.querySelector('.theme-option[data-theme="' + name + '"] .theme-option-check');
-    if (sel) sel.style.display = '';
-  }
+  const label = mode.charAt(0).toUpperCase() + mode.slice(1);
+  btns.forEach(function(b) { b.title = 'Appearance (' + label + ')'; });
 }
 
-function mdvToggleTheme() {
-  var themes = window.MDV_THEMES || ['sans', 'sans-dark'];
-  var current = mdvGetTheme();
-  var idx = themes.indexOf(current);
-  if (idx < 0) idx = 0;
-  var next = themes[(idx + 1) % themes.length];
-  mdvSetTheme(next);
+/** Sync the checkmark in the theme modal to the currently active mode. */
+function _mdvSyncThemeModal(mode) {
+  const modal = document.getElementById('theme-modal');
+  if (!modal) return;
+  modal.querySelectorAll('.theme-option-check').forEach(function(c) { c.style.display = 'none'; });
+  var sel = modal.querySelector('.theme-option[data-mode="' + mode + '"] .theme-option-check');
+  if (sel) sel.style.display = '';
 }
 
 function mdvDispatchThemeChange(isDark) {
@@ -235,30 +247,23 @@ function mdvIsModKey(e) {
    Initialize theme on page load
    ---------------------------------------------------------- */
 function mdvInitTheme() {
-  var preferred = mdvGetTheme();
-  var active = mdvGetActiveTheme();
+  var mode = mdvGetMode();
+  var stem = mdvResolveStem(mode);
+  var isDark = (stem === mdvDarkTheme());
 
   if (document.body) {
     if (!document.body.className.includes('theme-')) {
-      document.body.className = 'theme-' + active;
+      document.body.className = 'theme-' + stem;
     }
-    const isDark = mdvIsDark();
     document.body.classList.toggle('theme-dark', isDark);
     document.documentElement.classList.toggle('theme-dark', isDark);
   }
 
   var btns = document.querySelectorAll('#btn-theme-toggle');
-  btns.forEach(function(b) { b.title = 'Switch Theme (' + preferred + ')'; });
+  var label = mode.charAt(0).toUpperCase() + mode.slice(1);
+  btns.forEach(function(b) { b.title = 'Appearance (' + label + ')'; });
 
-  // Sync theme modal checkmark with preferred theme
-  var modal = document.getElementById('theme-modal');
-  if (modal) {
-    modal.querySelectorAll('.theme-option-check').forEach(function(c) {
-      c.style.display = 'none';
-    });
-    var sel = modal.querySelector('.theme-option[data-theme="' + preferred + '"] .theme-option-check');
-    if (sel) sel.style.display = '';
-  }
+  _mdvSyncThemeModal(mode);
 }
 
 // Auto-initialize when DOM is ready
@@ -275,10 +280,11 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     MDV_TIMING,
     MDV_CLASSES,
+    mdvGetMode,
     mdvGetTheme,
     mdvIsDark,
     mdvSetTheme,
-    mdvToggleTheme,
+    mdvResolveStem,
     mdvDispatchThemeChange,
     mdvEscapeHtml,
     mdvFuzzyMatch,

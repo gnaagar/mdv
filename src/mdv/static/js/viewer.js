@@ -96,11 +96,13 @@ function setupModalsAndHeader() {
       if (container) container.classList.add('sidebar-hidden');
       if (MD_BODY) MD_BODY.classList.add('focus-layout');
       if (focusExitWrapper) focusExitWrapper.classList.remove('hidden');
+      document.body.classList.add('focus-active');
       localStorage.setItem('focus-mode', 'true');
     } else {
       if (container) container.classList.remove('sidebar-hidden');
       if (MD_BODY) MD_BODY.classList.remove('focus-layout');
       if (focusExitWrapper) focusExitWrapper.classList.add('hidden');
+      document.body.classList.remove('focus-active');
       localStorage.setItem('focus-mode', 'false');
     }
     updateBreadcrumbs();
@@ -268,19 +270,15 @@ function setupModalsAndHeader() {
       });
   }
 
-  // Theme modal
+  // Theme modal — now uses data-mode="light"|"dark"|"system"
   if (themeModal) {
     btnTheme.addEventListener('click', () => openModal(themeModal));
     themeModal.addEventListener('click', function(e) {
       var option = e.target.closest('.theme-option');
       if (!option) return;
-      var name = option.dataset.theme;
-      themeModal.querySelectorAll('.theme-option-check').forEach(function(c) {
-        c.style.display = 'none';
-      });
-      var check = option.querySelector('.theme-option-check');
-      if (check) check.style.display = '';
-      mdvSetTheme(name);
+      var mode = option.dataset.mode;
+      if (!mode) return;
+      mdvSetTheme(mode);
       closeAllModals();
     });
   }
@@ -999,28 +997,18 @@ function updateBreadcrumbs() {
   const bar = document.getElementById('breadcrumb-bar');
   if (!bar) return;
 
-  const hoverZone = document.getElementById('breadcrumb-hover-zone');
-
   bar.innerHTML = '';
 
-  if (MD_BODY && MD_BODY.classList.contains('focus-layout')) {
-    bar.classList.add('hidden');
-    if (hoverZone) hoverZone.classList.add('hidden');
-    return;
-  }
+  // In focus mode, the top strip is hidden via CSS — nothing more to do
+  if (document.body.classList.contains('focus-active')) return;
 
   let pathStr = window.location.pathname.substring(3); // strip '/_/'
   pathStr = decodeURIComponent(pathStr);
   const pathParts = pathStr.split('/').filter(p => p);
 
   if (pathParts.length === 0 || !workspaceTreeData) {
-    bar.classList.add('hidden');
-    if (hoverZone) hoverZone.classList.add('hidden');
     return;
   }
-
-  bar.classList.remove('hidden');
-  if (hoverZone) hoverZone.classList.remove('hidden');
 
   const container = document.createElement('div');
   container.className = 'breadcrumb-container';
@@ -1117,7 +1105,8 @@ function setupDropdownToggle(btn, menu) {
   });
 }
 
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.breadcrumb-item')) return;
   document.querySelectorAll('.breadcrumb-dropdown-menu').forEach(m => {
     m.classList.remove('show');
   });
