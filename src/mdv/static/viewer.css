@@ -4,6 +4,53 @@
    ================================================================ */
 
 /* ================================================================
+   TOP STRIP — fixed page-wide header bar
+   ================================================================ */
+
+:root {
+  --top-strip-height: 48px;
+  --sidebar-width: 320px;
+}
+
+#top-strip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--top-strip-height);
+  display: flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--main-bg) 93%, #000 7%);
+  z-index: 1001;
+}
+
+body.theme-dark #top-strip {
+  background: color-mix(in srgb, var(--main-bg) 82%, #000 18%);
+}
+
+/* Left section: nav icon buttons, same width as sidebar */
+#top-strip-nav {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 0;
+  height: 100%;
+}
+
+/* Right section: breadcrumb, fills the rest */
+#top-strip-breadcrumb {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ================================================================
    BASE LAYOUT
    ================================================================ */
 
@@ -34,39 +81,26 @@ body {
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
+  top: var(--top-strip-height);
   left: 0;
-  width: 320px;
-  height: 100vh;
-  padding: 1rem 1.5rem;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--top-strip-height));
+  padding: 1rem 1.25rem;
   overflow: hidden;
   border-right: 1px solid var(--border-color-light);
   background: var(--main-bg);
   z-index: 1000;
 }
 .container .section-main {
-  margin-left: 320px;
-  padding: 1.5rem 3rem 4rem 3rem;
+  margin-left: var(--sidebar-width);
+  padding: calc(var(--top-strip-height) + 1.5rem) 3rem 4rem 3rem;
   position: relative;
 }
 
 /* ================================================================
-   SIDEBAR HEADER
+   HEADER BUTTONS (used in top strip and dashboard)
    ================================================================ */
 
-.sidebar-top-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color-light);
-  flex-shrink: 0;
-}
-.sidebar-top-header .app-logo {
-  display: block;
-}
 .header-btn {
   display: flex;
   align-items: center;
@@ -79,6 +113,7 @@ body {
   cursor: pointer;
   color: var(--text-muted);
   transition: all 0.2s ease-in-out;
+  flex-shrink: 0;
 }
 .header-btn:hover {
   background: var(--tree-entry-highlight-bg);
@@ -434,14 +469,14 @@ body {
 }
 
 @media (max-width: 1000px) {
-  .container .nav-sidebar {
-    width: 240px;
-  }
-  .container .section-main {
-    margin-left: 240px;
+  :root {
+    --sidebar-width: 240px;
   }
 }
 @media (max-width: 768px) {
+  #top-strip-nav {
+    border-right: none;
+  }
   .container .nav-sidebar {
     display: none !important;
   }
@@ -450,6 +485,7 @@ body {
   }
 }
 @media print {
+  #top-strip { display: none; }
   @page {
     margin: 0;
     margin-top: 30px;
@@ -483,6 +519,20 @@ body {
 }
 
 /* ================================================================
+   FOCUS MODE
+   ================================================================ */
+
+/* In focus mode the top strip is hidden and the content fills the window */
+.container.sidebar-hidden ~ #top-strip,
+body.focus-active #top-strip {
+  display: none;
+}
+
+#markdown-body.focus-layout {
+  padding-top: 1.5rem;
+}
+
+/* ================================================================
    MARKDOWN BODY HEADINGS (scroll-margin)
    ================================================================ */
 
@@ -492,7 +542,114 @@ body {
 #markdown-body h4,
 #markdown-body h5,
 #markdown-body h6 {
-  scroll-margin-top: 30px;
+  scroll-margin-top: calc(var(--top-strip-height) + 12px);
+}
+
+/* ================================================================
+   BREADCRUMB BAR
+   ================================================================ */
+
+#breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.breadcrumb-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.breadcrumb-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.breadcrumb-link {
+  background: transparent;
+  border: none;
+  padding: 0.2rem 0.35rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  transition: background 0.12s ease-in-out, color 0.12s ease-in-out;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.breadcrumb-link:hover,
+.breadcrumb-link.open {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.breadcrumb-link.active {
+  color: var(--text-color);
+  font-weight: 600;
+}
+.breadcrumb-link.active:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0 0.1rem;
+  user-select: none;
+  opacity: 0.5;
+}
+
+.breadcrumb-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--main-bg);
+  border: 1px solid var(--border-color-dark);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px var(--shadow-color);
+  z-index: 2200;
+  min-width: 180px;
+  max-width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+.breadcrumb-dropdown-menu.show {
+  display: block;
+}
+.breadcrumb-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  text-decoration: none;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  color: var(--tree-entry-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.1s ease-in-out;
+}
+.breadcrumb-dropdown-item:hover {
+  background: var(--tree-entry-highlight-bg);
+  color: var(--tree-entry-highlight-color);
+}
+.breadcrumb-dropdown-item.active {
+  color: var(--tree-active-color);
+  font-weight: 600;
 }
 
 /* Search Result Items */
@@ -1007,7 +1164,7 @@ body {
 .theme-option {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   width: 100%;
   padding: 0.6rem 1.25rem;
   border: none;
@@ -1022,6 +1179,20 @@ body {
 .theme-option:hover {
   background: var(--tree-entry-highlight-bg);
   color: var(--tree-entry-highlight-color);
+}
+.theme-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.theme-option:hover .theme-option-icon {
+  color: inherit;
+}
+.theme-option-name {
+  flex: 1;
+  text-align: left;
 }
 .theme-option-check {
   color: var(--tree-active-color);

@@ -27,56 +27,43 @@
     }
   </style>
   <link rel="stylesheet" href="/static/markdown.css?v=20260703b">
-  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ theme or (themes and themes[0]) or 'sans' }}.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/themes/{{ light_theme or 'sans' }}.css">
   {% block styles %}
   {% endblock %}
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
 
 </head>
-<body class="theme-{{ theme or (themes and themes[0]) or 'sans' }}">
+<body class="theme-{{ light_theme or 'sans' }}">
   <script>
-    var MDV_THEMES = {{ themes | tojson }};
+    // Theme configuration injected from server (set via mdv.json in the repo)
+    var MDV_LIGHT_THEME = '{{ light_theme or "sans" }}';
+    var MDV_DARK_THEME = '{{ dark_theme or "sans-dark" }}';
+
     (function() {
-      var params = new URLSearchParams(window.location.search);
-      var themeParam = params.get('theme');
-      
+      // Stored value is one of: "light" | "dark" | "system"
       var cookieMatch = document.cookie.match(/(^|;)\s*theme\s*=\s*([^;]+)/);
-      var cookieTheme = cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
-      
-      var preferred = themeParam || cookieTheme || localStorage.getItem('theme');
-      
-      // Migrate old theme names
-      if (preferred === 'light' || preferred === 'std-light') preferred = 'sans';
-      if (preferred === 'dark' || preferred === 'std-dark') preferred = 'sans-dark';
-      
-      var active = preferred;
-      if (!active || MDV_THEMES.indexOf(active) < 0) {
-        var serverTheme = '{{ theme }}';
-        if (serverTheme && MDV_THEMES.indexOf(serverTheme) >= 0) {
-          active = serverTheme;
-        } else {
-          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (systemDark) {
-            active = MDV_THEMES.find(function(t) { return t.includes('dark'); }) || MDV_THEMES[0] || 'sans';
-          } else {
-            active = MDV_THEMES.find(function(t) { return !t.includes('dark'); }) || MDV_THEMES[0] || 'sans';
-          }
-        }
+      var cookieVal = cookieMatch ? decodeURIComponent(cookieMatch[2]) : null;
+      var stored = cookieVal || localStorage.getItem('theme') || 'system';
+
+      // Resolve to actual CSS stem
+      function resolveThemeStem(mode) {
+        if (mode === 'dark') return MDV_DARK_THEME;
+        if (mode === 'light') return MDV_LIGHT_THEME;
+        // system: follow OS preference
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        return prefersDark ? MDV_DARK_THEME : MDV_LIGHT_THEME;
       }
-      
-      document.body.className = 'theme-' + active;
-      var isDark = active.indexOf('dark') >= 0;
+
+      var stem = resolveThemeStem(stored);
+      var isDark = stem === MDV_DARK_THEME;
+
+      document.body.className = 'theme-' + stem;
       document.body.classList.toggle('theme-dark', isDark);
-      
+
       var linkEl = document.getElementById('theme-stylesheet');
       if (linkEl) {
-        linkEl.href = '/static/themes/' + active + '.css';
-      }
-      
-      if (themeParam) {
-        localStorage.setItem('theme', themeParam);
-        document.cookie = "theme=" + encodeURIComponent(themeParam) + "; path=/; max-age=31536000; SameSite=Lax";
+        linkEl.href = '/static/themes/' + stem + '.css';
       }
     })();
   </script>
@@ -91,17 +78,34 @@
   {% endblock %}
   <!-- Shared modals -->
   <div id="modal-overlay" class="modal-overlay hidden"></div>
+
+  <!-- Theme Mode Modal -->
   <div id="theme-modal" class="modal-box hidden">
     <div class="modal-header" style="padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color-light);">
-      <span style="font-weight: 600; color: var(--text-color); font-family: 'Noto Serif', serif;">Switch Theme</span>
+      <span style="font-weight: 600; color: var(--text-color); font-family: 'Noto Serif', serif;">Appearance</span>
     </div>
     <div id="theme-list" class="modal-body" style="padding: 0.25rem 0;">
-      {% for t in themes %}
-      <button class="theme-option" data-theme="{{ t }}">
-        <span class="theme-option-name">{{ t.replace('-', ' ').title() }}</span>
+      <button class="theme-option" data-mode="light">
+        <span class="theme-option-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </span>
+        <span class="theme-option-name">Light</span>
         <span class="theme-option-check" style="display:none">✓</span>
       </button>
-      {% endfor %}
+      <button class="theme-option" data-mode="dark">
+        <span class="theme-option-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </span>
+        <span class="theme-option-name">Dark</span>
+        <span class="theme-option-check" style="display:none">✓</span>
+      </button>
+      <button class="theme-option" data-mode="system">
+        <span class="theme-option-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </span>
+        <span class="theme-option-name">System</span>
+        <span class="theme-option-check" style="display:none">✓</span>
+      </button>
     </div>
   </div>
 
