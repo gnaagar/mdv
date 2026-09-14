@@ -47,7 +47,13 @@ body.theme-dark #top-strip {
   align-items: center;
   padding: 0 1.5rem;
   height: 100%;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+#top-strip-breadcrumb::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* ================================================================
@@ -552,26 +558,23 @@ body.focus-active #top-strip {
 #breadcrumb-bar {
   display: flex;
   align-items: center;
-  min-width: 0;
-  width: 100%;
-  overflow: visible;
+  min-width: max-content;
+  height: 100%;
 }
 
 .breadcrumb-container {
   display: flex;
   align-items: center;
   gap: 0;
-  min-width: 0;
-  overflow: visible;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .breadcrumb-item {
   position: relative;
   display: inline-flex;
   align-items: center;
-  flex-shrink: 1;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .breadcrumb-link {
@@ -585,9 +588,6 @@ body.focus-active #top-strip {
   color: var(--text-muted);
   transition: background 0.12s ease-in-out, color 0.12s ease-in-out;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
 }
 .breadcrumb-link:hover,
 .breadcrumb-link.open {
@@ -613,8 +613,8 @@ body.focus-active #top-strip {
 
 .breadcrumb-dropdown-menu {
   display: none;
-  position: absolute;
-  top: calc(100% + 4px);
+  position: fixed;
+  top: 0;
   left: 0;
   background: var(--main-bg);
   border: 1px solid var(--border-color-dark);

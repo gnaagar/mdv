@@ -1050,6 +1050,25 @@ function updateBreadcrumbs() {
   });
 
   bar.appendChild(container);
+
+  // Auto-scroll to the right so the active leaf item is always in view
+  const topStripBreadcrumb = document.getElementById('top-strip-breadcrumb');
+  if (topStripBreadcrumb) {
+    requestAnimationFrame(() => {
+      topStripBreadcrumb.scrollLeft = topStripBreadcrumb.scrollWidth;
+    });
+
+    if (!topStripBreadcrumb.dataset.wheelBound) {
+      topStripBreadcrumb.dataset.wheelBound = 'true';
+      topStripBreadcrumb.addEventListener('wheel', (e) => {
+        if (e.deltaY && !e.deltaX) {
+          topStripBreadcrumb.scrollLeft += e.deltaY;
+          e.preventDefault();
+        }
+      }, { passive: false });
+      topStripBreadcrumb.addEventListener('scroll', closeAllBreadcrumbDropdowns, { passive: true });
+    }
+  }
 }
 
 function getChildrenForPath(tree, pathParts) {
@@ -1089,31 +1108,44 @@ function populateDropdownMenu(menu, items, activeName) {
   });
 }
 
-function setupDropdownToggle(btn, menu) {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    
-    document.querySelectorAll('.breadcrumb-dropdown-menu').forEach(m => {
-      if (m !== menu) m.classList.remove('show');
-    });
-    document.querySelectorAll('.breadcrumb-link').forEach(b => {
-      if (b !== btn) b.classList.remove('open');
-    });
-
-    menu.classList.toggle('show');
-    btn.classList.toggle('open');
-  });
-}
-
-document.addEventListener('click', (e) => {
-  if (e.target.closest('.breadcrumb-item')) return;
+function closeAllBreadcrumbDropdowns() {
   document.querySelectorAll('.breadcrumb-dropdown-menu').forEach(m => {
     m.classList.remove('show');
   });
   document.querySelectorAll('.breadcrumb-link').forEach(b => {
     b.classList.remove('open');
   });
+}
+
+function setupDropdownToggle(btn, menu) {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    const wasOpen = menu.classList.contains('show');
+    closeAllBreadcrumbDropdowns();
+
+    if (!wasOpen) {
+      menu.classList.add('show');
+      btn.classList.add('open');
+
+      const rect = btn.getBoundingClientRect();
+      menu.style.top = `${rect.bottom + 4}px`;
+      menu.style.left = `${rect.left}px`;
+
+      const menuRect = menu.getBoundingClientRect();
+      if (menuRect.right > window.innerWidth - 8) {
+        menu.style.left = `${Math.max(8, window.innerWidth - menuRect.width - 8)}px`;
+      }
+    }
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.breadcrumb-item')) return;
+  closeAllBreadcrumbDropdowns();
 });
+
+window.addEventListener('resize', closeAllBreadcrumbDropdowns);
 
 function renderFlatTree(container, flatFiles) {
   const frag = document.createDocumentFragment();
