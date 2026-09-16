@@ -8,7 +8,8 @@ body {
 
 #markdown-body {
   width: 100%;
-  max-width: var(--content-max-width, 806px);
+  /* Match focus mode's readable text column without changing its layout. */
+  max-width: calc(var(--content-max-width, 806px) - 4rem);
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -399,7 +400,7 @@ body {
 .focus-exit-wrapper {
   position: fixed;
   top: 0;
-  left: 0;
+  right: 0;
   width: 120px;
   height: 120px;
   z-index: 1000;
@@ -411,7 +412,7 @@ body {
 .focus-exit-btn {
   position: absolute;
   top: 1rem;
-  left: 1.5rem;
+  right: 1.5rem;
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -829,33 +830,37 @@ body.theme-dark .mermaid-modal tr:hover {
   overflow: auto;
   cursor: default;
   display: block;
-  padding: 0;
+  padding: 0 3rem 3rem;
   box-sizing: border-box;
   height: auto;
   min-height: 0;
 }
 
-/* Ensure content size matches table dimensions and takes full width of the page */
+/* Keep smaller tables compact while allowing wide tables to scroll in the viewport. */
 .mermaid-modal.modal-type-table .mermaid-modal-content {
   display: block;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   height: auto;
   margin: 0;
 }
 
-/* Override table constraints to occupy full width and allow sticky headers */
+/* Preserve intrinsic column widths instead of stretching the table to the viewport. */
 .mermaid-modal.modal-type-table table {
-  width: 100% !important;
+  width: auto !important;
   max-width: none !important;
   overflow: visible !important;
-  border-radius: 0 !important;
+  margin: 3rem auto 0;
+  border: 1px solid var(--markdown-table-border) !important;
+  border-radius: 8px !important;
   box-shadow: none !important;
 }
 
 /* Make table headers sticky/locked */
 .mermaid-modal.modal-type-table th {
   position: sticky;
-  top: 0;
+  /* Cover the table's 1px outer border while the header is pinned. */
+  top: -1px;
   z-index: 10;
 }
 

@@ -280,16 +280,15 @@ class MdViewerState:
 
     def _log_wikilink_conflicts(self) -> None:
         wikilink_map = self.get_wikilink_map()
-        conflicts = {}
-        for key, paths in wikilink_map.items():
-            if "/" not in key and len(paths) > 1:
-                conflicts[key] = paths
-                
+        conflicts = {
+            key: paths
+            for key, paths in wikilink_map.items()
+            if "/" not in key and len(paths) > 1
+        }
         if conflicts:
-            logger.warning("Wikilink collisions detected (these targets will not resolve uniquely):")
+            logger.debug("Wikilink collisions detected (these targets will not resolve uniquely):")
             for key, paths in conflicts.items():
-                logger.warning(f"  Target [[{key}]] matches multiple files: {paths}")
-
+                logger.debug(f"  Target [[{key}]] matches multiple files: {paths}")
 
     def get_content(self, id: str, raw: bool = False) -> str:
         with self._map_lock:

@@ -307,20 +307,7 @@ def main() -> None:
     else:
         url = f"http://{args.host}:{actual_port}/"
 
-    print("=" * 80)
-    banner_art = r"""
-                               __  ___ ____   _    __
-                              /  |/  // __ \ | |  / /
-                             / /|_/ // / / / | | / / 
-                            / /  / // /_/ /  | |/ /  
-                           /_/  /_//_____/   |___/   """
-    print(f"\033[1;36m{banner_art}\033[0m")
-    print()
-    print("=" * 80)
-    print(f"  \033[1;32mMarkdown Viewer is running!\033[0m")
-    print(f"  \033[1mServing:\033[0m      {target_path} ({'Lite mode' if lite_mode else 'Directory mode'})")
-    print(f"  \033[1mLocal URL:\033[0m    \033[1;4;36m{url}\033[0m")
-    print()
+    print(f"\033[32mServing:\033[0m \033[34mhttp://localhost:{actual_port}\033[0m")
 
     threading.Timer(0.5, lambda: webbrowser.open(url)).start()
     srv.serve_forever()
