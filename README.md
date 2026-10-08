@@ -61,6 +61,16 @@ By default, the server boots on `http://localhost:8000/`. You can specify a cust
 mdv --port 8080 --host 0.0.0.0
 ```
 
+### Viewing Slides
+
+Open an `md-slides` document in the standalone presentation viewer:
+
+```sh
+mdv --slides presentation.slides.md
+```
+
+Use the arrow keys or Space to navigate, Home and End to jump, and `F` for fullscreen.
+
 ### Navigating Workspace Files
 - The home page (`http://localhost:8000/`) displays a dashboard of your workspace with a list of recent files.
 - Individual markdown files can be read at `http://localhost:8000/_/path/to/file.md`.

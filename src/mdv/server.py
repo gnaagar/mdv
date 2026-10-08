@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional
 
 from mdv.logger import get_logger, configure_logging
 from mdv.mdparser import MarkdownParser
+from mdv.slides import SlidesApp
 from mdv.sv_state import MdViewerState
 
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -279,20 +280,33 @@ def main() -> None:
         action="store_true",
         help="Enable debug mode and request logging",
     )
+    parser.add_argument(
+        "--slides",
+        metavar="FILE",
+        help="Open a standalone md-slides presentation",
+    )
     args = parser.parse_args()
 
     configure_logging(debug=args.debug)
 
-    target_path = Path(args.target).resolve()
-    lite_mode = target_path.is_file()
-
-    config = {
-        "dir": str(target_path.parent) if lite_mode else str(target_path),
-        "ignore_dirs": args.ignore,
-        "lite_file": target_path.name if lite_mode else None,
-    }
-
-    app = App(config=config)
+    if args.slides:
+        if args.target != ".":
+            parser.error("target cannot be used together with --slides")
+        slides_path = Path(args.slides).resolve()
+        if not slides_path.is_file():
+            parser.error(f"slides file not found: {args.slides}")
+        app = SlidesApp(slides_path)
+        lite_mode = False
+        config: Dict[str, Any] = {}
+    else:
+        target_path = Path(args.target).resolve()
+        lite_mode = target_path.is_file()
+        config = {
+            "dir": str(target_path.parent) if lite_mode else str(target_path),
+            "ignore_dirs": args.ignore,
+            "lite_file": target_path.name if lite_mode else None,
+        }
+        app = App(config=config)
 
     # Determine port: if user provided a port, use it. Otherwise, allocate a fully random port by binding to 0.
     if args.port is not None:
@@ -302,7 +316,9 @@ def main() -> None:
 
     actual_port = srv.port
 
-    if lite_mode:
+    if args.slides:
+        url = f"http://{args.host}:{actual_port}/"
+    elif lite_mode:
         url = f"http://{args.host}:{actual_port}/_/{config['lite_file']}"
     else:
         url = f"http://{args.host}:{actual_port}/"

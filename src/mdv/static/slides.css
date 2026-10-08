@@ -1,0 +1,40 @@
+:root { color-scheme: light; --slide-bg: #ffffff; --slide-text: #333333; --slide-muted: #777777; --slide-accent: #4078c0; --slide-border: #e5e7eb; --slide-column-bg: #fafbfc; }
+* { box-sizing: border-box; }
+body { margin: 0; overflow: hidden; background: var(--slide-bg); color: var(--slide-text); font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+#markdown-body { width: 100%; max-width: none; margin: 0; padding: 0; background: transparent; font-family: inherit; font-size: inherit; line-height: inherit; }
+.slide { display: none; min-height: 100vh; padding: clamp(6rem, 14vh, 12rem) clamp(4rem, 10vw, 10rem); background: var(--slide-bg); }
+.slide.is-active { display: flex; align-items: flex-start; }
+.title-slide.is-active { align-items: center; }
+.slide-content { width: 100%; max-width: none; margin: 0; font-size: clamp(1rem, 1.6vw, 1.55rem); line-height: 1.45; }
+.title-slide { text-align: center; }
+.title-slide-content { width: min(100%, 1050px); margin: auto; }
+body.theme-sans #markdown-body .title-slide h1 { font-size: clamp(3.5rem, 8vw, 7.5rem); line-height: 1; margin: 0; letter-spacing: -.05em; }
+.title-slide-kicker { margin: 0 0 1rem; color: var(--slide-accent); font-size: .85rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.title-slide-subtitle { margin: 1.25rem auto 3rem; max-width: 42rem; color: var(--slide-muted); font-size: clamp(1.15rem, 2vw, 1.8rem); }
+.title-slide-details { display: flex; justify-content: center; gap: clamp(2rem, 8vw, 8rem); margin: 0; }
+.title-slide-details div { display: grid; gap: .25rem; }.title-slide-details dt { color: var(--slide-muted); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }.title-slide-details dd { margin: 0; font-size: 1rem; }
+.slide h1, .slide h2 { border-bottom: 0 !important; padding-bottom: 0 !important; }
+.slide-content h1 { font-size: clamp(2.5rem, 6vw, 6rem); line-height: 1.05; margin: 0 0 .45em; letter-spacing: -.04em; }
+body.theme-sans #markdown-body .slide-content h2 { font-size: clamp(2.6rem, 4.5vw, 4.5rem); line-height: 1.1; margin: 0 0 .5em; }
+body.theme-sans #markdown-body .slide-content h3 { font-size: clamp(1.3rem, 1.8vw, 1.75rem); line-height: 1.25; margin-top: clamp(2rem, 4vh, 3.5rem); }
+#markdown-body .slide-column > :first-child { margin-top: 0 !important; }
+#markdown-body .slide-content > .slide-markdown > h2:first-child { margin-bottom: clamp(3rem, 7vh, 6rem); }
+.slide-content h3 { font-size: 1.35em; }
+.slide-content p, .slide-content li { color: var(--slide-text); }
+.slide-content a { color: var(--slide-accent); }
+.slide-content pre { font-size: .72em; max-height: 50vh; overflow: auto; }
+#markdown-body .slide-content .md-table-container { width: 100%; max-width: none; margin: 2rem auto; }
+#markdown-body .slide-content .md-table { width: 100%; max-width: none; }
+#markdown-body .slide-content table { width: 100%; font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
+#markdown-body .slide-content th, #markdown-body .slide-content td { padding: 1.15rem 1.6rem; }
+.slide-content .math.block, .slide-content .katex-display { display: block; margin: 1.25em auto; text-align: center; font-size: 1.35em; }
+.slide-content .mermaid-wrapper { margin: 1.5rem auto; text-align: center; }
+.slide-content .mermaid svg { max-width: 100%; height: auto; }
+.slide-columns { display: flex; gap: clamp(1rem, 2vw, 2rem); align-items: stretch; }
+.slide-columns + .slide-columns { margin-top: clamp(1rem, 2.5vh, 2rem); }
+.slide-column { min-width: 0; padding: clamp(1.25rem, 2.5vw, 2.5rem); border: 1px solid var(--slide-border); border-radius: 16px; background: var(--slide-column-bg); }
+.slide-dense-grid .slide-content > .slide-markdown > h2:first-child { margin-bottom: clamp(1.5rem, 3vh, 2.5rem); }
+.slide-dense-grid .slide-column { padding: clamp(.75rem, 1.25vw, 1.25rem); }
+#markdown-body .slide-content blockquote { margin-left: 0; margin-right: 0; padding: 1rem 1.25rem; border-left-width: 6px; }
+.slides-footer { position: fixed; right: 1.5rem; bottom: 1.25rem; color: var(--slide-muted); font-size: .8rem; letter-spacing: .02em; }
+@media (max-width: 700px) { .slide-columns, .title-slide-details { flex-direction: column; gap: 1rem; } .slide-column { width: 100%; } }
