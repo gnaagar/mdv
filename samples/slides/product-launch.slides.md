@@ -254,6 +254,6 @@ The final row can return to a single, uninterrupted thought.
 
 ## The result
 
-### Less coordination. More creation.
+Less coordination. More creation.
 
-**Orbit is available today.**
+Orbit is available today.
