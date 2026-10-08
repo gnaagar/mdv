@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ document.metadata.get('title', source_name) }}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/markdown.css">
+  <link rel="stylesheet" href="/static/themes/sans.css">
+  <link rel="stylesheet" href="/static/pygments.css">
+  <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
+  <link rel="stylesheet" href="/static/slides.css">
+</head>
+<body class="theme-sans">
+  <main id="markdown-body" aria-live="polite">
+    <section class="slide title-slide is-active" data-slide="0" aria-hidden="false">
+      <div class="title-slide-content">
+        <h1>{{ document.metadata.get('title', source_name) }}</h1>
+        <p class="title-slide-subtitle">{{ document.metadata.get('subtitle', '') }}</p>
+        <dl class="title-slide-details">
+          <div><dt>Author</dt><dd>{{ document.metadata.get('author', '') }}</dd></div>
+          <div><dt>Date</dt><dd>{{ document.metadata.get('date', '') }}</dd></div>
+        </dl>
+      </div>
+    </section>
+    {% for slide in document.slides %}
+    {% set column_block_count = slide | selectattr('kind', 'equalto', 'columns') | list | length %}
+    <section class="slide{% if column_block_count >= 3 %} slide-dense-grid{% endif %}" data-slide="{{ loop.index }}" aria-hidden="true">
+      <div class="slide-content">
+        {% for block in slide %}
+          {% if block.kind == 'markdown' %}<div class="slide-markdown">{{ block.html | safe }}</div>
+          {% else %}<div class="slide-columns">{% for column in block.columns %}<div class="slide-column" style="flex: {{ block.ratios[loop.index0] }} 1 0">{{ column | safe }}</div>{% endfor %}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </main>
+  <footer id="slide-count" class="slides-footer">1 / {{ document.slides | length + 1 }}</footer>
+  <script src="/static/katex/katex-0-16-22.min.js"></script>
+  <script src="/static/katex/auto-render-0-16-22.min.js"></script>
+  <script src="/static/mermaid/mermaid.min.js"></script>
+  <script src="/static/js/shared.js"></script>
+  <script src="/static/js/markdown.js"></script>
+  <script src="/static/js/slides.js"></script>
+</body>
+</html>
