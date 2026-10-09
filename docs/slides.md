@@ -95,7 +95,40 @@ Columns are declared inside a slide using HTML comments. This ensures presentati
 
 ---
 
-## 5. Complete Example Document
+## 5. Accent Colors (HTML Comments)
+
+All accent styling uses HTML comments so that documents remain 100% valid, portable plain Markdown across any standard viewer.
+
+Four standard accent colors are supported: `yellow`, `red`, `green`, and `blue`.
+
+### 5.1 Column Box Accent Colors
+Accent colors apply a matching background tint and colored border to column cards.
+
+* **Inside a column:** `<!-- col-color: <color> -->` (e.g. `<!-- col-color: yellow -->`, `<!-- col-green -->`, `<!-- accent: red -->`)
+* **In block declaration:** `<!-- col-start 1:1 blue:green -->` or `<!-- col-start 1:1 yellow -->`
+* **In separator:** `<!-- col-sep green -->`
+
+### 5.2 Text Accent Colors
+Color individual words, lines, or blocks of Markdown content:
+
+* **Inline:** `<!-- color: red -->urgent<!-- /color -->` or `<!-- green -->success<!-- /green -->`
+* **Block:**
+  ```markdown
+  <!-- color: blue -->
+  ### Key takeaway
+  - First point
+  <!-- /color -->
+  ```
+
+### 5.3 Blockquote Accent Colors
+Apply accent border-left and tinted background to blockquotes:
+
+* **Before blockquote:** `<!-- quote: green -->`
+* **Inside first line:** `> <!-- quote: green --> Safe and reversible.`
+
+---
+
+## 6. Complete Example Document
 
 ```markdown
 ---

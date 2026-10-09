@@ -17,6 +17,8 @@ One focused workspace for planning, building, and sharing your best work.
 
 Write naturally with **bold emphasis**, *italics*, `inline code`, and [useful links](https://example.com).
 
+Highlight critical details using accent colors: <!-- color: blue -->**informative notes**<!-- /color -->, <!-- color: green -->*verified results*<!-- /color -->, <!-- color: yellow -->`warning flags`<!-- /color -->, or <!-- color: red -->**urgent blockers**<!-- /color -->.
+
 ### A lower-level heading
 
 Markdown is still the primary authoring language; slides only add document metadata, separators, and column directives.
@@ -36,16 +38,21 @@ Markdown is still the primary authoring language; slides only add document metad
 2. Review it together
 3. Ship the decision
 
-- [x] Gather feedback
-- [ ] Publish the plan
+- [x] <!-- color: green -->**Gather feedback** (completed)<!-- /color -->
+- [ ] <!-- color: yellow -->**Publish the plan** (in review)<!-- /color -->
+- [ ] <!-- color: red -->*Security sign-off* (pending blocker)<!-- /color -->
 
 ---
 
 ## A point of view
 
-> Great presentations make one idea easy to carry forward.
+<!-- quote: blue -->
+> Great presentations make **one idea** easy to carry forward.
 >
 > Use blockquotes for principles, evidence, or a memorable line.
+
+<!-- quote: yellow -->
+> <!-- color: yellow -->**Guideline**: Keep slides focused; avoid clutter and preserve strong contrast.<!-- /color -->
 
 ---
 
@@ -91,7 +98,7 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 ## Built for flow
 
-<!-- col-start 1:1 -->
+<!-- col-start 1:1 blue:green -->
 
 ### Plan
 
@@ -105,7 +112,7 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 - Move from draft to delivery
 - Share progress clearly
-- Learn from every release
+- <!-- color: green -->**Learn from every release**<!-- /color -->
 
 <!-- col-end -->
 
@@ -113,10 +120,11 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 ## Markdown in two columns
 
-<!-- col-start 1:1 -->
+<!-- col-start 1:1 blue:green -->
 
 ### A quote
 
+<!-- quote: blue -->
 > Columns can hold the same Markdown blocks as a full-width slide.
 
 Use **emphasis**, `inline code`, and ordinary paragraphs without a special syntax.
@@ -136,7 +144,7 @@ Use **emphasis**, `inline code`, and ordinary paragraphs without a special synta
 
 ## Markdown in three columns
 
-<!-- col-start 1:1:1 -->
+<!-- col-start 1:1:1 blue:yellow:green -->
 
 ### Plan
 
@@ -151,12 +159,17 @@ Use **emphasis**, `inline code`, and ordinary paragraphs without a special synta
 make it useful
 ```
 
+<!-- color: yellow -->
+*Iterate quickly in small batches.*
+<!-- /color -->
+
 <!-- col-sep -->
 
 ### Learn
 
 - Measure the result
 - Adjust the next step
+- <!-- color: green -->**Ship with confidence**<!-- /color -->
 
 <!-- col-end -->
 
@@ -208,27 +221,33 @@ Use the result to guide the next cycle.
 
 ## A mixed row layout
 
-<!-- col-start 1:1:1 -->
+<!-- col-start 1:1:1 red:yellow:green -->
 
-### First
+### Blocked
 
-Three concise observations.
-
-<!-- col-sep -->
-
-### Second
-
-Each in its own card.
+<!-- color: red -->
+**High latency** on legacy database queries.
+<!-- /color -->
 
 <!-- col-sep -->
 
-### Third
+### In progress
 
-All equally weighted.
+<!-- color: yellow -->
+Migrating cache tier to new cluster.
+<!-- /color -->
+
+<!-- col-sep -->
+
+### Resolved
+
+<!-- color: green -->
+**Zero errors** recorded over the last 24 hours.
+<!-- /color -->
 
 <!-- col-end -->
 
-<!-- col-start 1:1 -->
+<!-- col-start 1:1 blue:blue -->
 
 ### Detail
 
@@ -242,11 +261,12 @@ Use the second row for the final trade-off.
 
 <!-- col-end -->
 
-<!-- col-start 1 -->
+<!-- col-start 1 green -->
 
-### One full-width conclusion
+### Conclusion
 
-The final row can return to a single, uninterrupted thought.
+<!-- quote: green -->
+> **Orbit simplifies complex flows**: Plan, collaborate, and ship safely.
 
 <!-- col-end -->
 
@@ -256,4 +276,6 @@ The final row can return to a single, uninterrupted thought.
 
 Less coordination. More creation.
 
-Orbit is available today.
+<!-- color: green -->
+**Orbit is available today.**
+<!-- /color -->

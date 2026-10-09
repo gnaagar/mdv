@@ -21,12 +21,16 @@ class SlidesParseError(ValueError):
     """Raised when a document does not follow the md-slides structure."""
 
 
+ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue"}
+
+
 @dataclass(frozen=True)
 class SlideBlock:
     kind: str
     html: str = ""
     columns: tuple[str, ...] = ()
     ratios: tuple[float, ...] = ()
+    column_colors: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -38,8 +42,32 @@ class SlideDocument:
 _FRONT_MATTER_RE = re.compile(r"\A---[ \t]*\r?\n(?P<body>.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 _SLIDE_SEPARATOR_RE = re.compile(r"^[ \t]*-{3,}[ \t]*$", re.MULTILINE)
 _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
-_COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep\s*-->\s*$")
+_COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
+_COL_COLOR_RE = re.compile(
+    r"^\s*<!--\s*(?:col-color[:\s]+|accent[:\s]+|color[:\s]+|col-)(yellow|red|green|blue)\s*-->\s*$",
+    re.IGNORECASE,
+)
+_QUOTE_DIRECTIVE_RE = re.compile(
+    r"^\s*<!--\s*(?:quote-color[:\s]+|quote[:\s]+|blockquote-color[:\s]+|blockquote[:\s]+|quote-)(yellow|red|green|blue)\s*-->\s*$",
+    re.IGNORECASE,
+)
+_INLINE_QUOTE_DIRECTIVE_RE = re.compile(
+    r"^[ \t]*>[ \t]*<!--\s*(?:quote-color[:\s]+|quote[:\s]+|blockquote-color[:\s]+|blockquote[:\s]+|color[:\s]+|quote-)(yellow|red|green|blue)\s*-->[ \t]*(.*)$",
+    re.IGNORECASE,
+)
+_TEXT_COLOR_SPAN_RE = re.compile(
+    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue)\s*-->([\s\S]*?)<!--\s*(?:\/(?:color|text|yellow|red|green|blue)|end-(?:color|text)|end)\s*-->",
+    re.IGNORECASE,
+)
+_TEXT_COLOR_SIMPLE_RE = re.compile(
+    r"<!--\s*(yellow|red|green|blue)\s*-->([\s\S]*?)<!--\s*\/\1\s*-->",
+    re.IGNORECASE,
+)
+_TEXT_LINE_COLOR_RE = re.compile(
+    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue)\s*-->([^\n<]+)$",
+    re.IGNORECASE,
+)
 _ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
 _FENCE_RE = re.compile(r"^\s*(`{3,}|~{3,})")
 
@@ -64,8 +92,110 @@ def _parse_front_matter(source: str) -> tuple[dict[str, str], str]:
     return metadata, source[match.end():]
 
 
+_SLIDE_QUOTE_TOKEN_RE = re.compile(
+    r"<blockquote([^>]*)>([\s\S]*?)%%SLIDE_QUOTE_(yellow|red|green|blue)%%[ \t]*([\s\S]*?)<\/blockquote>",
+    re.IGNORECASE,
+)
+_SLIDE_TEXT_BLOCK_P_RE = re.compile(
+    r"<p>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue)%%\s*<\/p>([\s\S]*?)<p>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
+    re.IGNORECASE,
+)
+_SLIDE_TEXT_TOKEN_RE = re.compile(
+    r"%%SLIDE_TEXT_START_(yellow|red|green|blue)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
+    re.IGNORECASE,
+)
+
+
+def _preprocess_slide_markdown(content: str) -> str:
+    lines = content.splitlines()
+    processed_lines: list[str] = []
+    pending_quote_color: str | None = None
+
+    for line in lines:
+        quote_match = _QUOTE_DIRECTIVE_RE.match(line)
+        if quote_match:
+            pending_quote_color = quote_match.group(1).lower()
+            continue
+
+        inline_quote_match = _INLINE_QUOTE_DIRECTIVE_RE.match(line)
+        if inline_quote_match:
+            color = inline_quote_match.group(1).lower()
+            rest = inline_quote_match.group(2)
+            processed_lines.append(f"> %%SLIDE_QUOTE_{color}%% {rest}")
+            pending_quote_color = None
+            continue
+
+        stripped = line.strip()
+        if pending_quote_color:
+            if stripped.startswith(">"):
+                quote_rest = line.lstrip()[1:]
+                processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_color}%%{quote_rest}")
+                pending_quote_color = None
+                continue
+            elif not stripped:
+                processed_lines.append(line)
+                continue
+            else:
+                pending_quote_color = None
+
+        processed_lines.append(line)
+
+    text = "\n".join(processed_lines)
+
+    def text_color_replacer(match: re.Match) -> str:
+        color = match.group(1).lower()
+        inner = match.group(2)
+        return f"%%SLIDE_TEXT_START_{color}%%{inner}%%SLIDE_TEXT_END%%"
+
+    text = _TEXT_COLOR_SPAN_RE.sub(text_color_replacer, text)
+    text = _TEXT_COLOR_SIMPLE_RE.sub(text_color_replacer, text)
+
+    def line_color_replacer(match: re.Match) -> str:
+        color = match.group(1).lower()
+        rest = match.group(2)
+        return f"%%SLIDE_TEXT_START_{color}%%{rest}%%SLIDE_TEXT_END%%"
+
+    text = _TEXT_LINE_COLOR_RE.sub(line_color_replacer, text)
+    return text
+
+
 def _render_markdown(content: str) -> str:
-    return MarkdownParser.parse(content.strip()) if content.strip() else ""
+    if not content.strip():
+        return ""
+    preprocessed = _preprocess_slide_markdown(content.strip())
+    raw_html = MarkdownParser.parse(preprocessed)
+
+    def quote_replacer(match: re.Match) -> str:
+        attrs = match.group(1)
+        before = match.group(2)
+        color = match.group(3).lower()
+        after = match.group(4)
+        if 'class="' in attrs:
+            attrs = re.sub(r'class="([^"]*)"', rf'class="\1 slide-quote-{color}"', attrs)
+        else:
+            attrs = f'{attrs} class="slide-quote-{color}"'
+        return f"<blockquote{attrs}>{before}{after}</blockquote>"
+
+    html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, raw_html)
+
+    def block_p_replacer(match: re.Match) -> str:
+        color = match.group(1).lower()
+        inner = match.group(2)
+        return f'<div class="slide-text-{color}">{inner}</div>'
+
+    html = _SLIDE_TEXT_BLOCK_P_RE.sub(block_p_replacer, html)
+
+    def text_token_replacer(match: re.Match) -> str:
+        color = match.group(1).lower()
+        inner = match.group(2)
+        inner = re.sub(r"^(\s*<br\s*\/?>\s*)+", "", inner)
+        inner = re.sub(r"(\s*<br\s*\/?>\s*)+$", "", inner)
+        if re.search(r"<(?:p|h[1-6]|ul|ol|li|blockquote|table|pre|div)\b", inner):
+            return f'<div class="slide-text-{color}">{inner}</div>'
+        return f'<span class="slide-text-{color}">{inner}</span>'
+
+    html = _SLIDE_TEXT_TOKEN_RE.sub(text_token_replacer, html)
+    return html
 
 
 def _parse_ratios(value: str) -> tuple[float, ...]:
@@ -78,11 +208,36 @@ def _parse_ratios(value: str) -> tuple[float, ...]:
     return ratios
 
 
+def _parse_column_directive(value: str) -> tuple[tuple[float, ...], tuple[str, ...]]:
+    tokens = value.strip().split()
+    ratios = _parse_ratios(tokens[0])
+    count = len(ratios)
+    colors: list[str] = [""] * count
+    if len(tokens) > 1:
+        color_parts = [p.strip().lower() for p in tokens[1].split(":")]
+        for p in color_parts:
+            if p and p not in ALLOWED_SLIDE_COLORS:
+                raise SlidesParseError(
+                    f"Invalid column color '{p}'. Allowed colors: {', '.join(sorted(ALLOWED_SLIDE_COLORS))}."
+                )
+        if len(color_parts) == 1 and color_parts[0]:
+            colors = [color_parts[0]] * count
+        elif len(color_parts) == count:
+            colors = color_parts
+        else:
+            raise SlidesParseError(
+                f"Column block declares {count} columns but received {len(color_parts)} colors: {tokens[1]}."
+            )
+    return ratios, tuple(colors)
+
+
 def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
     blocks: list[SlideBlock] = []
     full_width: list[str] = []
     columns: list[list[str]] | None = None
     ratios: tuple[float, ...] = ()
+    column_colors: list[str] = []
+    default_colors: tuple[str, ...] = ()
 
     def flush_full_width() -> None:
         html = _render_markdown("\n".join(full_width))
@@ -96,13 +251,28 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             if columns is not None:
                 raise SlidesParseError("A column block cannot start inside another column block.")
             flush_full_width()
-            ratios = _parse_ratios(start.group(1))
+            ratios, default_colors = _parse_column_directive(start.group(1))
             columns = [[]]
+            column_colors = [default_colors[0] if default_colors else ""]
             continue
-        if _COL_SEP_RE.match(line):
+        sep = _COL_SEP_RE.match(line)
+        if sep:
             if columns is None:
                 raise SlidesParseError("Found col-sep outside a column block.")
             columns.append([])
+            sep_color = sep.group(1).strip().lower() if sep.group(1) else ""
+            if sep_color and sep_color not in ALLOWED_SLIDE_COLORS:
+                raise SlidesParseError(
+                    f"Invalid column color '{sep_color}'. Allowed colors: {', '.join(sorted(ALLOWED_SLIDE_COLORS))}."
+                )
+            next_idx = len(columns) - 1
+            color_to_use = sep_color or (default_colors[next_idx] if next_idx < len(default_colors) else "")
+            column_colors.append(color_to_use)
+            continue
+        col_color = _COL_COLOR_RE.match(line)
+        if col_color and columns is not None:
+            color = col_color.group(1).lower()
+            column_colors[-1] = color
             continue
         if _COL_END_RE.match(line):
             if columns is None:
@@ -116,10 +286,13 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
                     kind="columns",
                     columns=tuple(_render_markdown("\n".join(column)) for column in columns),
                     ratios=ratios,
+                    column_colors=tuple(column_colors),
                 )
             )
             columns = None
             ratios = ()
+            column_colors = []
+            default_colors = ()
             continue
         (columns[-1] if columns is not None else full_width).append(line)
 

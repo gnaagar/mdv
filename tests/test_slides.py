@@ -93,3 +93,107 @@ title: Test
             response = Client(SlidesApp(path)).get("/")
 
         self.assertIn(b"slide-dense-grid", response.data)
+
+    def test_parses_column_accent_colors(self):
+        source = """---
+title: Test
+---
+## Colors
+<!-- col-start 1:1 yellow:blue -->
+### Left
+<!-- col-sep -->
+<!-- col-color green -->
+### Right
+<!-- col-end -->
+"""
+        document = parse_slides(source)
+        columns = document.slides[0][1]
+        self.assertEqual(columns.column_colors, ("yellow", "green"))
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "colors.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertIn(b"slide-column-yellow", response.data)
+        self.assertIn(b"slide-column-green", response.data)
+
+    def test_validates_column_colors(self):
+        source = """---
+title: Test
+---
+## Colors
+<!-- col-start 1:1 purple:orange -->
+Col 1
+<!-- col-sep -->
+Col 2
+<!-- col-end -->
+"""
+        with self.assertRaisesRegex(SlidesParseError, "Invalid column color"):
+            parse_slides(source)
+
+    def test_renders_text_accent_colors(self):
+        source = """---
+title: Test
+---
+## Text Colors
+Inline <!-- color: red -->critical<!-- /color --> status.
+<!-- color: blue -->
+### Blue Section
+Content here
+<!-- /color -->
+"""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "text_colors.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertIn(b'class="slide-text-red">critical</span>', response.data)
+        self.assertIn(b'class="slide-text-blue">', response.data)
+
+    def test_renders_blockquote_accent_colors(self):
+        source = """---
+title: Test
+---
+## Quotes
+<!-- quote: green -->
+> Safe and reversible deployments.
+
+> <!-- quote: yellow -->
+> Warning: Breaking change ahead.
+"""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "quotes.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertIn(b'class="slide-quote-green"', response.data)
+        self.assertIn(b'class="slide-quote-yellow"', response.data)
+
+    def test_preserves_markdown_formatting_inside_color_directives(self):
+        source = """---
+title: Test
+---
+## Markdown inside colors
+<!-- color: green -->
+**Orbit is available today.**
+<!-- /color -->
+
+<!-- color: red -->
+*Urgent*: `code_symbol()` failed.
+<!-- /color -->
+
+<!-- quote: blue -->
+> **Safety first**: Always test in staging before deploying.
+"""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "formatting.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+
+        self.assertIn(b'<strong>Orbit is available today.</strong>', response.data)
+        self.assertIn(b'class="slide-text-green"', response.data)
+        self.assertIn(b'<em>Urgent</em>', response.data)
+        self.assertIn(b'<code>code_symbol()</code>', response.data)
+        self.assertIn(b'class="slide-text-red"', response.data)
+        self.assertIn(b'class="slide-quote-blue"', response.data)
+        self.assertIn(b'<strong>Safety first</strong>', response.data)
+
+

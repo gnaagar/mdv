@@ -17,6 +17,7 @@
       <div class="title-slide-content">
         <h1>{{ document.metadata.get('title', source_name) }}</h1>
         <p class="title-slide-subtitle">{{ document.metadata.get('subtitle', '') }}</p>
+        <div class="title-slide-rule" aria-hidden="true"></div>
         <dl class="title-slide-details">
           <div><dt>Author</dt><dd>{{ document.metadata.get('author', '') }}</dd></div>
           <div><dt>Date</dt><dd>{{ document.metadata.get('date', '') }}</dd></div>
@@ -29,7 +30,7 @@
       <div class="slide-content">
         {% for block in slide %}
           {% if block.kind == 'markdown' %}<div class="slide-markdown">{{ block.html | safe }}</div>
-          {% else %}<div class="slide-columns">{% for column in block.columns %}<div class="slide-column" style="flex: {{ block.ratios[loop.index0] }} 1 0">{{ column | safe }}</div>{% endfor %}</div>
+          {% else %}<div class="slide-columns">{% for column in block.columns %}<div class="slide-column{% if block.column_colors and block.column_colors[loop.index0] %} slide-column-{{ block.column_colors[loop.index0] }}{% endif %}" style="flex: {{ block.ratios[loop.index0] }} 1 0">{{ column | safe }}</div>{% endfor %}</div>
           {% endif %}
         {% endfor %}
       </div>
