@@ -61,15 +61,15 @@ _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
 _COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
 _COL_COLOR_RE = re.compile(
-    r"^\s*<!--\s*(?:col-color[:\s]+|accent[:\s]+|color[:\s]+|col-)(yellow|red|green|blue)\s*-->\s*$",
+    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue)\s*-->\s*$",
     re.IGNORECASE,
 )
 _QUOTE_DIRECTIVE_RE = re.compile(
-    r"^\s*<!--\s*(?:quote-color[:\s]+|quote[:\s]+|blockquote-color[:\s]+|blockquote[:\s]+|quote-)(yellow|red|green|blue)\s*-->\s*$",
+    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue)\s*-->\s*$",
     re.IGNORECASE,
 )
 _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
-    r"^[ \t]*>[ \t]*<!--\s*(?:quote-color[:\s]+|quote[:\s]+|blockquote-color[:\s]+|blockquote[:\s]+|color[:\s]+|quote-)(yellow|red|green|blue)\s*-->[ \t]*(.*)$",
+    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue)\s*-->[ \t]*(.*)$",
     re.IGNORECASE,
 )
 _TEXT_COLOR_SPAN_RE = re.compile(
@@ -113,7 +113,7 @@ _SLIDE_QUOTE_TOKEN_RE = re.compile(
     re.IGNORECASE,
 )
 _SLIDE_TEXT_BLOCK_P_RE = re.compile(
-    r"<p>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue)%%\s*<\/p>([\s\S]*?)<p>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
+    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_TOKEN_RE = re.compile(
@@ -123,15 +123,27 @@ _SLIDE_TEXT_TOKEN_RE = re.compile(
 
 
 def _preprocess_slide_markdown(content: str) -> str:
-    lines = content.splitlines()
+    def text_color_replacer(match: re.Match) -> str:
+        color = match.group(1).lower()
+        inner = match.group(2)
+        return f"%%SLIDE_TEXT_START_{color}%%{inner}%%SLIDE_TEXT_END%%"
+
+    text = _TEXT_COLOR_SPAN_RE.sub(text_color_replacer, content)
+    text = _TEXT_COLOR_SIMPLE_RE.sub(text_color_replacer, text)
+
+    def line_color_replacer(match: re.Match) -> str:
+        color = match.group(1).lower()
+        rest = match.group(2)
+        return f"%%SLIDE_TEXT_START_{color}%%{rest}%%SLIDE_TEXT_END%%"
+
+    text = _TEXT_LINE_COLOR_RE.sub(line_color_replacer, text)
+
+    lines = text.splitlines()
     processed_lines: list[str] = []
     pending_quote_color: str | None = None
 
     for line in lines:
-        quote_match = _QUOTE_DIRECTIVE_RE.match(line)
-        if quote_match:
-            pending_quote_color = quote_match.group(1).lower()
-            continue
+        stripped = line.strip()
 
         inline_quote_match = _INLINE_QUOTE_DIRECTIVE_RE.match(line)
         if inline_quote_match:
@@ -141,7 +153,11 @@ def _preprocess_slide_markdown(content: str) -> str:
             pending_quote_color = None
             continue
 
-        stripped = line.strip()
+        quote_match = _QUOTE_DIRECTIVE_RE.match(line)
+        if quote_match and not stripped.startswith(">"):
+            pending_quote_color = quote_match.group(1).lower()
+            continue
+
         if pending_quote_color:
             if stripped.startswith(">"):
                 quote_rest = line.lstrip()[1:]
@@ -156,23 +172,7 @@ def _preprocess_slide_markdown(content: str) -> str:
 
         processed_lines.append(line)
 
-    text = "\n".join(processed_lines)
-
-    def text_color_replacer(match: re.Match) -> str:
-        color = match.group(1).lower()
-        inner = match.group(2)
-        return f"%%SLIDE_TEXT_START_{color}%%{inner}%%SLIDE_TEXT_END%%"
-
-    text = _TEXT_COLOR_SPAN_RE.sub(text_color_replacer, text)
-    text = _TEXT_COLOR_SIMPLE_RE.sub(text_color_replacer, text)
-
-    def line_color_replacer(match: re.Match) -> str:
-        color = match.group(1).lower()
-        rest = match.group(2)
-        return f"%%SLIDE_TEXT_START_{color}%%{rest}%%SLIDE_TEXT_END%%"
-
-    text = _TEXT_LINE_COLOR_RE.sub(line_color_replacer, text)
-    return text
+    return "\n".join(processed_lines)
 
 
 def _render_markdown(content: str) -> str:
@@ -193,6 +193,7 @@ def _render_markdown(content: str) -> str:
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
     html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, raw_html)
+    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
         color = match.group(1).lower()

@@ -55,7 +55,8 @@ Markdown is still the primary authoring language; slides only add document metad
 > Use blockquotes for principles, evidence, or a memorable line.
 
 <!-- quote: yellow -->
-> <!-- color: yellow -->**Guideline**: Keep slides focused; avoid clutter and preserve strong contrast.<!-- /color -->
+> <!-- color: yellow -->
+> **Guideline**: Keep slides focused; avoid clutter and preserve strong contrast. <!-- /color -->
 
 ---
 
