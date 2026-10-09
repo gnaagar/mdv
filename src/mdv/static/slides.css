@@ -38,7 +38,7 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: clamp(1.5rem, 2.2v
 .slide-content .mermaid svg { max-width: 100%; height: auto; }
 .slide-columns { display: flex; gap: clamp(1rem, 2.5vh, 2rem); align-items: stretch; }
 .slide-columns + .slide-columns, .slide-columns + .slide-markdown { margin-top: clamp(1.25rem, 3vh, 2.5rem); }
-.slide-column { min-width: 0; padding: clamp(1.25rem, 2.5vw, 2.5rem) clamp(1.25rem, 2.5vw, 2.5rem) clamp(0.75rem, 1.5vw, 1.5rem); border: 2px solid var(--slide-border); border-radius: 16px; background: var(--slide-column-bg); }
+.slide-column { min-width: 0; padding: clamp(0.75rem, 1.5vw, 1.5rem) clamp(1.25rem, 2.5vw, 2.5rem) clamp(0.75rem, 1.5vw, 1.5rem); border: 2px solid var(--slide-border); border-radius: 16px; background: var(--slide-column-bg); }
 #markdown-body .slide-column > :last-child { margin-bottom: 0 !important; }
 .slide-dense-grid .slide-content > .slide-markdown > h2:first-child { margin-bottom: clamp(1.5rem, 3vh, 2.5rem); }
 .slide-dense-grid .slide-column { padding: clamp(.75rem, 1.25vw, 1.25rem) clamp(.75rem, 1.25vw, 1.25rem) clamp(.5rem, 0.8vw, .75rem); }
