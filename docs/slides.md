@@ -128,7 +128,26 @@ Apply accent border-left and tinted background to blockquotes:
 
 ---
 
-## 6. Complete Example Document
+## 6. Speaker Notes
+
+Any Markdown content below an HTML comment starting with `<!-- speaker -->` until the start of the next slide (`---`) or the end of the document is treated as speaker notes.
+
+* **In normal Markdown viewers:** The `<!-- speaker -->` comment is hidden and the notes remain visible as ordinary text.
+* **In the slide presentation:** Speaker notes are excluded from the visible presentation slide.
+
+```markdown
+## Production Readiness
+
+All verification checks have passed.
+
+<!-- speaker -->
+- Mention latency graphs
+- Thank the deployment and QA teams
+```
+
+---
+
+## 7. Complete Example Document
 
 ```markdown
 ---

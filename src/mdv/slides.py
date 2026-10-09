@@ -34,13 +34,29 @@ class SlideBlock:
 
 
 @dataclass(frozen=True)
+class Slide:
+    blocks: tuple[SlideBlock, ...]
+    notes_html: str = ""
+
+    def __iter__(self):
+        return iter(self.blocks)
+
+    def __getitem__(self, index):
+        return self.blocks[index]
+
+    def __len__(self):
+        return len(self.blocks)
+
+
+@dataclass(frozen=True)
 class SlideDocument:
     metadata: dict[str, str]
-    slides: tuple[tuple[SlideBlock, ...], ...]
+    slides: tuple[Slide, ...]
 
 
 _FRONT_MATTER_RE = re.compile(r"\A---[ \t]*\r?\n(?P<body>.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 _SLIDE_SEPARATOR_RE = re.compile(r"^[ \t]*-{3,}[ \t]*$", re.MULTILINE)
+_SPEAKER_RE = re.compile(r"^\s*<!--\s*speaker(?:[\s:-].*?)?\s*-->\s*$", re.IGNORECASE)
 _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
 _COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
@@ -326,16 +342,30 @@ def _validate_slide_headings(content: str, slide_number: int) -> None:
             )
 
 
+def _split_slide_notes(part: str) -> tuple[str, str]:
+    lines = part.splitlines()
+    for index, line in enumerate(lines):
+        if _SPEAKER_RE.match(line):
+            slide_content = "\n".join(lines[:index])
+            notes_content = "\n".join(lines[index + 1:])
+            return slide_content, notes_content
+    return part, ""
+
+
 def parse_slides(source: str) -> SlideDocument:
     """Parse an md-slides source document into renderable slides."""
     metadata, body = _parse_front_matter(source)
     parts = [part for part in _SLIDE_SEPARATOR_RE.split(body) if part.strip()]
+    slides: list[Slide] = []
     for number, part in enumerate(parts, start=1):
-        _validate_slide_headings(part, number)
-    slides = tuple(_parse_slide(part) for part in parts)
+        slide_body, notes_body = _split_slide_notes(part)
+        _validate_slide_headings(slide_body, number)
+        blocks = _parse_slide(slide_body)
+        notes_html = _render_markdown(notes_body) if notes_body.strip() else ""
+        slides.append(Slide(blocks=blocks, notes_html=notes_html))
     if not slides:
         raise SlidesParseError("The presentation does not contain any slide content.")
-    return SlideDocument(metadata=metadata, slides=slides)
+    return SlideDocument(metadata=metadata, slides=tuple(slides))
 
 
 _env = Environment(loader=PackageLoader("mdv", "templates"), autoescape=select_autoescape())

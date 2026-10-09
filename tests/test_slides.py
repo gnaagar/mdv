@@ -196,4 +196,32 @@ title: Test
         self.assertIn(b'class="slide-quote-blue"', response.data)
         self.assertIn(b'<strong>Safety first</strong>', response.data)
 
+    def test_extracts_speaker_notes_and_hides_from_presentation(self):
+        source = """---
+title: Test
+---
+## Slide with notes
+Slide body text.
+
+<!-- speaker -->
+# Note Heading
+- Mention performance metrics
+- Do not forget to thank the team
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides), 1)
+        self.assertIn("Slide body text", doc.slides[0][0].html)
+        self.assertNotIn("Mention performance metrics", doc.slides[0][0].html)
+        self.assertIn("Mention performance metrics", doc.slides[0].notes_html)
+        self.assertIn("Note Heading", doc.slides[0].notes_html)
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+
+        self.assertIn(b'<div class="speaker-notes" hidden style="display: none;"', response.data)
+        self.assertIn(b'Mention performance metrics', response.data)
+
+
 

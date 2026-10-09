@@ -11,6 +11,9 @@ date: 2026-10-08
 
 One focused workspace for planning, building, and sharing your best work.
 
+<!-- speaker -->
+Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
+
 ---
 
 ## Everyday Markdown
@@ -115,6 +118,13 @@ Mermaid blocks work just like they do in regular mdv documents.
 - <!-- color: green -->**Learn from every release**<!-- /color -->
 
 <!-- col-end -->
+
+<!-- quote: blue -->
+> "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
+
+<!-- speaker -->
+- Emphasize that planning and shipping happen in the same unified workflow.
+- Transition to the next slide demonstrating multi-column Markdown.
 
 ---
 
@@ -279,3 +289,6 @@ Less coordination. More creation.
 <!-- color: green -->
 **Orbit is available today.**
 <!-- /color -->
+
+<!-- speaker -->
+Thank the team and open the floor for Q&A.
