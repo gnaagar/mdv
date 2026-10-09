@@ -33,6 +33,8 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: clamp(1.5rem, 2.2v
 #markdown-body .slide-content td { background-color: transparent; }
 #markdown-body .slide-content th, #markdown-body .slide-content td { padding: 1.15rem 1.6rem; }
 #markdown-body .slide-column .md-table-container { margin: 1rem 0; }
+.slide-column:has(> .md-table-container:only-child) { padding: 0; overflow: hidden; }
+.slide-column:has(> .md-table-container:only-child) .md-table-container { margin: 0; border: none; }
 .slide-content .math.block, .slide-content .katex-display { display: block; margin: 1.25em auto; text-align: center; font-size: 1.35em; }
 .slide-content .mermaid-wrapper { margin: 1.5rem auto; text-align: center; }
 .slide-content .mermaid svg { max-width: 100%; height: auto; }

@@ -153,6 +153,28 @@ Use **emphasis**, `inline code`, and ordinary paragraphs without a special synta
 
 ---
 
+## Table as column card
+
+When a column contains **only** a table, it fills the card completely — no padding, borders merge.
+
+<!-- col-start 1:1 blue:green -->
+
+| Signal | Target | This week |
+| :--- | ---: | ---: |
+| Activation | 60 % | 64 % |
+| Retention | 45 % | 47 % |
+| NPS | 50 | 54 |
+
+<!-- col-sep -->
+
+### Notes
+
+The right column has normal content — the flush-fill only applies when the table is the **sole** element in the card.
+
+<!-- col-end -->
+
+---
+
 ## Markdown in three columns
 
 <!-- col-start 1:1:1 blue:yellow:green -->
