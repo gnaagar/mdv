@@ -49,7 +49,7 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: clamp(1.5rem, 2.2v
 .slide-column.slide-column-red { background: #fef2f2; border-color: #fca5a5; }
 .slide-column.slide-column-green { background: #f0fdf4; border-color: #86efac; }
 .slide-column.slide-column-blue { background: #eff6ff; border-color: #93c5fd; }
-.slide-text-yellow, .slide-text-yellow * { color: #b45309 !important; }
+.slide-text-yellow, .slide-text-yellow * { color: #ca8a04 !important; }
 .slide-text-red, .slide-text-red * { color: #dc2626 !important; }
 .slide-text-green, .slide-text-green * { color: #16a34a !important; }
 .slide-text-blue, .slide-text-blue * { color: #2563eb !important; }
