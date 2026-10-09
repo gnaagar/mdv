@@ -196,4 +196,122 @@ title: Test
         self.assertIn(b'class="slide-quote-blue"', response.data)
         self.assertIn(b'<strong>Safety first</strong>', response.data)
 
+    def test_extracts_speaker_notes_and_hides_from_presentation(self):
+        source = """---
+title: Test
+---
+## Slide with notes
+Slide body text.
+
+<!-- speaker -->
+# Note Heading
+- Mention performance metrics
+- Do not forget to thank the team
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides), 1)
+        self.assertIn("Slide body text", doc.slides[0][0].html)
+        self.assertNotIn("Mention performance metrics", doc.slides[0][0].html)
+        self.assertIn("Mention performance metrics", doc.slides[0].notes_html)
+        self.assertIn("Note Heading", doc.slides[0].notes_html)
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+
+        self.assertIn(b'<div class="speaker-notes" hidden style="display: none;"', response.data)
+        self.assertIn(b'Mention performance metrics', response.data)
+
+    def test_slides_css_removes_table_backgrounds(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(SOURCE, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/static/slides.css")
+        self.assertEqual(response.status_code, 200)
+        css = response.data.decode("utf-8")
+        self.assertIn("#markdown-body .slide-content .md-table-container", css)
+        self.assertIn("background: transparent", css)
+        self.assertIn("#markdown-body .slide-content table", css)
+        self.assertIn("background-color: transparent", css)
+
+    def test_color_hints_inside_blockquote_for_text_and_quote_styling(self):
+        source = """---
+title: Test
+---
+## Slide 1
+<!-- quote: yellow -->
+> <!-- color: yellow -->
+> **Guideline**: Keep slides focused; avoid clutter. <!-- /color -->
+
+---
+## Slide 2
+> <!-- quote: blue -->
+> "Simplicity is prerequisite." — <!-- color: green -->Edsger W. Dijkstra<!-- /color -->
+
+---
+## Slide 3
+> <!-- red -->
+> Critical quote without closing tag.
+
+---
+## Slide 4
+> <!-- color: red -->
+> Multiline critical warning
+> <!-- /color -->
+"""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "quote_colors.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+
+        data = response.data
+        # Slide 1: Quote is yellow AND text inside is yellow
+        self.assertIn(b'class="slide-quote-yellow"', data)
+        self.assertIn(b'class="slide-text-yellow"', data)
+        self.assertIn(b'<strong>Guideline</strong>', data)
+
+        # Slide 2: Quote is blue AND author text is green
+        self.assertIn(b'class="slide-quote-blue"', data)
+        self.assertIn(b'<span class="slide-text-green">Edsger W. Dijkstra</span>', data)
+
+        # Slide 3: Quote is red
+        self.assertIn(b'class="slide-quote-red"', data)
+        self.assertIn(b'Critical quote without closing tag.', data)
+
+        # Slide 4: Text inside blockquote is red
+        self.assertIn(b'class="slide-text-red"', data)
+        self.assertIn(b'Multiline critical warning', data)
+
+    def test_text_color_inside_columns(self):
+        source = """---
+title: Test
+---
+## Status
+<!-- col-start 1:1 red:green -->
+### Blocked
+<!-- color: red -->
+**Database connection pool exhausted.**
+<!-- /color -->
+<!-- col-sep -->
+### Healthy
+<!-- color: green -->
+All services nominal.
+<!-- /color -->
+<!-- col-end -->
+"""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "column_text_colors.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+
+        self.assertIn(b'slide-column-red', response.data)
+        self.assertIn(b'slide-column-green', response.data)
+        self.assertIn(b'class="slide-text-red"', response.data)
+        self.assertIn(b'class="slide-text-green"', response.data)
+        self.assertIn(b'Database connection pool exhausted.', response.data)
+
+
+
+
 

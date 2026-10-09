@@ -11,6 +11,9 @@ date: 2026-10-08
 
 One focused workspace for planning, building, and sharing your best work.
 
+<!-- speaker -->
+Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
+
 ---
 
 ## Everyday Markdown
@@ -52,7 +55,8 @@ Markdown is still the primary authoring language; slides only add document metad
 > Use blockquotes for principles, evidence, or a memorable line.
 
 <!-- quote: yellow -->
-> <!-- color: yellow -->**Guideline**: Keep slides focused; avoid clutter and preserve strong contrast.<!-- /color -->
+> <!-- color: yellow -->
+> **Guideline**: Keep slides focused; avoid clutter and preserve strong contrast. <!-- /color -->
 
 ---
 
@@ -116,6 +120,13 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 <!-- col-end -->
 
+<!-- quote: blue -->
+> "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
+
+<!-- speaker -->
+- Emphasize that planning and shipping happen in the same unified workflow.
+- Transition to the next slide demonstrating multi-column Markdown.
+
 ---
 
 ## Markdown in two columns
@@ -137,6 +148,28 @@ Use **emphasis**, `inline code`, and ordinary paragraphs without a special synta
 | --- | --- |
 | Small step | Fast learning |
 | Big bet | Bigger risk |
+
+<!-- col-end -->
+
+---
+
+## Table as column card
+
+When a column contains **only** a table, it fills the card completely — no padding, borders merge.
+
+<!-- col-start 1:1 blue:green -->
+
+| Signal | Target | This week |
+| :--- | ---: | ---: |
+| Activation | 60 % | 64 % |
+| Retention | 45 % | 47 % |
+| NPS | 50 | 54 |
+
+<!-- col-sep -->
+
+### Notes
+
+The right column has normal content — the flush-fill only applies when the table is the **sole** element in the card.
 
 <!-- col-end -->
 
@@ -279,3 +312,6 @@ Less coordination. More creation.
 <!-- color: green -->
 **Orbit is available today.**
 <!-- /color -->
+
+<!-- speaker -->
+Thank the team and open the floor for Q&A.

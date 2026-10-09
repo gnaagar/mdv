@@ -34,6 +34,9 @@
           {% endif %}
         {% endfor %}
       </div>
+      {% if slide.notes_html %}
+      <div class="speaker-notes" hidden style="display: none;" aria-hidden="true">{{ slide.notes_html | safe }}</div>
+      {% endif %}
     </section>
     {% endfor %}
   </main>
