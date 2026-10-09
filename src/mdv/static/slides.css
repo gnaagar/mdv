@@ -23,10 +23,16 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: clamp(1.5rem, 2.2v
 .slide-content p, .slide-content li { color: var(--slide-text); }
 .slide-content a { color: var(--slide-accent); }
 .slide-content pre { font-size: .72em; max-height: 50vh; overflow: auto; }
-#markdown-body .slide-content .md-table-container { width: 100%; max-width: none; margin: 2rem auto; }
-#markdown-body .slide-content .md-table { width: 100%; max-width: none; }
-#markdown-body .slide-content table { width: 100%; font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
+#markdown-body .slide-content .md-table-container { width: 100%; max-width: none; margin: 2rem auto; background: transparent; box-shadow: none; }
+#markdown-body .slide-content .md-table-container::before, #markdown-body .slide-content .md-table-container::after { display: none; }
+#markdown-body .slide-content .md-table { width: 100%; max-width: none; background: transparent; }
+#markdown-body .slide-content table { width: 100%; background-color: transparent; font-size: clamp(1.15rem, 1.8vw, 1.6rem); }
+#markdown-body .slide-content thead, #markdown-body .slide-content tbody, #markdown-body .slide-content tfoot { background-color: transparent; }
+#markdown-body .slide-content th { background-color: transparent; }
+#markdown-body .slide-content tr, #markdown-body .slide-content tr:nth-child(odd), #markdown-body .slide-content tr:nth-child(even), #markdown-body .slide-content tr:hover { background-color: transparent; }
+#markdown-body .slide-content td { background-color: transparent; }
 #markdown-body .slide-content th, #markdown-body .slide-content td { padding: 1.15rem 1.6rem; }
+#markdown-body .slide-column .md-table-container { margin: 1rem 0; }
 .slide-content .math.block, .slide-content .katex-display { display: block; margin: 1.25em auto; text-align: center; font-size: 1.35em; }
 .slide-content .mermaid-wrapper { margin: 1.5rem auto; text-align: center; }
 .slide-content .mermaid svg { max-width: 100%; height: auto; }

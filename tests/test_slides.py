@@ -223,5 +223,18 @@ Slide body text.
         self.assertIn(b'<div class="speaker-notes" hidden style="display: none;"', response.data)
         self.assertIn(b'Mention performance metrics', response.data)
 
+    def test_slides_css_removes_table_backgrounds(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(SOURCE, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/static/slides.css")
+        self.assertEqual(response.status_code, 200)
+        css = response.data.decode("utf-8")
+        self.assertIn("#markdown-body .slide-content .md-table-container", css)
+        self.assertIn("background: transparent", css)
+        self.assertIn("#markdown-body .slide-content table", css)
+        self.assertIn("background-color: transparent", css)
+
+
 
 
