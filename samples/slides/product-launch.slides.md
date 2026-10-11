@@ -100,6 +100,27 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 ---
 
+## Another diagram
+
+<!-- col-start 1:1 none -->
+
+```mermaid
+flowchart TD
+    A{Is the sample process at its midpoint stage?} -- Yes --> B(Review the placeholder example item if you have the opportunity. Generic content for demonstration.)
+    A -- No --> C(No further action is required at this stage)
+```
+
+<!-- col-sep -->
+
+### The process
+
+- A simple process, but a great example
+- May lead to no action
+
+<!-- col-end -->
+
+---
+
 ## Built for flow
 
 <!-- col-start 1:1 blue:green -->
@@ -300,6 +321,94 @@ Use the second row for the final trade-off.
 
 <!-- quote: green -->
 > **Orbit simplifies complex flows**: Plan, collaborate, and ship safely.
+
+<!-- col-end -->
+
+---
+
+## Blockquote styles
+
+<!-- quote: blue -->
+> **Blue**: Use blockquotes for principles, evidence, or a memorable line. The shadow gives them presence on a slide.
+
+<!-- quote: green -->
+> **Green**: Verified result or a positive finding worth highlighting.
+
+<!-- quote: yellow -->
+> **Yellow**: A caution or guideline the audience should carry forward.
+
+<!-- quote: red -->
+> **Red**: An urgent blocker or critical constraint — hard to miss.
+
+---
+
+## Table colour matching
+
+When a column's only content is a table, borders and headers adopt the column palette.
+
+<!-- col-start 1:1 blue:green -->
+
+| Signal | This week |
+| :--- | ---: |
+| Activation | 64 % |
+| Retention | 47 % |
+| NPS | 54 |
+
+<!-- col-sep -->
+
+| Signal | This week |
+| :--- | ---: |
+| Build time | 42 s |
+| Test pass | 98 % |
+| Deploy freq | 3 / day |
+
+<!-- col-end -->
+
+---
+
+## Invisible multi-column
+
+<!-- col-start 1:1 none:none -->
+
+### Left area
+
+Columns divide the slide without any visible box or background. Content sits in its natural position with only the flex spacing between columns.
+
+- Point one
+- Point two
+- Point three
+
+<!-- col-sep -->
+
+### Right area
+
+The `none` colour removes border, background, and border-radius, making the split entirely invisible.
+
+<!-- quote: blue -->
+> Useful when you want layout control without the card look.
+
+<!-- col-end -->
+
+---
+
+## Mixed: card + invisible
+
+<!-- col-start 1:2 blue:none -->
+
+### Highlight
+
+<!-- quote: blue -->
+> The left column can be a coloured card while the right is open.
+
+<!-- col-sep -->
+
+### Detail
+
+Use `none` on just one side to anchor a card on the left or right while giving the remaining content room to breathe without boxing it in.
+
+- No border
+- No background
+- Full padding preserved
 
 <!-- col-end -->
 
