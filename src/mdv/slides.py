@@ -21,7 +21,7 @@ class SlidesParseError(ValueError):
     """Raised when a document does not follow the md-slides structure."""
 
 
-ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue"}
+ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "none"}
 
 
 @dataclass(frozen=True)

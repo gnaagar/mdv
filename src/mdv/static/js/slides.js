@@ -1,7 +1,22 @@
 (() => {
+  /* ── 16:9 viewport scaling ──────────────────────────────────────────────── */
+  const SLIDE_W = 1600;
+  const SLIDE_H = 900;
+
+  function scaleSlides() {
+    // Cap at 1: never enlarge beyond 1600×900; scale down if viewport is smaller.
+    const scale = Math.min(1, window.innerWidth / SLIDE_W, window.innerHeight / SLIDE_H);
+    document.documentElement.style.setProperty('--slide-scale', scale);
+  }
+
+  scaleSlides();
+  window.addEventListener('resize', scaleSlides);
+
+  /* ── Slide navigation ───────────────────────────────────────────────────── */
   const slides = [...document.querySelectorAll('.slide')];
   const count = document.getElementById('slide-count');
   let current = 0;
+
   const show = (index) => {
     current = Math.max(0, Math.min(index, slides.length - 1));
     slides.forEach((slide, i) => {
@@ -23,8 +38,10 @@
       }
     });
   };
+
   const fromHash = Number.parseInt(location.hash.slice(1), 10);
   if (fromHash) show(fromHash - 1);
+
   document.addEventListener('keydown', (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(event.key)) { event.preventDefault(); show(current + 1); }
