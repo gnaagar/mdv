@@ -6,7 +6,7 @@
   --slide-muted: #777777;
   --slide-accent: #4078c0;
   --slide-border: #e5e7eb;
-  --slide-column-bg: #fafbfc;
+  --slide-column-bg: #ffffff;
 
   /* Logical canvas size – never changes; JS scales the canvas to the viewport */
   --slide-w: 1600px;
@@ -116,8 +116,8 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-content a { color: var(--slide-accent); }
 .slide-content pre {
   font-size: .72em; max-height: 38vh; overflow: auto;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.24);
+  /* border-radius: 8px; */
 }
 
 /* ── Tables ───────────────────────────────────────────────────────────────── */
