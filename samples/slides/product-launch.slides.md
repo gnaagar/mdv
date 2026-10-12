@@ -106,8 +106,13 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 ```mermaid
 flowchart TD
-    A{Is the sample process at its midpoint stage?} -- Yes --> B(Review the placeholder example item if you have the opportunity. Generic content for demonstration.)
+    A{"`Is the sample process at its midpoint stage?`"} -- Yes --> B(Review the placeholder example item if you have the opportunity. Generic content for demonstration.)
     A -- No --> C(No further action is required at this stage)
+```
+
+```mermaid
+flowchart LR
+C["`A *text* **that** needs to be wrapped to another line`"]
 ```
 
 <!-- col-sep -->
