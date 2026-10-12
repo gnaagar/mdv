@@ -12,6 +12,10 @@
   scaleSlides();
   window.addEventListener('resize', scaleSlides);
 
+  window.mermaid.initialize({
+    startOnLoad: false
+  });
+
   /* ── Slide navigation ───────────────────────────────────────────────────── */
   const slides = [...document.querySelectorAll('.slide')];
   const count = document.getElementById('slide-count');
@@ -29,12 +33,19 @@
     requestAnimationFrame(() => {
       const slide = slides[current];
       const diagrams = slide.querySelectorAll('.mermaid');
+
       if (window.mermaid && diagrams.length) {
         diagrams.forEach((diagram) => {
-          if (diagram.dataset.mermaidSrc) diagram.textContent = diagram.dataset.mermaidSrc;
+          if (diagram.dataset.mermaidSrc) {
+            diagram.textContent = diagram.dataset.mermaidSrc;
+          }
+
           diagram.removeAttribute('data-processed');
         });
-        window.mermaid.run({ nodes: diagrams }).catch((error) => console.error('Unable to render Mermaid diagram:', error));
+
+        window.mermaid.run({ nodes: diagrams }).catch((error) => {
+          console.error('Unable to render Mermaid diagram:', error);
+        });
       }
     });
   };
