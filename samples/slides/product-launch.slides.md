@@ -89,7 +89,7 @@ $$
 ## A Mermaid diagram
 
 ```mermaid
-flowchart LR
+flowchart TD
     Idea[Idea] --> Plan[Plan]
     Plan --> Build[Build]
     Build --> Learn[Learn]
@@ -110,17 +110,18 @@ flowchart TD
     A -- No --> C(No further action is required at this stage)
 ```
 
-```mermaid
-flowchart LR
-C["`A *text* **that** needs to be wrapped to another line`"]
-```
-
 <!-- col-sep -->
 
 ### The process
 
 - A simple process, but a great example
 - May lead to no action
+
+```mermaid
+flowchart LR
+C["`A *text* **that** needs to be wrapped to another line`"]
+```
+
 
 <!-- col-end -->
 

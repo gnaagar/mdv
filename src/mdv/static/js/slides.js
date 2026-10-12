@@ -20,6 +20,25 @@
   const slides = [...document.querySelectorAll('.slide')];
   const count = document.getElementById('slide-count');
   let current = 0;
+  let diagramId = 0;
+
+  async function renderSlideDiagrams(slide) {
+    for (const diagram of slide.querySelectorAll('.mermaid')) {
+      if (diagram.hasAttribute('data-processed')) continue;
+      diagram.setAttribute('data-processed', 'true');
+
+      try {
+        const { svg, bindFunctions } = await window.mermaid.render(
+          `slide-mermaid-${diagramId++}`, diagram.dataset.mermaidSrc
+        );
+        diagram.innerHTML = svg;
+        bindFunctions?.(diagram);
+      } catch (error) {
+        diagram.removeAttribute('data-processed');
+        console.error('Unable to render mermaid diagram:', error);
+      }
+    }
+  }
 
   const show = (index) => {
     current = Math.max(0, Math.min(index, slides.length - 1));
@@ -31,27 +50,20 @@
     count.textContent = `${current + 1} / ${slides.length}`;
     history.replaceState(null, '', `#${current + 1}`);
     requestAnimationFrame(() => {
-      const slide = slides[current];
-      const diagrams = slide.querySelectorAll('.mermaid');
-
-      if (window.mermaid && diagrams.length) {
-        diagrams.forEach((diagram) => {
-          if (diagram.dataset.mermaidSrc) {
-            diagram.textContent = diagram.dataset.mermaidSrc;
-          }
-
-          diagram.removeAttribute('data-processed');
-        });
-
-        window.mermaid.run({ nodes: diagrams }).catch((error) => {
-          console.error('Unable to render Mermaid diagram:', error);
-        });
-      }
+      renderSlideDiagrams(slides[current]);
     });
   };
 
-  const fromHash = Number.parseInt(location.hash.slice(1), 10);
-  if (fromHash) show(fromHash - 1);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.documentElement.classList.remove('theme-dark');
+    document.body.classList.remove('theme-dark');
+    window.mermaid.initialize({
+      startOnLoad: false,
+      flowchart: { wrappingWidth: 200 }
+    });
+    const fromHash = Number.parseInt(location.hash.slice(1), 10);
+    show(fromHash ? fromHash - 1 : 0);
+  });
 
   document.addEventListener('keydown', (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;

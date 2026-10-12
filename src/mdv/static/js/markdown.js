@@ -317,7 +317,7 @@ function renderMermaidDiagrams() {
     });
   });
 
-  mermaid.run();
+  mermaid.run({ nodes: document.querySelectorAll('.mermaid:not(.slide .mermaid)') });
 }
 
 document.addEventListener('themeChanged', (e) => {
