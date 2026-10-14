@@ -6,7 +6,7 @@ body {
   background-color: var(--main-bg);
 }
 
-#markdown-body {
+.markdown-body {
   width: 100%;
   /* Match focus mode's readable text column without changing its layout. */
   max-width: calc(var(--content-max-width, 806px) - 4rem);
@@ -20,56 +20,59 @@ body {
   line-height: 1.5;
   background: var(--markdown-bg);
 }
-#markdown-body pre,
-#markdown-body p,
-#markdown-body table,
-#markdown-body h1, #markdown-body h2, #markdown-body h3, #markdown-body h4, #markdown-body h5, #markdown-body h6,
-#markdown-body blockquote,
-#markdown-body ul,
-#markdown-body ol,
-#markdown-body hr {
+.markdown-body strong {
+  font-weight: 600;
+}
+.markdown-body pre,
+.markdown-body p,
+.markdown-body table,
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body hr {
   margin-bottom: 20px;
 }
-#markdown-body h1, #markdown-body h2, #markdown-body h3, #markdown-body h4, #markdown-body h5, #markdown-body h6 {
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 {
   line-height: 1.3;
   font-weight: 600;
 }
-#markdown-body h1 {
+.markdown-body h1 {
   font-size: 2rem;
 }
-#markdown-body h2 {
+.markdown-body h2 {
   font-size: 1.5rem;
 }
-#markdown-body h3 {
+.markdown-body h3 {
   font-size: 1.25rem;
 }
-#markdown-body h4, #markdown-body h5, #markdown-body h6 {
+.markdown-body h4, .markdown-body h5, .markdown-body h6 {
   font-size: 1rem;
 }
-#markdown-body ul, #markdown-body ol {
+.markdown-body ul, .markdown-body ol {
   padding-left: 28px;
 }
-#markdown-body ul {
+.markdown-body ul {
   list-style-type: disc;
 }
-#markdown-body li > ul,
-#markdown-body li > ol {
+.markdown-body li > ul,
+.markdown-body li > ol {
   padding-left: 30px;
 }
-#markdown-body li > p,
-#markdown-body li > ul,
-#markdown-body li > pre,
-#markdown-body li > blockquote {
+.markdown-body li > p,
+.markdown-body li > ul,
+.markdown-body li > pre,
+.markdown-body li > blockquote {
   margin-top: 10px;
   margin-bottom: 0;
 }
-#markdown-body li {
+.markdown-body li {
   margin-bottom: 10px;
 }
-#markdown-body li:last-child {
+.markdown-body li:last-child {
   margin-bottom: 0;
 }
-#markdown-body pre {
+.markdown-body pre {
   display: block;
   margin-top: 4px;
   padding: 6px 8px;
@@ -80,20 +83,20 @@ body {
   border-radius: 4px;
   border: 1px solid var(--code-border);
 }
-#markdown-body pre.highlight {
+.markdown-body pre.highlight {
   border-left: 5px solid var(--code-highlight);
   padding-left: 5px;
 }
-#markdown-body pre.copied {
+.markdown-body pre.copied {
   background-color: var(--code-copied-bg);
 }
-#markdown-body pre > code {
+.markdown-body pre > code {
   color: var(--code-color);
 }
-#markdown-body .code-wrapper {
+.markdown-body .code-wrapper {
   position: relative;
 }
-#markdown-body .copy-btn {
+.markdown-body .copy-btn {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -113,31 +116,31 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-#markdown-body .copy-btn .svg {
+.markdown-body .copy-btn .svg {
   display: block;
 }
-#markdown-body .code-wrapper:hover .copy-btn {
+.markdown-body .code-wrapper:hover .copy-btn {
   opacity: 0.4;
   pointer-events: auto;
 }
-#markdown-body .code-wrapper .copy-btn:hover {
+.markdown-body .code-wrapper .copy-btn:hover {
   opacity: 1;
   background: var(--tree-entry-highlight-bg);
   color: var(--tree-entry-highlight-color);
   border-color: var(--border-color-light);
 }
-#markdown-body code {
+.markdown-body code {
   color: var(--inline-code-color);
   font-family: "JetBrains Mono", monospace;
   font-variant-ligatures: none;
 }
-#markdown-body .md-image {
+.markdown-body .md-image {
   overflow-x: auto;
   max-width: 100%;
   margin-bottom: 20px;
   padding-bottom: 0.5px;
 }
-#markdown-body .md-table-container {
+.markdown-body .md-table-container {
   position: relative;
   width: fit-content;
   max-width: 100%;
@@ -148,8 +151,8 @@ body {
   background-color: var(--markdown-table-row-bg);
   overflow: hidden;
 }
-#markdown-body .md-table-container::before,
-#markdown-body .md-table-container::after {
+.markdown-body .md-table-container::before,
+.markdown-body .md-table-container::after {
   content: "";
   position: absolute;
   top: 0;
@@ -160,38 +163,38 @@ body {
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }
-#markdown-body .md-table-container::before {
+.markdown-body .md-table-container::before {
   left: 0;
   background: linear-gradient(to right, var(--markdown-table-row-bg) 25%, transparent);
 }
-#markdown-body .md-table-container::after {
+.markdown-body .md-table-container::after {
   right: 0;
   background: linear-gradient(to left, var(--markdown-table-row-bg) 25%, transparent);
 }
-#markdown-body .md-table-container.scroll-left-active::before {
+.markdown-body .md-table-container.scroll-left-active::before {
   opacity: 1;
 }
-#markdown-body .md-table-container.scroll-right-active::after {
+.markdown-body .md-table-container.scroll-right-active::after {
   opacity: 1;
 }
-#markdown-body .md-table {
+.markdown-body .md-table {
   overflow-x: auto;
   max-width: 100%;
   margin: 0;
   border: none;
   border-radius: 0;
 }
-#markdown-body .md-table::-webkit-scrollbar {
+.markdown-body .md-table::-webkit-scrollbar {
   height: 6px;
 }
-#markdown-body .md-table::-webkit-scrollbar-track {
+.markdown-body .md-table::-webkit-scrollbar-track {
   background: transparent;
 }
-#markdown-body .md-table::-webkit-scrollbar-thumb {
+.markdown-body .md-table::-webkit-scrollbar-thumb {
   background: var(--border-color-light, rgba(0, 0, 0, 0.15));
   border-radius: 3px;
 }
-#markdown-body table {
+.markdown-body table {
   width: 100%;
   display: table;
   font-size: 0.9rem;
@@ -199,22 +202,22 @@ body {
   border-collapse: collapse;
   margin: 0;
 }
-#markdown-body th,
-#markdown-body td {
+.markdown-body th,
+.markdown-body td {
   padding: 0.65rem 0.95rem;
   border-bottom: 1px solid var(--markdown-table-border);
   border-right: 1px solid var(--markdown-table-border);
   vertical-align: top;
   line-height: 1.45;
 }
-#markdown-body th:last-child,
-#markdown-body td:last-child {
+.markdown-body th:last-child,
+.markdown-body td:last-child {
   border-right: none;
 }
-#markdown-body tr:last-child td {
+.markdown-body tr:last-child td {
   border-bottom: none;
 }
-#markdown-body th {
+.markdown-body th {
   font-weight: 600;
   color: var(--markdown-table-header-color);
   background-color: var(--markdown-table-header-bg);
@@ -225,24 +228,24 @@ body {
   border-bottom: 2px solid var(--markdown-table-border);
   white-space: nowrap;
 }
-#markdown-body td code {
+.markdown-body td code {
   white-space: nowrap;
 }
-#markdown-body tr:nth-child(odd) {
+.markdown-body tr:nth-child(odd) {
   background-color: var(--markdown-table-row-bg);
 }
-#markdown-body tr:nth-child(even) {
+.markdown-body tr:nth-child(even) {
   background-color: var(--markdown-table-row-alt-bg);
 }
-#markdown-body tr:hover {
+.markdown-body tr:hover {
   background-color: var(--markdown-table-hover-bg);
 }
-#markdown-body hr {
+.markdown-body hr {
   border: none;
   border-top: 1px solid var(--markdown-hr, rgba(189, 193, 198, 0.4));
   margin: 2em 0;
 }
-#markdown-body .task-list-item {
+.markdown-body .task-list-item {
   list-style-type: none;
   margin-left: -28px;
   padding-left: 0.5rem;
@@ -250,7 +253,7 @@ body {
   border-radius: 4px;
 }
 
-#markdown-body .task-list-item input[type=checkbox] {
+.markdown-body .task-list-item input[type=checkbox] {
   appearance: none;
   -webkit-appearance: none;
   width: 14px;
@@ -264,12 +267,12 @@ body {
   top: -1px; /* fine-tune vertical alignment */
 }
 
-#markdown-body .task-list-item input[type=checkbox]:checked {
+.markdown-body .task-list-item input[type=checkbox]:checked {
   background-color: var(--checkbox-checked-bg);
   border-color: var(--checkbox-checked-border);
 }
 
-#markdown-body .task-list-item input[type=checkbox]:checked::after {
+.markdown-body .task-list-item input[type=checkbox]:checked::after {
   content: "";
   position: absolute;
   top: 45%;
@@ -281,17 +284,17 @@ body {
   border-bottom: 2px solid white;
 }
 
-#markdown-body .task-completed {
+.markdown-body .task-completed {
   color: var(--task-completed-color);
 }
-#markdown-body .task-completed * {
+.markdown-body .task-completed * {
   color: inherit !important;
 }
 
 /* ===== Tree visualization for nested task sublists ===== */
 
 /* Container for nested sublists within task items */
-#markdown-body .task-list-item > ul {
+.markdown-body .task-list-item > ul {
   position: relative;
   padding-left: 28px;
   margin-top: 4px;
@@ -299,13 +302,13 @@ body {
 }
 
 /* Reset the negative margin so tree connectors have room */
-#markdown-body .task-list-item > ul > .task-list-item {
+.markdown-body .task-list-item > ul > .task-list-item {
   margin-left: 0;
   position: relative;
 }
 
 /* Horizontal branch connector (the ── part of ├── and └──) */
-#markdown-body .task-list-item > ul > .task-list-item::before {
+.markdown-body .task-list-item > ul > .task-list-item::before {
   content: '';
   position: absolute;
   left: -20px;
@@ -316,7 +319,7 @@ body {
 }
 
 /* Vertical line segment connecting siblings (the │ part) */
-#markdown-body .task-list-item > ul > .task-list-item::after {
+.markdown-body .task-list-item > ul > .task-list-item::after {
   content: '';
   position: absolute;
   left: -20px;
@@ -327,11 +330,11 @@ body {
 }
 
 /* Last child: vertical line stops at connector point (└ shape) */
-#markdown-body .task-list-item > ul > .task-list-item:last-child::after {
+.markdown-body .task-list-item > ul > .task-list-item:last-child::after {
   bottom: auto;
   height: 13px;
 }
-#markdown-body blockquote {
+.markdown-body blockquote {
   display: block;
   padding: 12px;
   margin-left: 20px;
@@ -341,30 +344,30 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   color: var(--blockquote-text-color);
 }
-#markdown-body blockquote > :first-child {
+.markdown-body blockquote > :first-child {
   margin-top: 0;
 }
-#markdown-body blockquote > :last-child {
+.markdown-body blockquote > :last-child {
   margin-bottom: 0;
 }
-#markdown-body a {
+.markdown-body a {
   color: var(--link-color);
   text-decoration: none;
 }
-#markdown-body a:visited, #markdown-body a:active {
+.markdown-body a:visited, .markdown-body a:active {
   color: var(--link-color);
 }
-#markdown-body a:hover, #markdown-body a:focus {
+.markdown-body a:hover, .markdown-body a:focus {
   color: var(--link-hover-color);
   text-decoration: underline;
 }
-#markdown-body a code,
-#markdown-body a tt {
+.markdown-body a code,
+.markdown-body a tt {
   color: inherit !important;
   text-decoration: inherit;
 }
 
-#markdown-body a.wikilink {
+.markdown-body a.wikilink {
   display: inline;
   color: var(--link-color);
   background: transparent;
@@ -377,12 +380,12 @@ body {
   text-decoration: underline dotted var(--link-color) !important;
   text-underline-offset: 2px;
 }
-#markdown-body a.wikilink:hover, #markdown-body a.wikilink:focus {
+.markdown-body a.wikilink:hover, .markdown-body a.wikilink:focus {
   background: transparent;
   color: var(--link-hover-color);
   text-decoration: underline solid var(--link-hover-color) !important;
 }
-#markdown-body a.wikilink.broken-link {
+.markdown-body a.wikilink.broken-link {
   color: var(--broken-link-color, #a8a8a8);
   background: transparent;
   opacity: 0.65;
@@ -390,7 +393,7 @@ body {
   text-decoration: underline dashed var(--broken-link-color, #a8a8a8) !important;
   text-underline-offset: 2px;
 }
-#markdown-body a.wikilink.broken-link:hover, #markdown-body a.wikilink.broken-link:focus {
+.markdown-body a.wikilink.broken-link:hover, .markdown-body a.wikilink.broken-link:focus {
   opacity: 0.95;
   background: transparent;
   text-decoration: underline solid var(--broken-link-color, #a8a8a8) !important;
@@ -692,7 +695,7 @@ body.theme-dark .mermaid-modal-slider::-moz-range-thumb {
 }
 
 /* ===== Table Explore Button Styles ===== */
-#markdown-body .table-explore-btn {
+.markdown-body .table-explore-btn {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -712,27 +715,27 @@ body.theme-dark .mermaid-modal-slider::-moz-range-thumb {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-body.theme-dark #markdown-body .table-explore-btn {
+body.theme-dark .markdown-body .table-explore-btn {
   background: var(--markdown-bg, #2d2e30);
   border-color: var(--border-color-light, rgba(255, 255, 255, 0.15));
 }
 
-#markdown-body .md-table-container.table-scrollable .table-explore-btn {
+.markdown-body .md-table-container.table-scrollable .table-explore-btn {
   display: block;
 }
 
-#markdown-body .md-table-container.table-scrollable:hover .table-explore-btn {
+.markdown-body .md-table-container.table-scrollable:hover .table-explore-btn {
   opacity: 0.7;
   pointer-events: auto;
 }
 
-#markdown-body .md-table-container.table-scrollable:hover .table-explore-btn:hover {
+.markdown-body .md-table-container.table-scrollable:hover .table-explore-btn:hover {
   opacity: 1;
   color: var(--link-color, #0969da);
   border-color: var(--link-color, #0969da);
 }
 
-#markdown-body .table-explore-btn svg {
+.markdown-body .table-explore-btn svg {
   display: block;
   width: 16px;
   height: 16px;
@@ -888,21 +891,21 @@ body.modal-open .nav-sidebar {
 }
 
 /* Remove default markdown bullet list styling for the directory index view */
-#markdown-body .dash-recent-list {
+.markdown-body .dash-recent-list {
   list-style: none !important;
   padding-left: 0 !important;
   margin: 0 !important;
 }
-#markdown-body .dash-recent-list li {
+.markdown-body .dash-recent-list li {
   list-style: none !important;
   padding: 0 !important;
   margin: 0 !important;
 }
-#markdown-body .dash-recent-list li::before {
+.markdown-body .dash-recent-list li::before {
   content: none !important;
 }
-#markdown-body .dash-recent-entry,
-#markdown-body .dash-recent-entry:hover {
+.markdown-body .dash-recent-entry,
+.markdown-body .dash-recent-entry:hover {
   text-decoration: none !important;
 }
 
@@ -1025,11 +1028,11 @@ body.modal-open .nav-sidebar {
 }
 
 /* Force 1-column layout for the directory listing list inside markdown body */
-#markdown-body .dash-recent-list {
+.markdown-body .dash-recent-list {
   grid-template-columns: 1fr !important;
 }
 /* Force single-line horizontal alignment for icons + names */
-#markdown-body .dash-recent-info {
+.markdown-body .dash-recent-info {
   flex-direction: row !important;
   align-items: center !important;
   gap: 8px !important;

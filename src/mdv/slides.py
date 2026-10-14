@@ -21,7 +21,7 @@ class SlidesParseError(ValueError):
     """Raised when a document does not follow the md-slides structure."""
 
 
-ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "none"}
+ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "pink", "purple", "none"}
 
 
 @dataclass(frozen=True)
@@ -61,27 +61,27 @@ _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
 _COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
 _COL_COLOR_RE = re.compile(
-    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue)\s*-->\s*$",
+    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple)\s*-->\s*$",
     re.IGNORECASE,
 )
 _QUOTE_DIRECTIVE_RE = re.compile(
-    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue)\s*-->\s*$",
+    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple)\s*-->\s*$",
     re.IGNORECASE,
 )
 _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
-    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue)\s*-->[ \t]*(.*)$",
+    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple)\s*-->[ \t]*(.*)$",
     re.IGNORECASE,
 )
 _TEXT_COLOR_SPAN_RE = re.compile(
-    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue)\s*-->([\s\S]*?)<!--\s*(?:\/(?:color|text|yellow|red|green|blue)|end-(?:color|text)|end)\s*-->",
+    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue|pink|purple)\s*-->([\s\S]*?)<!--\s*(?:\/(?:color|text|yellow|red|green|blue|pink|purple)|end-(?:color|text)|end)\s*-->",
     re.IGNORECASE,
 )
 _TEXT_COLOR_SIMPLE_RE = re.compile(
-    r"<!--\s*(yellow|red|green|blue)\s*-->([\s\S]*?)<!--\s*\/\1\s*-->",
+    r"<!--\s*(yellow|red|green|blue|pink|purple)\s*-->([\s\S]*?)<!--\s*\/\1\s*-->",
     re.IGNORECASE,
 )
 _TEXT_LINE_COLOR_RE = re.compile(
-    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue)\s*-->([^\n<]+)$",
+    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue|pink|purple)\s*-->([^\n<]+)$",
     re.IGNORECASE,
 )
 _ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
@@ -109,15 +109,15 @@ def _parse_front_matter(source: str) -> tuple[dict[str, str], str]:
 
 
 _SLIDE_QUOTE_TOKEN_RE = re.compile(
-    r"<blockquote([^>]*)>([\s\S]*?)%%SLIDE_QUOTE_(yellow|red|green|blue)%%[ \t]*([\s\S]*?)<\/blockquote>",
+    r"<blockquote([^>]*)>([\s\S]*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple)%%[ \t]*([\s\S]*?)<\/blockquote>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_BLOCK_P_RE = re.compile(
-    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
+    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_TOKEN_RE = re.compile(
-    r"%%SLIDE_TEXT_START_(yellow|red|green|blue)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
+    r"%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
     re.IGNORECASE,
 )
 
@@ -193,7 +193,7 @@ def _render_markdown(content: str) -> str:
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
     html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, raw_html)
-    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue)%%[ \t]*", "", html)
+    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
         color = match.group(1).lower()

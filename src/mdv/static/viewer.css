@@ -512,7 +512,7 @@ body {
   table,
   img,
   blockquote,
-  #markdown-body * {
+  .markdown-body * {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -537,7 +537,7 @@ body.focus-active #top-strip {
   display: none;
 }
 
-#markdown-body.focus-layout {
+.markdown-body.focus-layout {
   padding-top: 1.5rem;
 }
 
@@ -545,12 +545,12 @@ body.focus-active #top-strip {
    MARKDOWN BODY HEADINGS (scroll-margin)
    ================================================================ */
 
-#markdown-body h1,
-#markdown-body h2,
-#markdown-body h3,
-#markdown-body h4,
-#markdown-body h5,
-#markdown-body h6 {
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
   scroll-margin-top: calc(var(--top-strip-height) + 12px);
 }
 

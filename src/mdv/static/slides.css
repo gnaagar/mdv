@@ -25,7 +25,7 @@ html, body {
 }
 
 /* Centering wrapper – fills the whole viewport */
-#markdown-body {
+.markdown-body {
   position: relative;          /* containing block for absolutely-positioned slides */
   width: 100vw; height: 100vh;
   display: flex; align-items: center; justify-content: center;
@@ -81,7 +81,7 @@ html, body {
 .title-slide { text-align: center; }
 .title-slide-content { width: min(100%, 1050px); margin: auto; }
 
-body.theme-sans #markdown-body .title-slide h1 {
+body.theme-sans .markdown-body .title-slide h1 {
   font-size: 5.5rem; line-height: 1.05; margin: 0; letter-spacing: -.02em;
 }
 .title-slide-subtitle {
@@ -107,32 +107,39 @@ body.theme-sans #markdown-body .title-slide h1 {
 /* ── Headings ─────────────────────────────────────────────────────────────── */
 .slide h1, .slide h2 { border-bottom: 0 !important; padding-bottom: 0 !important; }
 .slide-content h1 { font-size: 4.5rem; line-height: 1.05; margin: 0 0 .45em; letter-spacing: -.04em; }
-body.theme-sans #markdown-body .slide-content h2 { font-size: 3.2rem; line-height: 1.1; margin: 0 0 .5em; }
-body.theme-sans #markdown-body .slide-content h3 { font-size: 1.9rem; line-height: 1.25; margin-top: 2.5rem; }
+body.theme-sans .markdown-body .slide-content h2 { font-size: 3.2rem; line-height: 1.1; margin: 0 0 .5em; }
+body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-height: 1.25; margin-top: 2.5rem; }
 
-#markdown-body .slide-column > :first-child { margin-top: 0 !important; }
-#markdown-body .slide-content > .slide-markdown > h2:first-child { margin-bottom: 4rem; }
+.markdown-body .slide-column > :first-child { margin-top: 0 !important; }
+.markdown-body .slide-content > .slide-markdown > h2:first-child { margin-bottom: 4rem; }
 .slide-content p, .slide-content li { color: var(--slide-text); }
 .slide-content a { color: var(--slide-accent); }
+/* Code blocks: adaptive — a slight darkening of the surrounding background */
 .slide-content pre {
   font-size: .72em; max-height: 38vh; overflow: auto;
-  border: 1px solid rgba(0, 0, 0, 0.20) !important;
-  border-radius: 0px !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 6px !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: inherit;
+}
+
+.markdown-body .slide-content strong {
+  font-weight: 600;
 }
 
 /* ── Tables ───────────────────────────────────────────────────────────────── */
-#markdown-body .slide-content .md-table-container { width: 100%; max-width: none; margin: 2rem auto; background: transparent; box-shadow: none; }
-#markdown-body .slide-content .md-table-container::before, #markdown-body .slide-content .md-table-container::after { display: none; }
-#markdown-body .slide-content .md-table { width: 100%; max-width: none; background: transparent; }
-#markdown-body .slide-content table { width: 100%; background-color: transparent; font-size: 1.4rem; }
-#markdown-body .slide-content thead, #markdown-body .slide-content tbody, #markdown-body .slide-content tfoot { background-color: transparent; }
-#markdown-body .slide-content th { background-color: transparent; }
-#markdown-body .slide-content tr, #markdown-body .slide-content tr:nth-child(odd), #markdown-body .slide-content tr:nth-child(even), #markdown-body .slide-content tr:hover { background-color: transparent; }
-#markdown-body .slide-content td { background-color: transparent; }
-#markdown-body .slide-content th, #markdown-body .slide-content td { padding: 1.15rem 1.6rem; }
-#markdown-body .slide-column .md-table-container { margin: 1rem 0; }
+.markdown-body .slide-content .md-table-container { width: 100%; max-width: none; margin: 2rem auto; background: transparent; box-shadow: none; }
+.markdown-body .slide-content .md-table-container::before, .markdown-body .slide-content .md-table-container::after { display: none; }
+.markdown-body .slide-content .md-table { width: 100%; max-width: none; background: transparent; }
+.markdown-body .slide-content table { width: 100%; background-color: transparent; font-size: 1.4rem; }
+.markdown-body .slide-content thead, .markdown-body .slide-content tbody, .markdown-body .slide-content tfoot { background-color: transparent; }
+.markdown-body .slide-content th { background-color: transparent; }
+.markdown-body .slide-content tr, .markdown-body .slide-content tr:nth-child(odd), .markdown-body .slide-content tr:nth-child(even), .markdown-body .slide-content tr:hover { background-color: transparent; }
+.markdown-body .slide-content td { background-color: transparent; }
+.markdown-body .slide-content th, .markdown-body .slide-content td { padding: 1.15rem 1.6rem; }
+.markdown-body .slide-column .md-table-container { margin: 1rem 0; }
 .slide-column:has(> .md-table-container:only-child) { padding: 0; overflow: hidden; }
-#markdown-body .slide-column:has(> .md-table-container:only-child) .md-table-container { margin: 0; border: none; box-shadow: none; }
+.markdown-body .slide-column:has(> .md-table-container:only-child) .md-table-container { margin: 0; border: none; box-shadow: none; }
 
 /* ── Math / Mermaid ───────────────────────────────────────────────────────── */
 .slide-content .math.block, .slide-content .katex-display { display: block; margin: 1.25em auto; text-align: center; font-size: 1.35em; }
@@ -149,25 +156,82 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
   border-radius: 16px;
   background: var(--slide-column-bg);
 }
-#markdown-body .slide-column > :last-child { margin-bottom: 0 !important; }
+.markdown-body .slide-column > :last-child { margin-bottom: 0 !important; }
 .slide-dense-grid .slide-content > .slide-markdown > h2:first-child { margin-bottom: 2rem; }
 .slide-dense-grid .slide-column { padding: 1rem; }
-#markdown-body .slide-content blockquote {
-  margin: 1.75rem 0; padding: 1rem 1.25rem;
-  border: 1px solid var(--slide-border);
-  border-left-width: 6px;
-  /* border-radius: 8px; */
+/* Default blockquote: neutral adaptive — !important beats markdown.css and sans.css theme vars */
+.markdown-body .slide-content blockquote {
+  margin: 1.75rem 0 !important;
+  padding: 1rem 1.25rem !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-left: 6px solid rgba(0, 0, 0, 0.25) !important;
+  background: rgba(0, 0, 0, 0.055) !important;
+  color: inherit !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
-#markdown-body .slide-column > blockquote:first-child { margin-top: 0; }
+.markdown-body .slide-column > blockquote:first-child { margin-top: 0; }
 
 /* ── Speaker notes (hidden) ───────────────────────────────────────────────── */
 .speaker-notes { display: none !important; }
+
+/* ── Modern task-list checkboxes ─────────────────────────────────────────── */
+/* Use flex so wrapped text never slides under the checkbox */
+.markdown-body .slide-content .task-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .55em;
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+  margin-bottom: .5em;
+}
+.markdown-body .slide-content .task-list-item input[type=checkbox] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 1.1em;
+  height: 1.1em;
+  margin: .15em 0 0;
+  top: 0; /* reset top:-1px from markdown.css */
+  border: 2px solid rgba(0, 0, 0, 0.30);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  position: relative;
+  cursor: default;
+  transition: background .15s, border-color .15s;
+}
+/* Browsers (Safari/WebKit) revert appearance on :disabled — re-declare it */
+.markdown-body .slide-content .task-list-item input[type=checkbox]:disabled {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  opacity: 1; /* prevent browser-default dimming on disabled */
+}
+.markdown-body .slide-content .task-list-item input[type=checkbox]:checked {
+  background: #4078c0;
+  border-color: #4078c0;
+}
+.markdown-body .slide-content .task-list-item input[type=checkbox]:checked::after {
+  content: '';
+  position: absolute;
+  top: 45%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: .28em;
+  height: .52em;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
 
 /* ── Column colour variants ───────────────────────────────────────────────── */
 .slide-column.slide-column-yellow { background: #fefce8; border-color: #fde047; }
 .slide-column.slide-column-red    { background: #fef2f2; border-color: #fca5a5; }
 .slide-column.slide-column-green  { background: #f0fdf4; border-color: #86efac; }
 .slide-column.slide-column-blue   { background: #eff6ff; border-color: #93c5fd; }
+.slide-column.slide-column-pink   { background: #fdf2f8; border-color: #fbcfe8; }
+.slide-column.slide-column-purple { background: #faf5ff; border-color: #e9d5ff; }
 
 /* Invisible column division: keeps padding/flex but removes all box chrome */
 .slide-column.slide-column-none {
@@ -204,16 +268,34 @@ body.theme-sans #markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-column-blue:has(> .md-table-container:only-child) th { background-color: #dbeafe !important; }
 .slide-column-blue:has(> .md-table-container:only-child) tr:nth-child(odd)  { background-color: #eff6ff !important; }
 .slide-column-blue:has(> .md-table-container:only-child) tr:nth-child(even) { background-color: #f5f9ff !important; }
+
+.slide-column-pink:has(> .md-table-container:only-child) th,
+.slide-column-pink:has(> .md-table-container:only-child) td { border-color: #fbcfe8 !important; }
+.slide-column-pink:has(> .md-table-container:only-child) th { background-color: #fce7f3 !important; }
+.slide-column-pink:has(> .md-table-container:only-child) tr:nth-child(odd)  { background-color: #fdf2f8 !important; }
+.slide-column-pink:has(> .md-table-container:only-child) tr:nth-child(even) { background-color: #fef8fa !important; }
+
+.slide-column-purple:has(> .md-table-container:only-child) th,
+.slide-column-purple:has(> .md-table-container:only-child) td { border-color: #e9d5ff !important; }
+.slide-column-purple:has(> .md-table-container:only-child) th { background-color: #f3e8ff !important; }
+.slide-column-purple:has(> .md-table-container:only-child) tr:nth-child(odd)  { background-color: #faf5ff !important; }
+.slide-column-purple:has(> .md-table-container:only-child) tr:nth-child(even) { background-color: #fdfbff !important; }
+
 .slide-text-yellow, .slide-text-yellow * { color: #ca8a04 !important; }
 .slide-text-red,    .slide-text-red *    { color: #dc2626 !important; }
 .slide-text-green,  .slide-text-green *  { color: #16a34a !important; }
 .slide-text-blue,   .slide-text-blue *   { color: #2563eb !important; }
+.slide-text-pink,   .slide-text-pink *   { color: #be185d !important; }
+.slide-text-purple, .slide-text-purple * { color: #7e22ce !important; }
 
 /* ── Blockquote colour variants ───────────────────────────────────────────── */
-#markdown-body .slide-content blockquote.slide-quote-yellow { border: 1px solid #eab30850; border-left-color: #eab308; border-left-width: 8px; background: #fefce8; }
-#markdown-body .slide-content blockquote.slide-quote-red    { border: 1px solid #ef444450; border-left-color: #ef4444; border-left-width: 8px; background: #fef2f2; }
-#markdown-body .slide-content blockquote.slide-quote-green  { border: 1px solid #22c55e50; border-left-color: #22c55e; border-left-width: 8px; background: #f0fdf4; }
-#markdown-body .slide-content blockquote.slide-quote-blue   { border: 1px solid #3b82f650; border-left-color: #3b82f6; border-left-width: 8px; background: #eff6ff; }
+.markdown-body .slide-content blockquote.slide-quote-yellow { background: #fefce8 !important; border: 1px solid #eab30860 !important; border-left: 8px solid #eab308 !important; }
+.markdown-body .slide-content blockquote.slide-quote-red    { background: #fef2f2 !important; border: 1px solid #ef444460 !important; border-left: 8px solid #ef4444 !important; }
+.markdown-body .slide-content blockquote.slide-quote-green  { background: #f0fdf4 !important; border: 1px solid #22c55e60 !important; border-left: 8px solid #22c55e !important; }
+.markdown-body .slide-content blockquote.slide-quote-blue   { background: #dbeafe !important; border: 1px solid #93c5fd !important; border-left: 8px solid #3b82f6 !important; }
+.markdown-body .slide-content blockquote.slide-quote-pink   { background: #fdf2f8 !important; border: 1px solid #f472b660 !important; border-left: 8px solid #f472b6 !important; }
+.markdown-body .slide-content blockquote.slide-quote-purple { background: #faf5ff !important; border: 1px solid #c084fc60 !important; border-left: 8px solid #c084fc !important; }
+
 
 /* ── Footer (slide counter) ───────────────────────────────────────────────── */
 .slides-footer {

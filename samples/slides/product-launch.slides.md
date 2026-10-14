@@ -22,6 +22,9 @@ Write naturally with **bold emphasis**, *italics*, `inline code`, and [useful li
 
 Highlight critical details using accent colors: <!-- color: blue -->**informative notes**<!-- /color -->, <!-- color: green -->*verified results*<!-- /color -->, <!-- color: yellow -->`warning flags`<!-- /color -->, or <!-- color: red -->**urgent blockers**<!-- /color -->.
 
+<!-- color: pink --> Variety <!-- /color -->
+of colors are
+<!-- color: purple --> available<!-- /color -->.
 ### A lower-level heading
 
 Markdown is still the primary authoring language; slides only add document metadata, separators, and column directives.
@@ -30,6 +33,8 @@ Markdown is still the primary authoring language; slides only add document metad
 
 ## Lists and tasks
 
+<!-- col-start 1:1:1 none -->
+
 ### What we need
 
 - A clear problem statement
@@ -37,37 +42,92 @@ Markdown is still the primary authoring language; slides only add document metad
   - One owner
   - One measurable outcome
 
+<!-- col-sep -->
+
+### What to do
+
 1. Draft the proposal
 2. Review it together
 3. Ship the decision
 
-- [x] <!-- color: green -->**Gather feedback** (completed)<!-- /color -->
-- [ ] <!-- color: yellow -->**Publish the plan** (in review)<!-- /color -->
-- [ ] <!-- color: red -->*Security sign-off* (pending blocker)<!-- /color -->
+<!-- col-sep -->
+
+### Where we are
+
+- [x] <!-- color: green -->Gather feedback (completed)<!-- /color -->
+- [ ] <!-- color: yellow -->Publish the plan (in review)<!-- /color -->
+- [ ] <!-- color: red -->Security sign-off (pending blocker)<!-- /color -->
+
+<!-- col-end -->
 
 ---
 
 ## A point of view
 
+> Use blockquotes for principles, evidence, or a memorable line.
+
 <!-- quote: blue -->
 > Great presentations make **one idea** easy to carry forward.
->
-> Use blockquotes for principles, evidence, or a memorable line.
 
 <!-- quote: yellow -->
 > <!-- color: yellow -->
 > **Guideline**: Keep slides focused; avoid clutter and preserve strong contrast. <!-- /color -->
 
+<!-- quote: pink -->
+> <!-- color: pink -->
+> **Highlight**: Use accent colors intentionally to draw eyes to key metrics and takeaways. <!-- /color -->
+
+<!-- quote: purple -->
+> <!-- color: purple -->
+> **Summary**: Consistent styling builds rhythm across complex slide decks. <!-- /color -->
+
 ---
 
 ## Code is first-class
 
+<!-- col-start 1:1 none:none -->
+
 ```python
-def launch(readiness: float) -> str:
-    return "ship" if readiness >= 0.9 else "keep learning"
+# Compute readiness score from signals
+def readiness_score(signals: dict) -> float:
+    weights = {
+        "tests_pass": 0.40,
+        "review_approved": 0.35,
+        "staging_green": 0.25,
+    }
+    return sum(
+        weights.get(k, 0) * v
+        for k, v in signals.items()
+    )
+
+def launch(signals: dict) -> str:
+    score = readiness_score(signals)
+    if score >= 0.9:
+        return "🚀 ship it"
+    return f"⏳ keep learning ({score:.0%})"
 ```
 
-Use fenced code blocks with a language identifier for syntax highlighting.
+<!-- col-sep -->
+
+```python
+# Run the launch check
+signals = {
+    "tests_pass": 1.0,
+    "review_approved": 1.0,
+    "staging_green": 0.5,
+}
+
+result = launch(signals)
+print(result)
+# ⏳ keep learning (81%)
+
+# Bump staging and retry
+signals["staging_green"] = 1.0
+print(launch(signals))
+# 🚀 ship it
+```
+
+<!-- col-end -->
 
 ---
 
@@ -158,9 +218,11 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 
 ## Markdown in two columns
 
-<!-- col-start 1:1 blue:green -->
+<!-- col-start 1:1 pink:purple -->
 
 ### A quote
+
+> This is a **default** blockquote — it adapts to whatever background it sits on, appearing slightly darker.
 
 <!-- quote: blue -->
 > Columns can hold the same Markdown blocks as a full-width slide.
