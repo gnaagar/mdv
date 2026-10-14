@@ -144,9 +144,24 @@ Any Markdown content below an HTML comment starting with `<!-- speaker -->` unti
 All verification checks have passed.
 
 <!-- speaker -->
-- Mention latency graphs
-- Thank the deployment and QA teams
+> **SPEAKER NOTES**
+>
+> - Mention latency graphs
+> - Thank the deployment and QA teams
 ```
+
+### Suggested Convention (Non-Enforcing)
+
+While content under `<!-- speaker -->` can be any freeform Markdown, a clean convention is to wrap notes inside a blockquote starting with bold `**SPEAKER NOTES**`:
+
+```markdown
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Key talking points or reminders for this slide.
+```
+
+This convention is purely suggestive and completely non-enforcing in nature. In standard Markdown viewers (such as GitHub, VS Code, or `mdv` document mode), it visually sets presenter notes apart from the slide body.
 
 ---
 
@@ -166,6 +181,11 @@ Welcome to the presentation. This slide uses standard full-width Markdown.
 
 - Simple text formatting
 - Code blocks and lists behave as usual
+
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Introduce the session goal and agenda briefly before diving into architecture.
 
 <!-- slide-sep -->
 

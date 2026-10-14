@@ -12,7 +12,9 @@ date: 2026-10-08
 One focused workspace for planning, building, and sharing your best work.
 
 <!-- speaker -->
-Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
+> **SPEAKER NOTES**
+>
+> Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
 
 <!-- slide-sep -->
 
@@ -230,8 +232,10 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 > "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
 
 <!-- speaker -->
-- Emphasize that planning and shipping happen in the same unified workflow.
-- Transition to the next slide demonstrating multi-column Markdown.
+> **SPEAKER NOTES**
+>
+> - Emphasize that planning and shipping happen in the same unified workflow.
+> - Transition to the next slide demonstrating multi-column Markdown.
 
 <!-- slide-sep -->
 
@@ -510,4 +514,6 @@ Less coordination. More creation.
 <!--/green-->
 
 <!-- speaker -->
-Thank the team and open the floor for Q&A.
+> **SPEAKER NOTES**
+>
+> Thank the team and open the floor for Q&A.
