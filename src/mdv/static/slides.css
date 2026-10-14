@@ -9,6 +9,7 @@
   --slide-column-bg: #ffffff;
   --slide-header-bg: #1e293b;
   --slide-header-text: #ffffff;
+  --slide-gutter-bg: #e2e8f0;
 
   /* ── Accent Colors (red, green, blue, yellow, pink, purple, default: none) ── */
   --accent-none-bg: transparent;
@@ -83,10 +84,10 @@
 * { box-sizing: border-box; }
 
 /* ── Page / viewport shell ────────────────────────────────────────────────── */
-html, body {
+html, body, body.theme-sans {
   width: 100%; height: 100%;
   margin: 0; overflow: hidden;
-  background: #fff; /* letterbox gutter colour */
+  background-color: var(--slide-gutter-bg, #e2e8f0) !important;
   color: var(--slide-text);
   font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -123,8 +124,8 @@ html, body {
   background: var(--slide-bg);
   padding: 6rem 7rem;
   overflow: hidden;
-  /* DEBUG: visible border on the slide canvas — remove when done */
-  /* border: 2px dashed red; */
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
 .slide.is-active {
@@ -145,31 +146,40 @@ html, body {
 }
 
 /* ── Title slide ──────────────────────────────────────────────────────────── */
-.title-slide { text-align: center; }
+.markdown-body .title-slide {
+  text-align: center;
+  background: var(--slide-header-bg);
+  color: var(--slide-header-text);
+  border-color: #334155;
+}
 .title-slide-content { width: min(100%, 1050px); margin: auto; }
 
 body.theme-sans .markdown-body .title-slide h1 {
   font-size: 5.5rem; line-height: 1.05; margin: 0; letter-spacing: -.02em;
+  color: #ffffff !important;
 }
 .title-slide-subtitle {
   margin: 1.25rem auto 0; max-width: 42rem;
-  color: var(--slide-muted); font-size: 1.6rem;
+  color: #94a3b8; font-size: 1.6rem;
 }
 .title-slide-subtitle:empty { display: none; }
 .title-slide-rule {
   width: min(100%, 21rem); height: 2px;
   margin: 3rem auto 1.5rem;
-  background: var(--slide-border); border-radius: 1px;
+  background: #334155; border-radius: 1px;
 }
 .title-slide-details {
   display: flex; justify-content: center; gap: 6rem; margin: 0;
 }
 .title-slide-details div { display: grid; gap: .25rem; }
 .title-slide-details dt {
-  color: var(--slide-muted); font-size: .75rem;
+  color: #64748b; font-size: .75rem;
   letter-spacing: .12em; text-transform: uppercase;
 }
-.title-slide-details dd { margin: 0; font-size: 1rem; }
+.title-slide-details dd {
+  margin: 0; font-size: 1rem;
+  color: #e2e8f0;
+}
 
 /* ── Headings ─────────────────────────────────────────────────────────────── */
 .slide h1 { border-bottom: 0 !important; padding-bottom: 0 !important; }
@@ -239,11 +249,8 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
   background: var(--slide-column-bg);
 }
 .markdown-body .slide-column > :last-child { margin-bottom: 0 !important; }
-.slide-dense-grid .slide-content > .slide-markdown > h2:first-child {
-  margin-bottom: 1.75rem;
-  padding: 2.5rem 7rem 1.75rem 7rem !important;
-}
-.slide-dense-grid .slide-column { padding: 1rem; }
+.slide-dense-grid .slide-columns + .slide-columns { margin-top: 1rem; }
+.slide-dense-grid .slide-column { padding: 0.85rem 1.25rem; }
 /* Default blockquote: neutral adaptive — !important beats markdown.css and sans.css theme vars */
 .markdown-body .slide-content blockquote {
   margin: 1.75rem 0 !important;
