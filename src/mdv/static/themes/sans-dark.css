@@ -69,32 +69,32 @@ body.theme-sans-dark {
 
 /* ── Typography and font overrides for dark sans theme ── */
 body.theme-sans-dark,
-body.theme-sans-dark #markdown-body {
+body.theme-sans-dark .markdown-body {
     font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 16px; /* Baseline overall doc font-size */
 }
 
-body.theme-sans-dark #markdown-body h1,
-body.theme-sans-dark #markdown-body h2,
-body.theme-sans-dark #markdown-body h3,
-body.theme-sans-dark #markdown-body h4,
-body.theme-sans-dark #markdown-body h5,
-body.theme-sans-dark #markdown-body h6 {
+body.theme-sans-dark .markdown-body h1,
+body.theme-sans-dark .markdown-body h2,
+body.theme-sans-dark .markdown-body h3,
+body.theme-sans-dark .markdown-body h4,
+body.theme-sans-dark .markdown-body h5,
+body.theme-sans-dark .markdown-body h6 {
     font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-weight: 600; /* Distinct bold headings */
     color: #d4d4d4; /* Softer non-glary off-white */
 }
 
 /* Progressive heading sizes starting from h6 (16px) up to h1 (28.8px) */
-body.theme-sans-dark #markdown-body h1 { font-size: 1.8em; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3em; }
-body.theme-sans-dark #markdown-body h2 { font-size: 1.55em; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3em; }
-body.theme-sans-dark #markdown-body h3 { font-size: 1.35em; }
-body.theme-sans-dark #markdown-body h4 { font-size: 1.2em; }
-body.theme-sans-dark #markdown-body h5 { font-size: 1.1em; }
-body.theme-sans-dark #markdown-body h6 { font-size: 1em; }
+body.theme-sans-dark .markdown-body h1 { font-size: 1.8em; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3em; }
+body.theme-sans-dark .markdown-body h2 { font-size: 1.55em; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3em; }
+body.theme-sans-dark .markdown-body h3 { font-size: 1.35em; }
+body.theme-sans-dark .markdown-body h4 { font-size: 1.2em; }
+body.theme-sans-dark .markdown-body h5 { font-size: 1.1em; }
+body.theme-sans-dark .markdown-body h6 { font-size: 1em; }
 
-body.theme-sans-dark #markdown-body code,
-body.theme-sans-dark #markdown-body tt {
+body.theme-sans-dark .markdown-body code,
+body.theme-sans-dark .markdown-body tt {
     font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     background-color: rgba(255, 255, 255, 0.08); /* Softer highlight box */
     color: var(--text-color);
@@ -103,14 +103,14 @@ body.theme-sans-dark #markdown-body tt {
     font-size: 0.8em; /* Smaller inline code font */
 }
 
-body.theme-sans-dark #markdown-body pre code {
+body.theme-sans-dark .markdown-body pre code {
     background-color: transparent;
     padding: 0;
     border-radius: 0;
     font-size: inherit;
 }
 
-body.theme-sans-dark #markdown-body pre {
+body.theme-sans-dark .markdown-body pre {
     background-color: #161616;
     border: 1px solid #2d2d2d;
     border-radius: 8px; /* Rounder corners */
@@ -119,7 +119,7 @@ body.theme-sans-dark #markdown-body pre {
 }
 
 /* Subtler and thinner horizontal rules */
-body.theme-sans-dark #markdown-body hr {
+body.theme-sans-dark .markdown-body hr {
     border: none;
     border-top: 1px solid var(--markdown-hr);
 }

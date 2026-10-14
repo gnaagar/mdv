@@ -44,24 +44,28 @@ date: 2026-10-08
 
 ## 3. Slide Separation
 
-Slides are separated by a line containing **three or more hyphens (`---`)** on a standalone line.
+Slides are separated by an HTML comment on a standalone line:
+
+```markdown
+<!-- slide-sep -->
+```
 
 * Trailing or leading whitespace on the separator line is ignored.
-* Content before the first `---` separator (excluding frontmatter) belongs to Slide 1.
+* Content before the first `<!-- slide-sep -->` separator (excluding frontmatter) belongs to Slide 1.
+* **Code blocks:** `<!-- slide-sep -->` lines inside code blocks (fenced by ```` ``` ```` or `~~~`) or inline backticks are safely ignored and preserved verbatim as code without splitting slides.
 
 ### Syntax Example
 
 ```markdown
-# Slide 1 Title
+## Slide 1 Title
 
 Slide 1 content goes here.
 
----
+<!-- slide-sep -->
 
-# Slide 2 Title
+## Slide 2 Title
 
 Slide 2 content goes here.
-
 ```
 
 ---
@@ -99,7 +103,9 @@ Columns are declared inside a slide using HTML comments. This ensures presentati
 
 All accent styling uses HTML comments so that documents remain 100% valid, portable plain Markdown across any standard viewer.
 
-Four standard accent colors are supported: `yellow`, `red`, `green`, and `blue`.
+Six standard accent colors are supported: `red`, `green`, `blue`, `yellow`, `pink`, and `purple` (plus `none` for invisible/neutral columns).
+
+Accent color properties are centrally configured via CSS custom properties (`--accent-<color>-...`) in `:root`.
 
 ### 5.1 Column Box Accent Colors
 Accent colors apply a matching background tint and colored border to column cards.
@@ -109,16 +115,13 @@ Accent colors apply a matching background tint and colored border to column card
 * **In separator:** `<!-- col-sep green -->`
 
 ### 5.2 Text Accent Colors
-Color individual words, lines, or blocks of Markdown content:
+Color individual words, lines, or blocks of Markdown content using the single canonical format:
 
-* **Inline:** `<!-- color: red -->urgent<!-- /color -->` or `<!-- green -->success<!-- /green -->`
-* **Block:**
-  ```markdown
-  <!-- color: blue -->
-  ### Key takeaway
-  - First point
-  <!-- /color -->
-  ```
+* **Syntax:** `<!--<color>-->content<!--/<color>-->`
+* **Examples:**
+  - `<!--red-->urgent blocker<!--/red-->`
+  - `<!--green-->**verified result**<!--/green-->`
+  - `<!--blue-->informative text<!--/blue-->`
 
 ### 5.3 Blockquote Accent Colors
 Apply accent border-left and tinted background to blockquotes:
@@ -130,7 +133,7 @@ Apply accent border-left and tinted background to blockquotes:
 
 ## 6. Speaker Notes
 
-Any Markdown content below an HTML comment starting with `<!-- speaker -->` until the start of the next slide (`---`) or the end of the document is treated as speaker notes.
+Any Markdown content below an HTML comment starting with `<!-- speaker -->` until the start of the next slide (`<!-- slide-sep -->`) or the end of the document is treated as speaker notes.
 
 * **In normal Markdown viewers:** The `<!-- speaker -->` comment is hidden and the notes remain visible as ordinary text.
 * **In the slide presentation:** Speaker notes are excluded from the visible presentation slide.
@@ -141,9 +144,24 @@ Any Markdown content below an HTML comment starting with `<!-- speaker -->` unti
 All verification checks have passed.
 
 <!-- speaker -->
-- Mention latency graphs
-- Thank the deployment and QA teams
+> **SPEAKER NOTES**
+>
+> - Mention latency graphs
+> - Thank the deployment and QA teams
 ```
+
+### Suggested Convention (Non-Enforcing)
+
+While content under `<!-- speaker -->` can be any freeform Markdown, a clean convention is to wrap notes inside a blockquote starting with bold `**SPEAKER NOTES**`:
+
+```markdown
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Key talking points or reminders for this slide.
+```
+
+This convention is purely suggestive and completely non-enforcing in nature. In standard Markdown viewers (such as GitHub, VS Code, or `mdv` document mode), it visually sets presenter notes apart from the slide body.
 
 ---
 
@@ -157,20 +175,25 @@ author: "Engineering Team"
 date: 2026-10-08
 ---
 
-# Overview
+## Overview
 
 Welcome to the presentation. This slide uses standard full-width Markdown.
 
 - Simple text formatting
 - Code blocks and lists behave as usual
 
----
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Introduce the session goal and agenda briefly before diving into architecture.
 
-# Key Metrics & Architecture
+<!-- slide-sep -->
+
+## Key Metrics & Architecture
 
 <!-- col-start 1:2 -->
 
-## Core Principles
+### Core Principles
 
 - High availability
 - Fault tolerance
@@ -178,7 +201,7 @@ Welcome to the presentation. This slide uses standard full-width Markdown.
 
 <!-- col-sep -->
 
-## Performance
+### Performance
 
 | Metric | Target | Actual |
 | :--- | :--- | :--- |
@@ -187,9 +210,9 @@ Welcome to the presentation. This slide uses standard full-width Markdown.
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
-# Three-Column Summary
+## Three-Column Summary
 
 <!-- col-start 2:1:5 -->
 
@@ -207,5 +230,6 @@ Key takeaway or visual cue.
 Detailed analysis, code snippets, or extended discussion.
 
 <!-- col-end -->
+```
 
 ```

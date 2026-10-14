@@ -5,41 +5,41 @@ body.theme-basic {
 }
 
 /* ── Markdown body: plain HTML ── */
-body.theme-basic #markdown-body {
+body.theme-basic .markdown-body {
   background: transparent;
   font-family: serif;
   font-size: 1rem;
   line-height: 1.5;
   color: #000;
 }
-body.theme-basic #markdown-body pre,
-body.theme-basic #markdown-body p,
-body.theme-basic #markdown-body table,
-body.theme-basic #markdown-body h1, body.theme-basic #markdown-body h2, body.theme-basic #markdown-body h3,
-body.theme-basic #markdown-body h4, body.theme-basic #markdown-body h5, body.theme-basic #markdown-body h6,
-body.theme-basic #markdown-body blockquote,
-body.theme-basic #markdown-body ul,
-body.theme-basic #markdown-body ol,
-body.theme-basic #markdown-body hr {
+body.theme-basic .markdown-body pre,
+body.theme-basic .markdown-body p,
+body.theme-basic .markdown-body table,
+body.theme-basic .markdown-body h1, body.theme-basic .markdown-body h2, body.theme-basic .markdown-body h3,
+body.theme-basic .markdown-body h4, body.theme-basic .markdown-body h5, body.theme-basic .markdown-body h6,
+body.theme-basic .markdown-body blockquote,
+body.theme-basic .markdown-body ul,
+body.theme-basic .markdown-body ol,
+body.theme-basic .markdown-body hr {
   margin-bottom: 1em;
 }
-body.theme-basic #markdown-body h1, body.theme-basic #markdown-body h2,
-body.theme-basic #markdown-body h3, body.theme-basic #markdown-body h4,
-body.theme-basic #markdown-body h5, body.theme-basic #markdown-body h6 {
+body.theme-basic .markdown-body h1, body.theme-basic .markdown-body h2,
+body.theme-basic .markdown-body h3, body.theme-basic .markdown-body h4,
+body.theme-basic .markdown-body h5, body.theme-basic .markdown-body h6 {
   font-weight: 700;
   font-size: 1em;
   line-height: 1.2;
 }
-body.theme-basic #markdown-body h1 { font-size: 1.5em; }
-body.theme-basic #markdown-body h2 { font-size: 1.25em; }
-body.theme-basic #markdown-body h3 { font-size: 1.1em; }
-body.theme-basic #markdown-body ul, body.theme-basic #markdown-body ol {
+body.theme-basic .markdown-body h1 { font-size: 1.5em; }
+body.theme-basic .markdown-body h2 { font-size: 1.25em; }
+body.theme-basic .markdown-body h3 { font-size: 1.1em; }
+body.theme-basic .markdown-body ul, body.theme-basic .markdown-body ol {
   padding-left: 2.5em;
 }
-body.theme-basic #markdown-body li {
+body.theme-basic .markdown-body li {
   margin-bottom: 0.25em;
 }
-body.theme-basic #markdown-body pre {
+body.theme-basic .markdown-body pre {
   background: transparent;
   border: none;
   border-radius: 0;
@@ -48,61 +48,61 @@ body.theme-basic #markdown-body pre {
   font-family: monospace;
   font-size: 0.9em;
 }
-body.theme-basic #markdown-body pre.highlight {
+body.theme-basic .markdown-body pre.highlight {
   border-left: none;
   padding-left: 0;
 }
-body.theme-basic #markdown-body code {
+body.theme-basic .markdown-body code {
   color: inherit;
   font-family: monospace;
   font-size: 0.9em;
   background: transparent;
 }
-body.theme-basic #markdown-body .code-wrapper {
+body.theme-basic .markdown-body .code-wrapper {
   position: static;
 }
-body.theme-basic #markdown-body .copy-btn {
+body.theme-basic .markdown-body .copy-btn {
   display: none;
 }
-body.theme-basic #markdown-body .md-table-container {
+body.theme-basic .markdown-body .md-table-container {
   border: none;
   border-radius: 0;
   box-shadow: none;
   background: transparent;
   overflow: visible;
 }
-body.theme-basic #markdown-body .md-table-container::before,
-body.theme-basic #markdown-body .md-table-container::after {
+body.theme-basic .markdown-body .md-table-container::before,
+body.theme-basic .markdown-body .md-table-container::after {
   content: none;
 }
-body.theme-basic #markdown-body table {
+body.theme-basic .markdown-body table {
   display: table;
   font-size: inherit;
   background: transparent;
   border-collapse: collapse;
 }
-body.theme-basic #markdown-body tr {
+body.theme-basic .markdown-body tr {
   background: transparent !important;
 }
-body.theme-basic #markdown-body th,
-body.theme-basic #markdown-body td {
+body.theme-basic .markdown-body th,
+body.theme-basic .markdown-body td {
   border: 1px solid #ccc;
   padding: 0.25em 0.5em;
   white-space: normal;
   background: transparent;
 }
-body.theme-basic #markdown-body th {
+body.theme-basic .markdown-body th {
   background: transparent;
 }
-body.theme-basic #markdown-body tr:hover {
+body.theme-basic .markdown-body tr:hover {
   background: transparent;
 }
-body.theme-basic #markdown-body hr {
+body.theme-basic .markdown-body hr {
   border: none;
   border-top: 1px solid #ccc;
   margin: 1.5em 0;
 }
-body.theme-basic #markdown-body blockquote {
+body.theme-basic .markdown-body blockquote {
   background: transparent;
   border-left: 3px solid #ccc;
   box-shadow: none;
@@ -111,23 +111,23 @@ body.theme-basic #markdown-body blockquote {
   margin-right: 0;
   color: inherit;
 }
-body.theme-basic #markdown-body a {
+body.theme-basic .markdown-body a {
   color: #0000ee;
   text-decoration: underline;
 }
-body.theme-basic #markdown-body a:visited {
+body.theme-basic .markdown-body a:visited {
   color: #551a8b;
 }
-body.theme-basic #markdown-body a:hover {
+body.theme-basic .markdown-body a:hover {
   color: #0000ee;
 }
-body.theme-basic #markdown-body .task-list-item {
+body.theme-basic .markdown-body .task-list-item {
   list-style-type: none;
   margin-left: 0;
   padding: 0;
   border-radius: 0;
 }
-body.theme-basic #markdown-body .task-list-item input[type=checkbox] {
+body.theme-basic .markdown-body .task-list-item input[type=checkbox] {
   appearance: auto;
   -webkit-appearance: auto;
   width: auto;
@@ -136,14 +136,14 @@ body.theme-basic #markdown-body .task-list-item input[type=checkbox] {
   border-radius: 0;
   margin-right: 0.3em;
 }
-body.theme-basic #markdown-body .task-completed {
+body.theme-basic .markdown-body .task-completed {
   color: inherit;
 }
-body.theme-basic #markdown-body .task-completed * {
+body.theme-basic .markdown-body .task-completed * {
   color: inherit !important;
 }
-body.theme-basic #markdown-body .task-list-item > ul > .task-list-item::before,
-body.theme-basic #markdown-body .task-list-item > ul > .task-list-item::after {
+body.theme-basic .markdown-body .task-list-item > ul > .task-list-item::before,
+body.theme-basic .markdown-body .task-list-item > ul > .task-list-item::after {
   display: none;
 }
 

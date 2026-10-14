@@ -225,6 +225,54 @@ class MarkdownParser:
         r"(?P<code_fence>```[\s\S]*?```|~~~[\s\S]*?~~~)|\$\$(?P<math>[\s\S]*?)\$\$",
         re.MULTILINE,
     )
+    _FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+    _INLINE_OR_COMMENT_RE = re.compile(r"(`+[^`\n]+?`+)|(<!--[\s\S]*?-->)")
+
+    @staticmethod
+    def _strip_html_comments(content: str) -> str:
+        lines = content.splitlines(keepends=True)
+        out: list[str] = []
+        fence_char: str | None = None
+        fence_len = 0
+        non_fence_buffer: list[str] = []
+
+        def flush_non_fence() -> None:
+            if not non_fence_buffer:
+                return
+            chunk = "".join(non_fence_buffer)
+
+            def repl(m: re.Match) -> str:
+                if m.group(1):
+                    return m.group(1)
+                return ""
+
+            cleaned = MarkdownParser._INLINE_OR_COMMENT_RE.sub(repl, chunk)
+            out.append(cleaned)
+            non_fence_buffer.clear()
+
+        for line in lines:
+            match = MarkdownParser._FENCE_RE.match(line)
+            if match:
+                char = match.group(1)[0]
+                length = len(match.group(1))
+                if fence_char is None:
+                    flush_non_fence()
+                    fence_char = char
+                    fence_len = length
+                    out.append(line)
+                    continue
+                elif char == fence_char and length >= fence_len:
+                    fence_char = None
+                    fence_len = 0
+                    out.append(line)
+                    continue
+            if fence_char is not None:
+                out.append(line)
+            else:
+                non_fence_buffer.append(line)
+
+        flush_non_fence()
+        return "".join(out)
 
     @staticmethod
     def _clean_math(content: str) -> str:
@@ -243,6 +291,7 @@ class MarkdownParser:
     @staticmethod
     def parse(mdcontent: str) -> str:
         _slug_state.used_slugs = {}
+        mdcontent = MarkdownParser._strip_html_comments(mdcontent)
         mdcontent = MarkdownParser._clean_math(mdcontent)
         raw_html = mdparser.render(mdcontent)
 

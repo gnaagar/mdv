@@ -12,23 +12,29 @@ date: 2026-10-08
 One focused workspace for planning, building, and sharing your best work.
 
 <!-- speaker -->
-Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
+> **SPEAKER NOTES**
+>
+> Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
 
----
+<!-- slide-sep -->
 
 ## Everyday Markdown
 
 Write naturally with **bold emphasis**, *italics*, `inline code`, and [useful links](https://example.com).
 
-Highlight critical details using accent colors: <!-- color: blue -->**informative notes**<!-- /color -->, <!-- color: green -->*verified results*<!-- /color -->, <!-- color: yellow -->`warning flags`<!-- /color -->, or <!-- color: red -->**urgent blockers**<!-- /color -->.
+Highlight critical details using accent colors: <!--blue-->**informative notes**<!--/blue-->, <!--green-->*verified results*<!--/green-->, <!--yellow-->`warning flags`<!--/yellow-->, or <!--red-->**urgent blockers**<!--/red-->.
+
+<!--pink-->Variety<!--/pink--> of colors are <!--purple--> available<!--/purple-->.
 
 ### A lower-level heading
 
 Markdown is still the primary authoring language; slides only add document metadata, separators, and column directives.
 
----
+<!-- slide-sep -->
 
 ## Lists and tasks
+
+<!-- col-start 1:1:1 none -->
 
 ### What we need
 
@@ -37,39 +43,114 @@ Markdown is still the primary authoring language; slides only add document metad
   - One owner
   - One measurable outcome
 
+<!-- col-sep -->
+
+### What to do
+
 1. Draft the proposal
 2. Review it together
 3. Ship the decision
 
-- [x] <!-- color: green -->**Gather feedback** (completed)<!-- /color -->
-- [ ] <!-- color: yellow -->**Publish the plan** (in review)<!-- /color -->
-- [ ] <!-- color: red -->*Security sign-off* (pending blocker)<!-- /color -->
+<!-- col-sep -->
 
----
+### Where we are
+
+- [x] <!--green-->Gather feedback (completed)<!--/green-->
+- [ ] <!--yellow-->Publish the plan (in review)<!--/yellow-->
+- [ ] <!--red-->Security sign-off (pending blocker)<!--/red-->
+
+<!-- col-end -->
+
+<!-- slide-sep -->
 
 ## A point of view
 
-<!-- quote: blue -->
-> Great presentations make **one idea** easy to carry forward.
->
 > Use blockquotes for principles, evidence, or a memorable line.
 
-<!-- quote: yellow -->
-> <!-- color: yellow -->
-> **Guideline**: Keep slides focused; avoid clutter and preserve strong contrast. <!-- /color -->
+<!-- quote: blue -->
+> <!--blue-->**Perspective**: Great presentations make **one idea** easy to carry forward.<!--/blue-->
 
----
+<!-- quote: green -->
+> <!--green-->**Evidence**: Small, frequent releases keep teams focused on real outcomes.<!--/green-->
+
+<!-- quote: yellow -->
+> <!--yellow-->**Guideline**: Keep slides focused; avoid clutter and preserve strong contrast.<!--/yellow-->
+
+<!-- quote: pink -->
+> <!--pink-->**Highlight**: Use accent colors intentionally to draw eyes to key metrics and takeaways.<!--/pink-->
+
+<!-- quote: purple -->
+> <!--purple-->**Summary**: Consistent styling builds rhythm across complex slide decks.<!--/purple-->
+
+<!-- slide-sep -->
 
 ## Code is first-class
 
+<!-- col-start 1:1 none:none -->
+
 ```python
-def launch(readiness: float) -> str:
-    return "ship" if readiness >= 0.9 else "keep learning"
+# Compute readiness score from signals
+def readiness_score(signals: dict) -> float:
+    weights = {
+        "tests_pass": 0.40,
+        "review_approved": 0.35,
+        "staging_green": 0.25,
+    }
+    return sum(
+        weights.get(k, 0) * v
+        for k, v in signals.items()
+    )
+
+def launch(signals: dict) -> str:
+    score = readiness_score(signals)
+    if score >= 0.9:
+        return "🚀 ship it"
+    return f"⏳ keep learning ({score:.0%})"
 ```
 
-Use fenced code blocks with a language identifier for syntax highlighting.
+<!-- col-sep -->
 
----
+```python
+# Run the launch check
+signals = {
+    "tests_pass": 1.0,
+    "review_approved": 1.0,
+    "staging_green": 0.5,
+}
+
+result = launch(signals)
+print(result)
+# ⏳ keep learning (81%)
+
+# Bump staging and retry
+signals["staging_green"] = 1.0
+print(launch(signals))
+# 🚀 ship it
+```
+
+<!-- col-end -->
+
+<!-- slide-sep -->
+
+## Separators in code blocks
+
+Slide separators inside code blocks or backticks are safely ignored and never split slides:
+
+```markdown
+## First Slide
+
+Slide content here.
+
+<!-- slide-sep -->
+
+## Second Slide
+
+Next slide content.
+```
+
+The `<!-- slide-sep -->` above is preserved verbatim inside the fenced code block.
+
+<!-- slide-sep -->
 
 ## Data and math
 
@@ -84,7 +165,7 @@ $$
 a^2 + b^2 = c^2
 $$
 
----
+<!-- slide-sep -->
 
 ## A Mermaid diagram
 
@@ -98,7 +179,7 @@ flowchart TD
 
 Mermaid blocks work just like they do in regular mdv documents.
 
----
+<!-- slide-sep -->
 
 ## Another diagram
 
@@ -125,7 +206,7 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Built for flow
 
@@ -143,7 +224,7 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 
 - Move from draft to delivery
 - Share progress clearly
-- <!-- color: green -->**Learn from every release**<!-- /color -->
+- <!--green-->**Learn from every release**<!--/green-->
 
 <!-- col-end -->
 
@@ -151,16 +232,20 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 > "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
 
 <!-- speaker -->
-- Emphasize that planning and shipping happen in the same unified workflow.
-- Transition to the next slide demonstrating multi-column Markdown.
+> **SPEAKER NOTES**
+>
+> - Emphasize that planning and shipping happen in the same unified workflow.
+> - Transition to the next slide demonstrating multi-column Markdown.
 
----
+<!-- slide-sep -->
 
 ## Markdown in two columns
 
-<!-- col-start 1:1 blue:green -->
+<!-- col-start 1:1 pink:purple -->
 
 ### A quote
+
+> This is a **default** blockquote — it adapts to whatever background it sits on, appearing slightly darker.
 
 <!-- quote: blue -->
 > Columns can hold the same Markdown blocks as a full-width slide.
@@ -178,7 +263,7 @@ Use **emphasis**, `inline code`, and ordinary paragraphs without a special synta
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Table as column card
 
@@ -200,7 +285,7 @@ The right column has normal content — the flush-fill only applies when the tab
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Markdown in three columns
 
@@ -219,9 +304,9 @@ The right column has normal content — the flush-fill only applies when the tab
 make it useful
 ```
 
-<!-- color: yellow -->
+<!--yellow-->
 *Iterate quickly in small batches.*
-<!-- /color -->
+<!--/yellow-->
 
 <!-- col-sep -->
 
@@ -229,11 +314,11 @@ make it useful
 
 - Measure the result
 - Adjust the next step
-- <!-- color: green -->**Ship with confidence**<!-- /color -->
+- <!--green-->**Ship with confidence**<!--/green-->
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## A two-row, three-column grid
 
@@ -277,7 +362,7 @@ Use the result to guide the next cycle.
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## A mixed row layout
 
@@ -285,25 +370,25 @@ Use the result to guide the next cycle.
 
 ### Blocked
 
-<!-- color: red -->
+<!--red-->
 **High latency** on legacy database queries.
-<!-- /color -->
+<!--/red-->
 
 <!-- col-sep -->
 
 ### In progress
 
-<!-- color: yellow -->
+<!--yellow-->
 Migrating cache tier to new cluster.
-<!-- /color -->
+<!--/yellow-->
 
 <!-- col-sep -->
 
 ### Resolved
 
-<!-- color: green -->
+<!--green-->
 **Zero errors** recorded over the last 24 hours.
-<!-- /color -->
+<!--/green-->
 
 <!-- col-end -->
 
@@ -330,7 +415,7 @@ Use the second row for the final trade-off.
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Blockquote styles
 
@@ -346,7 +431,7 @@ Use the second row for the final trade-off.
 <!-- quote: red -->
 > **Red**: An urgent blocker or critical constraint — hard to miss.
 
----
+<!-- slide-sep -->
 
 ## Table colour matching
 
@@ -370,7 +455,7 @@ When a column's only content is a table, borders and headers adopt the column pa
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Invisible multi-column
 
@@ -395,7 +480,7 @@ The `none` colour removes border, background, and border-radius, making the spli
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Mixed: card + invisible
 
@@ -418,15 +503,17 @@ Use `none` on just one side to anchor a card on the left or right while giving t
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## The result
 
 Less coordination. More creation.
 
-<!-- color: green -->
+<!--green-->
 **Orbit is available today.**
-<!-- /color -->
+<!--/green-->
 
 <!-- speaker -->
-Thank the team and open the floor for Q&A.
+> **SPEAKER NOTES**
+>
+> Thank the team and open the floor for Q&A.

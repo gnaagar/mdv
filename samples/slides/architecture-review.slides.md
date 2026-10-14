@@ -9,7 +9,7 @@ date: 2026-10-08
 
 Our services are reliable, but deployment speed is constrained by shared dependencies.
 
----
+<!-- slide-sep -->
 
 ## Design priorities
 
@@ -37,7 +37,7 @@ Independent deploys
 
 <!-- col-end -->
 
----
+<!-- slide-sep -->
 
 ## Next 90 days
 
@@ -47,7 +47,7 @@ Independent deploys
 | Deployment templates | Repeatable releases |
 | Observability baseline | Faster diagnosis |
 
----
+<!-- slide-sep -->
 
 ## Decision
 

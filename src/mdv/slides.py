@@ -21,7 +21,7 @@ class SlidesParseError(ValueError):
     """Raised when a document does not follow the md-slides structure."""
 
 
-ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "none"}
+ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "pink", "purple", "none"}
 
 
 @dataclass(frozen=True)
@@ -55,33 +55,29 @@ class SlideDocument:
 
 
 _FRONT_MATTER_RE = re.compile(r"\A---[ \t]*\r?\n(?P<body>.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
-_SLIDE_SEPARATOR_RE = re.compile(r"^[ \t]*-{3,}[ \t]*$", re.MULTILINE)
+# Canonical slide separator: <!-- slide-sep -->
+# The old "---" form is no longer recognised; it renders as a plain <hr> in standard viewers.
+_SLIDE_SEP_RE = re.compile(r"^\s*<!--\s*slide-sep\s*-->\s*$")
 _SPEAKER_RE = re.compile(r"^\s*<!--\s*speaker(?:[\s:-].*?)?\s*-->\s*$", re.IGNORECASE)
 _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
 _COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
 _COL_COLOR_RE = re.compile(
-    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue)\s*-->\s*$",
+    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple)\s*-->\s*$",
     re.IGNORECASE,
 )
 _QUOTE_DIRECTIVE_RE = re.compile(
-    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue)\s*-->\s*$",
+    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple)\s*-->\s*$",
     re.IGNORECASE,
 )
 _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
-    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue)\s*-->[ \t]*(.*)$",
+    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple)\s*-->[ \t]*(.*)$",
     re.IGNORECASE,
 )
-_TEXT_COLOR_SPAN_RE = re.compile(
-    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue)\s*-->([\s\S]*?)<!--\s*(?:\/(?:color|text|yellow|red|green|blue)|end-(?:color|text)|end)\s*-->",
-    re.IGNORECASE,
-)
-_TEXT_COLOR_SIMPLE_RE = re.compile(
-    r"<!--\s*(yellow|red|green|blue)\s*-->([\s\S]*?)<!--\s*\/\1\s*-->",
-    re.IGNORECASE,
-)
-_TEXT_LINE_COLOR_RE = re.compile(
-    r"<!--\s*(?:color|text)[:\s]+(yellow|red|green|blue)\s*-->([^\n<]+)$",
+# Canonical text-color syntax: <!--red-->text<!--/red-->  (no spaces, no "color:" prefix).
+# This is the ONLY supported form; all legacy aliases have been removed.
+_TEXT_COLOR_RE = re.compile(
+    r"<!--(yellow|red|green|blue|pink|purple)-->([\s\S]*?)<!--/\1-->",
     re.IGNORECASE,
 )
 _ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
@@ -109,70 +105,101 @@ def _parse_front_matter(source: str) -> tuple[dict[str, str], str]:
 
 
 _SLIDE_QUOTE_TOKEN_RE = re.compile(
-    r"<blockquote([^>]*)>([\s\S]*?)%%SLIDE_QUOTE_(yellow|red|green|blue)%%[ \t]*([\s\S]*?)<\/blockquote>",
+    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple)%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_BLOCK_P_RE = re.compile(
-    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
+    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_TOKEN_RE = re.compile(
-    r"%%SLIDE_TEXT_START_(yellow|red|green|blue)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
+    r"%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
     re.IGNORECASE,
 )
 
 
 def _preprocess_slide_markdown(content: str) -> str:
+    lines = content.splitlines(keepends=True)
+    chunks: list[tuple[bool, str]] = []
+    current: list[str] = []
+    fence_char: str | None = None
+    fence_len = 0
+    in_code = False
+
+    for line in lines:
+        match = _FENCE_RE.match(line)
+        if match:
+            char = match.group(1)[0]
+            length = len(match.group(1))
+            if fence_char is None:
+                if current:
+                    chunks.append((False, "".join(current)))
+                    current = []
+                fence_char = char
+                fence_len = length
+                in_code = True
+                current.append(line)
+                continue
+            elif char == fence_char and length >= fence_len:
+                current.append(line)
+                chunks.append((True, "".join(current)))
+                current = []
+                fence_char = None
+                fence_len = 0
+                in_code = False
+                continue
+        current.append(line)
+    if current:
+        chunks.append((in_code, "".join(current)))
+
     def text_color_replacer(match: re.Match) -> str:
         color = match.group(1).lower()
         inner = match.group(2)
         return f"%%SLIDE_TEXT_START_{color}%%{inner}%%SLIDE_TEXT_END%%"
 
-    text = _TEXT_COLOR_SPAN_RE.sub(text_color_replacer, content)
-    text = _TEXT_COLOR_SIMPLE_RE.sub(text_color_replacer, text)
-
-    def line_color_replacer(match: re.Match) -> str:
-        color = match.group(1).lower()
-        rest = match.group(2)
-        return f"%%SLIDE_TEXT_START_{color}%%{rest}%%SLIDE_TEXT_END%%"
-
-    text = _TEXT_LINE_COLOR_RE.sub(line_color_replacer, text)
-
-    lines = text.splitlines()
-    processed_lines: list[str] = []
-    pending_quote_color: str | None = None
-
-    for line in lines:
-        stripped = line.strip()
-
-        inline_quote_match = _INLINE_QUOTE_DIRECTIVE_RE.match(line)
-        if inline_quote_match:
-            color = inline_quote_match.group(1).lower()
-            rest = inline_quote_match.group(2)
-            processed_lines.append(f"> %%SLIDE_QUOTE_{color}%% {rest}")
-            pending_quote_color = None
+    processed_chunks: list[str] = []
+    for is_code, chunk in chunks:
+        if is_code:
+            processed_chunks.append(chunk)
             continue
 
-        quote_match = _QUOTE_DIRECTIVE_RE.match(line)
-        if quote_match and not stripped.startswith(">"):
-            pending_quote_color = quote_match.group(1).lower()
-            continue
+        text = _TEXT_COLOR_RE.sub(text_color_replacer, chunk)
+        chunk_lines = text.splitlines(keepends=True)
+        processed_lines: list[str] = []
+        pending_quote_color: str | None = None
 
-        if pending_quote_color:
-            if stripped.startswith(">"):
-                quote_rest = line.lstrip()[1:]
-                processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_color}%%{quote_rest}")
+        for line in chunk_lines:
+            stripped = line.strip()
+
+            inline_quote_match = _INLINE_QUOTE_DIRECTIVE_RE.match(line)
+            if inline_quote_match:
+                color = inline_quote_match.group(1).lower()
+                rest = inline_quote_match.group(2)
+                processed_lines.append(f"> %%SLIDE_QUOTE_{color}%% {rest}\n")
                 pending_quote_color = None
                 continue
-            elif not stripped:
-                processed_lines.append(line)
+
+            quote_match = _QUOTE_DIRECTIVE_RE.match(line)
+            if quote_match and not stripped.startswith(">"):
+                pending_quote_color = quote_match.group(1).lower()
                 continue
-            else:
-                pending_quote_color = None
 
-        processed_lines.append(line)
+            if pending_quote_color:
+                if stripped.startswith(">"):
+                    quote_rest = line.lstrip()[1:]
+                    processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_color}%%{quote_rest}")
+                    pending_quote_color = None
+                    continue
+                elif not stripped:
+                    processed_lines.append(line)
+                    continue
+                else:
+                    pending_quote_color = None
 
-    return "\n".join(processed_lines)
+            processed_lines.append(line)
+        processed_chunks.append("".join(processed_lines))
+
+    return "".join(processed_chunks)
 
 
 def _render_markdown(content: str) -> str:
@@ -193,7 +220,7 @@ def _render_markdown(content: str) -> str:
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
     html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, raw_html)
-    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue)%%[ \t]*", "", html)
+    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
         color = match.group(1).lower()
@@ -262,7 +289,27 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             blocks.append(SlideBlock(kind="markdown", html=html))
         full_width.clear()
 
+    fence_char: str | None = None
+    fence_len = 0
+
     for line in content.splitlines():
+        match = _FENCE_RE.match(line)
+        if match:
+            char = match.group(1)[0]
+            length = len(match.group(1))
+            if fence_char is None:
+                fence_char = char
+                fence_len = length
+            elif char == fence_char and length >= fence_len:
+                fence_char = None
+                fence_len = 0
+            (columns[-1] if columns is not None else full_width).append(line)
+            continue
+
+        if fence_char is not None:
+            (columns[-1] if columns is not None else full_width).append(line)
+            continue
+
         start = _COL_START_RE.match(line)
         if start:
             if columns is not None:
@@ -326,17 +373,26 @@ def _validate_slide_headings(content: str, slide_number: int) -> None:
     if first_content is None or not re.match(r"^[ \t]*##[ \t]+", lines[first_content]):
         raise SlidesParseError(f"Slide {slide_number} must begin with a ## heading.")
 
-    in_fence = False
+    fence_char: str | None = None
+    fence_len = 0
     for index, line in enumerate(lines):
-        if _FENCE_RE.match(line):
-            in_fence = not in_fence
+        match = _FENCE_RE.match(line)
+        if match:
+            char = match.group(1)[0]
+            length = len(match.group(1))
+            if fence_char is None:
+                fence_char = char
+                fence_len = length
+            elif char == fence_char and length >= fence_len:
+                fence_char = None
+                fence_len = 0
             continue
-        if in_fence:
+        if fence_char is not None:
             continue
-        match = _ATX_HEADING_RE.match(line)
-        if not match:
+        heading_match = _ATX_HEADING_RE.match(line)
+        if not heading_match:
             continue
-        level = len(match.group(1))
+        level = len(heading_match.group(1))
         if level == 1 or (level == 2 and index != first_content):
             raise SlidesParseError(
                 f"Slide {slide_number} may use ## only as its opening heading; use ### or lower afterward."
@@ -345,18 +401,65 @@ def _validate_slide_headings(content: str, slide_number: int) -> None:
 
 def _split_slide_notes(part: str) -> tuple[str, str]:
     lines = part.splitlines()
+    fence_char: str | None = None
+    fence_len = 0
     for index, line in enumerate(lines):
-        if _SPEAKER_RE.match(line):
+        match = _FENCE_RE.match(line)
+        if match:
+            char = match.group(1)[0]
+            length = len(match.group(1))
+            if fence_char is None:
+                fence_char = char
+                fence_len = length
+            elif char == fence_char and length >= fence_len:
+                fence_char = None
+                fence_len = 0
+            continue
+        if fence_char is None and _SPEAKER_RE.match(line):
             slide_content = "\n".join(lines[:index])
             notes_content = "\n".join(lines[index + 1:])
             return slide_content, notes_content
     return part, ""
 
 
+def _split_slides(body: str) -> list[str]:
+    parts: list[str] = []
+    current_lines: list[str] = []
+    fence_char: str | None = None
+    fence_len = 0
+
+    for line in body.splitlines(keepends=True):
+        match = _FENCE_RE.match(line)
+        if match:
+            char = match.group(1)[0]
+            length = len(match.group(1))
+            if fence_char is None:
+                fence_char = char
+                fence_len = length
+            elif char == fence_char and length >= fence_len:
+                fence_char = None
+                fence_len = 0
+            current_lines.append(line)
+            continue
+
+        if fence_char is None and _SLIDE_SEP_RE.match(line):
+            part = "".join(current_lines)
+            if part.strip():
+                parts.append(part)
+            current_lines = []
+        else:
+            current_lines.append(line)
+
+    part = "".join(current_lines)
+    if part.strip():
+        parts.append(part)
+    return parts
+
+
 def parse_slides(source: str) -> SlideDocument:
     """Parse an md-slides source document into renderable slides."""
     metadata, body = _parse_front_matter(source)
-    parts = [part for part in _SLIDE_SEPARATOR_RE.split(body) if part.strip()]
+    parts = _split_slides(body)
     slides: list[Slide] = []
     for number, part in enumerate(parts, start=1):
         slide_body, notes_body = _split_slide_notes(part)
