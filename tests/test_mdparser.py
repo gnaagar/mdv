@@ -199,3 +199,35 @@ class TestMarkdownParser(unittest.TestCase):
         self.assertIn('<h1 id="heading-1" data-source-line="1">Heading 1</h1>', rewritten)
         self.assertIn('<a href="/_/current_file.md#heading-1" class="wikilink">Heading 1</a>', rewritten)
 
+    def test_html_comments_handling(self):
+        # 1. Blockquote starting with comment does not suppress bold formatting
+        md = "> <!--blue-->**Perspective**: Great presentations make **one idea** easy.<!--/blue-->"
+        html = MarkdownParser.parse(md)
+        self.assertIn("<strong>Perspective</strong>", html)
+        self.assertIn("<strong>one idea</strong>", html)
+        self.assertNotIn("<!--blue-->", html)
+
+        # 2. List item starting with comment parses bold formatting
+        md = "- <!--green-->**Learn from every release**<!--/green-->"
+        html = MarkdownParser.parse(md)
+        self.assertIn("<strong>Learn from every release</strong>", html)
+        self.assertNotIn("<!--green-->", html)
+
+        # 3. Line starting with comment wraps properly in <p> tag
+        md = "<!--pink-->Variety<!--/pink--> of colors.\n\n### A lower heading"
+        html = MarkdownParser.parse(md)
+        self.assertIn("<p", html)
+        self.assertIn("Variety of colors.", html)
+        self.assertIn('<h3 id="a-lower-heading"', html)
+
+        # 4. Comments inside fenced code blocks are preserved verbatim
+        md_fence = "```html\n<!-- keep this comment -->\n<div>hi</div>\n```"
+        html_fence = MarkdownParser.parse(md_fence)
+        self.assertIn("&lt;!-- keep this comment --&gt;", html_fence)
+
+        # 5. Comments inside inline code backticks are preserved
+        md_inline = "Here is `<!-- inline comment -->` preserved."
+        html_inline = MarkdownParser.parse(md_inline)
+        self.assertIn("&lt;!-- inline comment --&gt;", html_inline)
+
+
