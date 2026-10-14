@@ -16,7 +16,7 @@ date: 2026-10-08
 
 Welcome.
 
----
+<!-- slide-sep -->
 
 ## Second slide
 
@@ -136,11 +136,11 @@ Col 2
 title: Test
 ---
 ## Text Colors
-Inline <!-- color: red -->critical<!-- /color --> status.
-<!-- color: blue -->
+Inline <!--red-->critical<!--/red--> status.
+<!--blue-->
 ### Blue Section
 Content here
-<!-- /color -->
+<!--/blue-->
 """
         with TemporaryDirectory() as directory:
             path = Path(directory) / "text_colors.slides.md"
@@ -172,13 +172,13 @@ title: Test
 title: Test
 ---
 ## Markdown inside colors
-<!-- color: green -->
+<!--green-->
 **Orbit is available today.**
-<!-- /color -->
+<!--/green-->
 
-<!-- color: red -->
+<!--red-->
 *Urgent*: `code_symbol()` failed.
-<!-- /color -->
+<!--/red-->
 
 <!-- quote: blue -->
 > **Safety first**: Always test in staging before deploying.
@@ -230,9 +230,7 @@ Slide body text.
             response = Client(SlidesApp(path)).get("/static/slides.css")
         self.assertEqual(response.status_code, 200)
         css = response.data.decode("utf-8")
-        self.assertIn("#markdown-body .slide-content .md-table-container", css)
-        self.assertIn("background: transparent", css)
-        self.assertIn("#markdown-body .slide-content table", css)
+        self.assertIn(".slide-content table", css)
         self.assertIn("background-color: transparent", css)
 
     def test_color_hints_inside_blockquote_for_text_and_quote_styling(self):
@@ -241,24 +239,24 @@ title: Test
 ---
 ## Slide 1
 <!-- quote: yellow -->
-> <!-- color: yellow -->
-> **Guideline**: Keep slides focused; avoid clutter. <!-- /color -->
+> <!--yellow-->
+> **Guideline**: Keep slides focused; avoid clutter. <!--/yellow-->
 
----
+<!-- slide-sep -->
 ## Slide 2
 > <!-- quote: blue -->
-> "Simplicity is prerequisite." — <!-- color: green -->Edsger W. Dijkstra<!-- /color -->
+> "Simplicity is prerequisite." — <!--green-->Edsger W. Dijkstra<!--/green-->
 
----
+<!-- slide-sep -->
 ## Slide 3
-> <!-- red -->
-> Critical quote without closing tag.
+> <!-- quote: red -->
+> Critical quote with explicit quote directive.
 
----
+<!-- slide-sep -->
 ## Slide 4
-> <!-- color: red -->
+> <!--red-->
 > Multiline critical warning
-> <!-- /color -->
+> <!--/red-->
 """
         with TemporaryDirectory() as directory:
             path = Path(directory) / "quote_colors.slides.md"
@@ -277,7 +275,7 @@ title: Test
 
         # Slide 3: Quote is red
         self.assertIn(b'class="slide-quote-red"', data)
-        self.assertIn(b'Critical quote without closing tag.', data)
+        self.assertIn(b'Critical quote with explicit quote directive.', data)
 
         # Slide 4: Text inside blockquote is red
         self.assertIn(b'class="slide-text-red"', data)
@@ -290,14 +288,14 @@ title: Test
 ## Status
 <!-- col-start 1:1 red:green -->
 ### Blocked
-<!-- color: red -->
+<!--red-->
 **Database connection pool exhausted.**
-<!-- /color -->
+<!--/red-->
 <!-- col-sep -->
 ### Healthy
-<!-- color: green -->
+<!--green-->
 All services nominal.
-<!-- /color -->
+<!--/green-->
 <!-- col-end -->
 """
         with TemporaryDirectory() as directory:
@@ -310,6 +308,88 @@ All services nominal.
         self.assertIn(b'class="slide-text-red"', response.data)
         self.assertIn(b'class="slide-text-green"', response.data)
         self.assertIn(b'Database connection pool exhausted.', response.data)
+
+    def test_slide_sep_inside_code_blocks_is_ignored(self):
+        source = """---
+title: Test
+---
+## Slide 1
+Here is code that demonstrates slide separation:
+
+```markdown
+## Inside Code Slide 1
+
+Some text.
+
+<!-- slide-sep -->
+
+## Inside Code Slide 2
+```
+
+Still on Slide 1.
+
+<!-- slide-sep -->
+## Slide 2
+Now on Slide 2.
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides), 2)
+        self.assertIn("&lt;!-- slide-sep --&gt;", doc.slides[0][0].html)
+        self.assertIn("Still on Slide 1", doc.slides[0][0].html)
+        self.assertIn("Now on Slide 2", doc.slides[1][0].html)
+
+    def test_only_canonical_color_syntax_supported(self):
+        # Canonical syntax <!--red-->...<!--/red--> is converted
+        source_canonical = """---
+title: Test
+---
+## Canonical
+<!--red-->Red text<!--/red-->
+"""
+        doc1 = parse_slides(source_canonical)
+        self.assertIn('class="slide-text-red">Red text</span>', doc1.slides[0][0].html)
+
+        # Non-canonical syntax <!-- color: red --> is not parsed as slide-text
+        source_legacy = """---
+title: Test
+---
+## Legacy
+<!-- color: red -->Red text<!-- /color -->
+"""
+        doc2 = parse_slides(source_legacy)
+        self.assertNotIn('slide-text-red', doc2.slides[0][0].html)
+
+    def test_accent_colors_in_slides_css(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(SOURCE, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/static/slides.css")
+        self.assertEqual(response.status_code, 200)
+        css = response.data.decode("utf-8")
+        for color in ("red", "green", "blue", "yellow", "pink", "purple"):
+            self.assertIn(f"--accent-{color}-bg:", css)
+            self.assertIn(f"--accent-{color}-border:", css)
+            self.assertIn(f"--accent-{color}-text:", css)
+        self.assertIn("--accent-none-bg:", css)
+
+    def test_uncolored_blockquote_followed_by_colored_blockquote(self):
+        source = """---
+title: Test
+---
+## Quotes
+> Default neutral quote.
+
+<!-- quote: blue -->
+> Blue highlighted quote.
+"""
+        doc = parse_slides(source)
+        html = doc.slides[0][0].html
+        # First quote should NOT have slide-quote-blue
+        self.assertRegex(html, r"<blockquote[^>]*>\s*<p[^>]*>Default neutral quote\.</p>\s*</blockquote>")
+        # Second quote SHOULD have slide-quote-blue
+        self.assertRegex(html, r"<blockquote[^>]*class=\"[^\"]*slide-quote-blue[^\"]*\"[^>]*>\s*<p[^>]*>Blue highlighted quote\.</p>\s*</blockquote>")
+
+
 
 
 
