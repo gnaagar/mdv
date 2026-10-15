@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/themes/sans.css">
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
-  <link rel="stylesheet" href="/static/slides.css?v=14">
+  <link rel="stylesheet" href="/static/slides.css?v=18">
 </head>
 <body class="theme-sans is-title-slide">
   <main id="markdown-body" class="markdown-body" aria-live="polite">
@@ -31,6 +31,28 @@
       <div class="slide-content">
         {% for block in slide %}
           {% if block.kind == 'markdown' %}<div class="slide-markdown">{{ block.html | safe }}</div>
+          {% elif block.kind == 'flow' %}
+          <div class="slide-flow{% if block.orientation == 'vertical' %} slide-flow-vertical{% endif %}">
+            {% for step in block.columns %}
+            {% if not loop.first %}
+            <div class="slide-flow-arrow" aria-hidden="true">
+              {% if block.orientation == 'vertical' %}
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 13l7 7 7-7"/>
+              </svg>
+              {% else %}
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M13 5l7 7-7 7"/>
+              </svg>
+              {% endif %}
+            </div>
+            {% endif %}
+            <div class="slide-flow-step{% if block.column_colors and block.column_colors[loop.index0] %} slide-flow-step-{{ block.column_colors[loop.index0] }}{% endif %}">
+              {% if block.is_numbered %}<div class="slide-flow-badge">{{ loop.index }}</div>{% endif %}
+              <div class="slide-flow-content">{{ step | safe }}</div>
+            </div>
+            {% endfor %}
+          </div>
           {% else %}<div class="slide-columns">{% for column in block.columns %}<div class="slide-column{% if block.column_colors and block.column_colors[loop.index0] %} slide-column-{{ block.column_colors[loop.index0] }}{% endif %}" style="flex: {{ block.ratios[loop.index0] }} 1 0">{{ column | safe }}</div>{% endfor %}</div>
           {% endif %}
         {% endfor %}

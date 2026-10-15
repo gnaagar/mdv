@@ -419,6 +419,166 @@ title: Test
         self.assertIn("updateHeaderSync", js)
         self.assertIn("--header-bottom", js)
 
+    def test_parses_flow_unordered_list(self):
+        source = """---
+title: Test
+---
+## Flow Test
+<!-- flow -->
+- **Ingest**
+  Raw logs
+- **Process**
+  Enrich data
+- **Deliver**
+  Real-time push
+<!-- /flow -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides[0]), 2)
+        block = doc.slides[0][1]
+        self.assertEqual(block.kind, "flow")
+        self.assertEqual(len(block.columns), 3)
+        self.assertFalse(block.is_numbered)
+        self.assertIn("<strong>Ingest</strong>", block.columns[0])
+        self.assertIn("Raw logs", block.columns[0])
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn('class="slide-flow"', html)
+        self.assertIn('class="slide-flow-step"', html)
+        self.assertIn('class="slide-flow-arrow"', html)
+        self.assertNotIn('class="slide-flow-badge"', html)
+
+    def test_parses_flow_ordered_list_with_badges(self):
+        source = """---
+title: Test
+---
+## Flow Test
+<!-- flow blue:green:purple -->
+1. **Discover**
+   User research
+2. **Design**
+   Figma mockup
+3. **Deploy**
+   Canary release
+<!-- /flow -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides[0]), 2)
+        block = doc.slides[0][1]
+        self.assertEqual(block.kind, "flow")
+        self.assertEqual(len(block.columns), 3)
+        self.assertTrue(block.is_numbered)
+        self.assertEqual(block.column_colors, ("blue", "green", "purple"))
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        html = response.data.decode("utf-8")
+        self.assertIn('class="slide-flow-badge">1</div>', html)
+        self.assertIn('class="slide-flow-badge">2</div>', html)
+        self.assertIn('class="slide-flow-badge">3</div>', html)
+        self.assertIn("slide-flow-step-blue", html)
+        self.assertIn("slide-flow-step-green", html)
+        self.assertIn("slide-flow-step-purple", html)
+
+    def test_parses_flow_with_flow_sep_and_single_color(self):
+        source = """---
+title: Test
+---
+## Flow Test
+<!-- flow yellow -->
+### Step A
+Alpha
+<!-- flow-sep -->
+### Step B
+Beta
+<!-- flow-end -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides[0]), 2)
+        block = doc.slides[0][1]
+        self.assertEqual(block.kind, "flow")
+        self.assertEqual(len(block.columns), 2)
+        self.assertEqual(block.column_colors, ("yellow", "yellow"))
+        self.assertIn(">Step A</h3>", block.columns[0])
+        self.assertIn(">Step B</h3>", block.columns[1])
+
+    def test_parses_vertical_flow_stack(self):
+        source = """---
+title: Test
+---
+## Vertical Flow Test
+<!-- flow:vertical blue:green:yellow -->
+1. **Frontend**
+   React app
+2. **Backend**
+   FastAPI
+3. **Database**
+   PostgreSQL
+<!-- /flow -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides[0]), 2)
+        block = doc.slides[0][1]
+        self.assertEqual(block.kind, "flow")
+        self.assertEqual(block.orientation, "vertical")
+        self.assertEqual(block.column_colors, ("blue", "green", "yellow"))
+        self.assertTrue(block.is_numbered)
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        html = response.data.decode("utf-8")
+        self.assertIn("slide-flow-vertical", html)
+        self.assertIn("M12 5v14M5 13l7 7 7-7", html)
+
+        # Test stack alias
+        doc_stack = parse_slides("---\ntitle: T\n---\n## S\n<!-- stack blue:green -->\n- A\n- B\n<!-- /stack -->\n")
+        self.assertEqual(doc_stack.slides[0][1].orientation, "vertical")
+
+    def test_flow_syntax_errors(self):
+        # Unclosed flow
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- flow -->\n- A\n")
+        self.assertIn("missing its /flow directive", str(ctx.exception))
+
+        # Flow sep outside flow
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- flow-sep -->\n")
+        self.assertIn("Found flow-sep outside a flow block", str(ctx.exception))
+
+        # Flow end without flow
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- /flow -->\n")
+        self.assertIn("without a matching flow directive", str(ctx.exception))
+
+        # Flow inside column
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- col-start 1:1 none -->\n<!-- flow -->\n<!-- /flow -->\n<!-- col-end -->\n")
+        self.assertIn("cannot start inside a column block", str(ctx.exception))
+
+        # Column inside flow
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- flow -->\n<!-- col-start 1:1 none -->\n<!-- col-end -->\n<!-- /flow -->\n")
+        self.assertIn("cannot start inside a flow block", str(ctx.exception))
+
+        # Invalid flow color
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- flow neon -->\n- A\n<!-- /flow -->\n")
+        self.assertIn("Invalid flow color 'neon'", str(ctx.exception))
+
+        # Mismatched color count
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- flow blue:green:red -->\n- A\n- B\n<!-- /flow -->\n")
+        self.assertIn("declares 3 colors but contains 2 steps", str(ctx.exception))
+
 
 
 
