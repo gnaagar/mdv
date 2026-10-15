@@ -3,58 +3,59 @@
   color-scheme: light;
   --slide-bg: #ffffff;
   --slide-text: #333333;
-  --slide-muted: #777777;
+  --slide-muted: #64748b;
   --slide-accent: #4078c0;
   --slide-border: #e5e7eb;
   --slide-column-bg: #ffffff;
   --slide-header-bg: #1e293b;
   --slide-header-text: #ffffff;
-  --slide-gutter-bg: #e2e8f0;
+  --slide-gutter-bg: #cbd5e1;
+  --slide-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.18);
 
   /* ── Accent Colors (red, green, blue, yellow, pink, purple, default: none) ── */
   --accent-none-bg: transparent;
   --accent-none-border: transparent;
   --accent-none-text: var(--slide-text);
 
-  /* Red */
-  --accent-red-bg: #fef2f2;
-  --accent-red-border: #fca5a5;
-  --accent-red-text: #dc2626;
-  --accent-red-table-th-bg: #fee2e2;
-  --accent-red-table-alt-bg: #fff8f8;
-  --accent-red-quote-bg: #fef2f2;
-  --accent-red-quote-border: #ef444460;
-  --accent-red-quote-bar: #ef4444;
+  /* Red (pastel) */
+  --accent-red-bg: #fdf6f5;
+  --accent-red-border: #f0cbca;
+  --accent-red-text: #a83b38;
+  --accent-red-table-th-bg: #f8dedd;
+  --accent-red-table-alt-bg: #fdf9f9;
+  --accent-red-quote-bg: #fdf6f5;
+  --accent-red-quote-border: #e6aaa760;
+  --accent-red-quote-bar: #d2726f;
 
-  /* Green */
-  --accent-green-bg: #f0fdf4;
-  --accent-green-border: #86efac;
-  --accent-green-text: #16a34a;
-  --accent-green-table-th-bg: #dcfce7;
-  --accent-green-table-alt-bg: #f8fff9;
-  --accent-green-quote-bg: #f0fdf4;
-  --accent-green-quote-border: #22c55e60;
-  --accent-green-quote-bar: #22c55e;
+  /* Green (pastel) */
+  --accent-green-bg: #f4f9f5;
+  --accent-green-border: #c8e1d3;
+  --accent-green-text: #2e6949;
+  --accent-green-table-th-bg: #e3f0e8;
+  --accent-green-table-alt-bg: #f8fbf9;
+  --accent-green-quote-bg: #f4f9f5;
+  --accent-green-quote-border: #a9d4bd60;
+  --accent-green-quote-bar: #72b08f;
 
-  /* Blue */
-  --accent-blue-bg: #eff6ff;
-  --accent-blue-border: #93c5fd;
-  --accent-blue-text: #2563eb;
-  --accent-blue-table-th-bg: #dbeafe;
-  --accent-blue-table-alt-bg: #f5f9ff;
-  --accent-blue-quote-bg: #eff6ff;
-  --accent-blue-quote-border: #93c5fd;
-  --accent-blue-quote-bar: #3b82f6;
+  /* Blue (pastel) */
+  --accent-blue-bg: #f4f8fd;
+  --accent-blue-border: #cbe0f5;
+  --accent-blue-text: #296096;
+  --accent-blue-table-th-bg: #e5f0fa;
+  --accent-blue-table-alt-bg: #f8fbfe;
+  --accent-blue-quote-bg: #f4f8fd;
+  --accent-blue-quote-border: #accfee60;
+  --accent-blue-quote-bar: #6ea4d4;
 
-  /* Yellow */
-  --accent-yellow-bg: #fefce8;
-  --accent-yellow-border: #fde047;
-  --accent-yellow-text: #ca8a04;
-  --accent-yellow-table-th-bg: #fef9c3;
-  --accent-yellow-table-alt-bg: #fffdf0;
-  --accent-yellow-quote-bg: #fefce8;
-  --accent-yellow-quote-border: #eab30860;
-  --accent-yellow-quote-bar: #eab308;
+  /* Yellow (pastel) */
+  --accent-yellow-bg: #fdfbf2;
+  --accent-yellow-border: #fae69e;
+  --accent-yellow-text: #966812;
+  --accent-yellow-table-th-bg: #faefcb;
+  --accent-yellow-table-alt-bg: #fefcf6;
+  --accent-yellow-quote-bg: #fdfbf2;
+  --accent-yellow-quote-border: #ecd58060;
+  --accent-yellow-quote-bar: #deb647;
 
   /* Pink (pastel) */
   --accent-pink-bg: #fdf5f8;
@@ -76,6 +77,25 @@
   --accent-purple-quote-border: #b8a6e060;
   --accent-purple-quote-bar: #a28ed0;
 
+  /* Grey / Gray (pastel) */
+  --accent-grey-bg: #f8fafc;
+  --accent-grey-border: #cbd5e1;
+  --accent-grey-text: #475569;
+  --accent-grey-table-th-bg: #f1f5f9;
+  --accent-grey-table-alt-bg: #fcfdfe;
+  --accent-grey-quote-bg: #f8fafc;
+  --accent-grey-quote-border: #94a3b860;
+  --accent-grey-quote-bar: #94a3b8;
+
+  --accent-gray-bg: var(--accent-grey-bg);
+  --accent-gray-border: var(--accent-grey-border);
+  --accent-gray-text: var(--accent-grey-text);
+  --accent-gray-table-th-bg: var(--accent-grey-table-th-bg);
+  --accent-gray-table-alt-bg: var(--accent-grey-table-alt-bg);
+  --accent-gray-quote-bg: var(--accent-grey-quote-bg);
+  --accent-gray-quote-border: var(--accent-grey-quote-border);
+  --accent-gray-quote-bar: var(--accent-grey-quote-bar);
+
   /* Logical canvas size – never changes; JS scales the canvas to the viewport */
   --slide-w: 1600px;
   --slide-h: 900px;
@@ -87,9 +107,20 @@
 html, body, body.theme-sans {
   width: 100%; height: 100%;
   margin: 0; overflow: hidden;
-  background-color: var(--slide-gutter-bg, #e2e8f0) !important;
+  background-color: var(--slide-bg, #ffffff) !important;
+  background: linear-gradient(
+    to bottom,
+    var(--slide-header-bg) 0px,
+    var(--slide-header-bg) var(--header-bottom, 0px),
+    var(--slide-bg) var(--header-bottom, 0px),
+    var(--slide-bg) 100%
+  ) !important;
   color: var(--slide-text);
   font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body.is-title-slide, body.theme-sans.is-title-slide {
+  background: var(--slide-header-bg) !important;
 }
 
 /* Centering wrapper – fills the whole viewport */
@@ -123,10 +154,13 @@ html, body, body.theme-sans {
   /* Visual */
   background: var(--slide-bg);
   padding: 6rem 7rem;
-  overflow: hidden;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  overflow: visible;
+  clip-path: inset(-100vh -100vw 0 -100vw);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
+
 
 .slide.is-active {
   display: flex;
@@ -150,7 +184,9 @@ html, body, body.theme-sans {
   text-align: center;
   background: var(--slide-header-bg);
   color: var(--slide-header-text);
-  border-color: #334155;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 .title-slide-content { width: min(100%, 1050px); margin: auto; }
 
@@ -192,12 +228,23 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 
 /* Slide header banner: stretches full-bleed across top of slide with white title text */
 .markdown-body .slide-content > .slide-markdown > h2:first-child {
+  position: relative;
   margin: -6rem -7rem 2.75rem -7rem;
   padding: 3.25rem 7rem 2.25rem 7rem !important;
   background: var(--slide-header-bg);
   color: var(--slide-header-text) !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   letter-spacing: -0.02em;
+}
+.markdown-body .slide-content > .slide-markdown > h2:first-child::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% - 2px);
+  left: -50vw;
+  right: -50vw;
+  height: 100vh;
+  background: var(--slide-header-bg);
+  pointer-events: none;
 }
 .markdown-body .slide-content > .slide-markdown > h2:first-child * {
   color: var(--slide-header-text) !important;
@@ -324,6 +371,8 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-column.slide-column-blue   { background: var(--accent-blue-bg); border-color: var(--accent-blue-border); }
 .slide-column.slide-column-pink   { background: var(--accent-pink-bg); border-color: var(--accent-pink-border); }
 .slide-column.slide-column-purple { background: var(--accent-purple-bg); border-color: var(--accent-purple-border); }
+.slide-column.slide-column-grey,
+.slide-column.slide-column-gray   { background: var(--accent-grey-bg); border-color: var(--accent-grey-border); }
 
 /* Invisible column division: keeps padding/flex but removes all box chrome */
 .slide-column.slide-column-none {
@@ -373,12 +422,25 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-column-purple:has(> .md-table-container:only-child) tr:nth-child(odd)  { background-color: var(--accent-purple-bg) !important; }
 .slide-column-purple:has(> .md-table-container:only-child) tr:nth-child(even) { background-color: var(--accent-purple-table-alt-bg) !important; }
 
+.slide-column-grey:has(> .md-table-container:only-child) th,
+.slide-column-grey:has(> .md-table-container:only-child) td,
+.slide-column-gray:has(> .md-table-container:only-child) th,
+.slide-column-gray:has(> .md-table-container:only-child) td { border-color: var(--accent-grey-border) !important; }
+.slide-column-grey:has(> .md-table-container:only-child) th,
+.slide-column-gray:has(> .md-table-container:only-child) th { background-color: var(--accent-grey-table-th-bg) !important; }
+.slide-column-grey:has(> .md-table-container:only-child) tr:nth-child(odd),
+.slide-column-gray:has(> .md-table-container:only-child) tr:nth-child(odd)  { background-color: var(--accent-grey-bg) !important; }
+.slide-column-grey:has(> .md-table-container:only-child) tr:nth-child(even),
+.slide-column-gray:has(> .md-table-container:only-child) tr:nth-child(even) { background-color: var(--accent-grey-table-alt-bg) !important; }
+
 .slide-text-yellow, .slide-text-yellow * { color: var(--accent-yellow-text) !important; }
 .slide-text-red,    .slide-text-red *    { color: var(--accent-red-text) !important; }
 .slide-text-green,  .slide-text-green *  { color: var(--accent-green-text) !important; }
 .slide-text-blue,   .slide-text-blue *   { color: var(--accent-blue-text) !important; }
 .slide-text-pink,   .slide-text-pink *   { color: var(--accent-pink-text) !important; }
 .slide-text-purple, .slide-text-purple * { color: var(--accent-purple-text) !important; }
+.slide-text-grey,   .slide-text-grey *,
+.slide-text-gray,   .slide-text-gray *   { color: var(--accent-grey-text) !important; }
 
 /* ── Blockquote colour variants ───────────────────────────────────────────── */
 .markdown-body .slide-content blockquote.slide-quote-yellow { background: var(--accent-yellow-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-yellow-quote-bar) !important; }
@@ -387,12 +449,23 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .markdown-body .slide-content blockquote.slide-quote-blue   { background: var(--accent-blue-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-blue-quote-bar) !important; }
 .markdown-body .slide-content blockquote.slide-quote-pink   { background: var(--accent-pink-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-pink-quote-bar) !important; }
 .markdown-body .slide-content blockquote.slide-quote-purple { background: var(--accent-purple-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-purple-quote-bar) !important; }
+.markdown-body .slide-content blockquote.slide-quote-grey,
+.markdown-body .slide-content blockquote.slide-quote-gray   { background: var(--accent-grey-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-grey-quote-bar) !important; }
 
 
 /* ── Footer (slide counter) ───────────────────────────────────────────────── */
 .slides-footer {
-  position: fixed; right: 1.5rem; bottom: 1.25rem;
-  color: var(--slide-muted); font-size: .8rem; letter-spacing: .02em;
-  /* Keep footer outside the scaled canvas so it's always readable */
+  position: absolute;
+  right: 3.5rem;
+  bottom: 2.25rem;
+  color: var(--slide-muted);
+  font-size: 1.15rem;
+  letter-spacing: .02em;
   z-index: 10;
+  pointer-events: none;
+  user-select: none;
+}
+
+.markdown-body .title-slide .slides-footer {
+  color: #64748b;
 }

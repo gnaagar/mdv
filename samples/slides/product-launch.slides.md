@@ -67,6 +67,9 @@ Markdown is still the primary authoring language; slides only add document metad
 
 > Use blockquotes for principles, evidence, or a memorable line.
 
+<!-- quote: red -->
+> <!--red-->**Intent**: Clear intent leads to clear work.<!--/red-->
+
 <!-- quote: blue -->
 > <!--blue-->**Perspective**: Great presentations make **one idea** easy to carry forward.<!--/blue-->
 

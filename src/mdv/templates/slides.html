@@ -9,9 +9,9 @@
   <link rel="stylesheet" href="/static/themes/sans.css">
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
-  <link rel="stylesheet" href="/static/slides.css">
+  <link rel="stylesheet" href="/static/slides.css?v=14">
 </head>
-<body class="theme-sans">
+<body class="theme-sans is-title-slide">
   <main id="markdown-body" class="markdown-body" aria-live="polite">
     <section class="slide title-slide is-active" data-slide="0" aria-hidden="false">
       <div class="title-slide-content">
@@ -23,6 +23,7 @@
           <div><dt>Date</dt><dd>{{ document.metadata.get('date', '') }}</dd></div>
         </dl>
       </div>
+      <footer id="slide-count" class="slides-footer">1 / {{ document.slides | length + 1 }}</footer>
     </section>
     {% for slide in document.slides %}
     {% set column_block_count = slide | selectattr('kind', 'equalto', 'columns') | list | length %}
@@ -40,12 +41,11 @@
     </section>
     {% endfor %}
   </main>
-  <footer id="slide-count" class="slides-footer">1 / {{ document.slides | length + 1 }}</footer>
   <script src="/static/katex/katex-0-16-22.min.js"></script>
   <script src="/static/katex/auto-render-0-16-22.min.js"></script>
   <script src="/static/mermaid/mermaid.min.js"></script>
   <script src="/static/js/shared.js"></script>
   <script src="/static/js/markdown.js"></script>
-  <script src="/static/js/slides.js"></script>
+  <script src="/static/js/slides.js?v=12"></script>
 </body>
 </html>

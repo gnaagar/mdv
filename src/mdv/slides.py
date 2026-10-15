@@ -21,7 +21,7 @@ class SlidesParseError(ValueError):
     """Raised when a document does not follow the md-slides structure."""
 
 
-ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "pink", "purple", "none"}
+ALLOWED_SLIDE_COLORS = {"yellow", "red", "green", "blue", "pink", "purple", "grey", "gray", "none"}
 
 
 @dataclass(frozen=True)
@@ -63,21 +63,21 @@ _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
 _COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
 _COL_COLOR_RE = re.compile(
-    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple)\s*-->\s*$",
+    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
     re.IGNORECASE,
 )
 _QUOTE_DIRECTIVE_RE = re.compile(
-    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple)\s*-->\s*$",
+    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
     re.IGNORECASE,
 )
 _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
-    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple)\s*-->[ \t]*(.*)$",
+    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple|grey|gray)\s*-->[ \t]*(.*)$",
     re.IGNORECASE,
 )
 # Canonical text-color syntax: <!--red-->text<!--/red-->  (no spaces, no "color:" prefix).
 # This is the ONLY supported form; all legacy aliases have been removed.
 _TEXT_COLOR_RE = re.compile(
-    r"<!--(yellow|red|green|blue|pink|purple)-->([\s\S]*?)<!--/\1-->",
+    r"<!--(yellow|red|green|blue|pink|purple|grey|gray)-->([\s\S]*?)<!--/\1-->",
     re.IGNORECASE,
 )
 _ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
@@ -105,15 +105,15 @@ def _parse_front_matter(source: str) -> tuple[dict[str, str], str]:
 
 
 _SLIDE_QUOTE_TOKEN_RE = re.compile(
-    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple)%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
+    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_BLOCK_P_RE = re.compile(
-    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
+    r"<p[^>]*>\s*%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple|grey|gray)%%\s*<\/p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_TEXT_END%%\s*<\/p>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_TOKEN_RE = re.compile(
-    r"%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
+    r"%%SLIDE_TEXT_START_(yellow|red|green|blue|pink|purple|grey|gray)%%([\s\S]*?)%%SLIDE_TEXT_END%%",
     re.IGNORECASE,
 )
 
@@ -220,7 +220,7 @@ def _render_markdown(content: str) -> str:
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
     html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, raw_html)
-    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple)%%[ \t]*", "", html)
+    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
         color = match.group(1).lower()
@@ -483,7 +483,7 @@ class SlidesApp:
         self.source_path = source_path
         self.url_map = _url_map
         static_dir = files("mdv").joinpath("static")
-        self.wsgi_app = SharedDataMiddleware(self.wsgi_app, {"/static": str(static_dir)}, cache_timeout=86400)
+        self.wsgi_app = SharedDataMiddleware(self.wsgi_app, {"/static": str(static_dir)}, cache_timeout=0)
 
     def on_presentation(self, request: Request) -> Response:
         document = parse_slides(self.source_path.read_text(encoding="utf-8"))
