@@ -10,26 +10,6 @@
   let current = 0;
   let diagramId = 0;
 
-  function updateHeaderSync() {
-    const activeSlide = slides[current];
-    if (!activeSlide) return;
-
-    if (activeSlide.classList.contains('title-slide')) {
-      document.body.classList.add('is-title-slide');
-      document.documentElement.style.removeProperty('--header-bottom');
-      return;
-    }
-
-    document.body.classList.remove('is-title-slide');
-    const h2 = activeSlide.querySelector('.slide-markdown > h2:first-child');
-    if (h2) {
-      const bottom = Math.round(h2.getBoundingClientRect().bottom);
-      document.documentElement.style.setProperty('--header-bottom', `${bottom}px`);
-    } else {
-      document.documentElement.style.setProperty('--header-bottom', '0px');
-    }
-  }
-
   function scaleSlides() {
     const isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
     const availableW = Math.max(1, window.innerWidth - OUTER_GAP * 2);
@@ -37,7 +17,6 @@
     const maxScale = isFullscreen ? Number.POSITIVE_INFINITY : 1;
     const scale = Math.min(maxScale, availableW / SLIDE_W, availableH / SLIDE_H);
     document.documentElement.style.setProperty('--slide-scale', scale);
-    updateHeaderSync();
   }
 
   window.addEventListener('resize', scaleSlides);
@@ -77,10 +56,9 @@
       }
     }
     history.replaceState(null, '', `#${current + 1}`);
-    updateHeaderSync();
+    document.body.classList.toggle('is-title-slide', Boolean(slides[current]?.classList.contains('title-slide')));
     requestAnimationFrame(() => {
       renderSlideDiagrams(slides[current]);
-      updateHeaderSync();
     });
   };
 

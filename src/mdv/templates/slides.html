@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/themes/sans.css">
   <link rel="stylesheet" href="/static/pygments.css">
   <link rel="stylesheet" href="/static/katex/katex-0-16-22.min.css">
-  <link rel="stylesheet" href="/static/slides.css?v=18">
+  <link rel="stylesheet" href="/static/slides.css?v=23">
 </head>
 <body class="theme-sans is-title-slide">
   <main id="markdown-body" class="markdown-body" aria-live="polite">
@@ -31,6 +31,8 @@
       <div class="slide-content">
         {% for block in slide %}
           {% if block.kind == 'markdown' %}<div class="slide-markdown">{{ block.html | safe }}</div>
+          {% elif block.kind == 'center' %}
+          <div class="slide-center slide-center-{{ block.alignment }}">{{ block.html | safe }}</div>
           {% elif block.kind == 'flow' %}
           <div class="slide-flow{% if block.orientation == 'vertical' %} slide-flow-vertical{% endif %}">
             {% for step in block.columns %}
@@ -68,6 +70,6 @@
   <script src="/static/mermaid/mermaid.min.js"></script>
   <script src="/static/js/shared.js"></script>
   <script src="/static/js/markdown.js"></script>
-  <script src="/static/js/slides.js?v=12"></script>
+  <script src="/static/js/slides.js?v=13"></script>
 </body>
 </html>
