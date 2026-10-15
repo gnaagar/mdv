@@ -108,13 +108,6 @@ html, body, body.theme-sans {
   width: 100%; height: 100%;
   margin: 0; overflow: hidden;
   background-color: var(--slide-bg, #ffffff) !important;
-  background: linear-gradient(
-    to bottom,
-    var(--slide-header-bg) 0px,
-    var(--slide-header-bg) var(--header-bottom, 0px),
-    var(--slide-bg) var(--header-bottom, 0px),
-    var(--slide-bg) 100%
-  ) !important;
   color: var(--slide-text);
   font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -155,7 +148,7 @@ body.is-title-slide, body.theme-sans.is-title-slide {
   background: var(--slide-bg);
   padding: 6rem 7rem;
   overflow: visible;
-  clip-path: inset(-100vh -100vw 0 -100vw);
+  clip-path: inset(-200vh -200vw 0 -200vw);
   border: none;
   border-radius: 0;
   box-shadow: none;
@@ -229,22 +222,12 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 /* Slide header banner: stretches full-bleed across top of slide with white title text */
 .markdown-body .slide-content > .slide-markdown > h2:first-child {
   position: relative;
-  margin: -6rem -7rem 2.75rem -7rem;
-  padding: 3.25rem 7rem 2.25rem 7rem !important;
+  margin: calc(-6rem - 100vh) calc(-7rem - 100vw) 2.75rem calc(-7rem - 100vw);
+  padding: calc(3.25rem + 100vh) calc(7rem + 100vw) 2.25rem calc(7rem + 100vw) !important;
   background: var(--slide-header-bg);
   color: var(--slide-header-text) !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   letter-spacing: -0.02em;
-}
-.markdown-body .slide-content > .slide-markdown > h2:first-child::before {
-  content: "";
-  position: absolute;
-  bottom: calc(100% - 2px);
-  left: -50vw;
-  right: -50vw;
-  height: 100vh;
-  background: var(--slide-header-bg);
-  pointer-events: none;
 }
 .markdown-body .slide-content > .slide-markdown > h2:first-child * {
   color: var(--slide-header-text) !important;

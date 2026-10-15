@@ -405,7 +405,7 @@ title: Test
         self.assertIn("border-radius: 0;", css)
         self.assertIn("box-shadow: none;", css)
         self.assertIn("body.is-title-slide", css)
-        self.assertIn("linear-gradient", css)
+        self.assertIn("margin: calc(-6rem - 100vh)", css)
 
     def test_slides_js_borderless_header_sync(self):
         with TemporaryDirectory() as directory:
@@ -416,8 +416,8 @@ title: Test
         js = response.data.decode("utf-8")
         self.assertIn("OUTER_GAP = 0;", js)
         self.assertIn("appendChild(count)", js)
-        self.assertIn("updateHeaderSync", js)
-        self.assertIn("--header-bottom", js)
+        self.assertIn("is-title-slide", js)
+        self.assertNotIn("--header-bottom", js)
 
     def test_parses_flow_unordered_list(self):
         source = """---
