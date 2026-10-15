@@ -170,6 +170,10 @@ body.is-title-slide, body.theme-sans.is-title-slide {
   margin: 0 auto;
   font-size: 1.4rem;
   line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* ── Title slide ──────────────────────────────────────────────────────────── */
@@ -296,6 +300,66 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 }
 .markdown-body .slide-column > blockquote:first-child { margin-top: 0; }
 
+/* ── Centered content (<!-- center -->) ────────────────────────────────────── */
+.slide-center {
+  width: 100%;
+  margin: 1.5rem auto;
+}
+
+.slide-center-horizontal,
+.slide-center-both {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slide-center-horizontal > *,
+.slide-center-both > * {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center;
+}
+
+.slide-center-horizontal img,
+.slide-center-both img,
+.slide-center-horizontal svg,
+.slide-center-both svg {
+  display: block;
+  margin: 0 auto !important;
+  max-width: 100%;
+  height: auto;
+}
+
+.slide-center-horizontal ul,
+.slide-center-horizontal ol,
+.slide-center-both ul,
+.slide-center-both ol {
+  display: inline-block;
+  text-align: left;
+  margin: 1rem auto;
+}
+
+.slide-center-horizontal blockquote,
+.slide-center-both blockquote {
+  text-align: center;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: inline-block;
+}
+
+.slide-center-vertical,
+.slide-center-both {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide-center-vertical {
+  margin: auto 0;
+}
+
 /* ── Flow pipelines (<!-- flow -->) ────────────────────────────────────────── */
 .slide-flow {
   display: flex;
@@ -416,6 +480,14 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 
 .slide-flow-vertical .slide-flow-arrow {
   margin: 0.15rem 0;
+}
+
+.slide-flow-content .slide-center,
+.slide-flow-content .slide-center-horizontal,
+.slide-flow-content .slide-center-both {
+  width: 100%;
+  text-align: center;
+  margin: 0 auto;
 }
 
 /* Flow colour variants */

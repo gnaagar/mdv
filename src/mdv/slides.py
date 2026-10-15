@@ -33,6 +33,7 @@ class SlideBlock:
     column_colors: tuple[str, ...] = ()
     is_numbered: bool = False
     orientation: str = "horizontal"
+    alignment: str = "horizontal"
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,14 @@ _FLOW_END_RE = re.compile(
     r"^\s*<!--\s*(?:/(?:flow|stack)|(?:flow|stack)-end)\s*-->\s*$",
     re.IGNORECASE,
 )
+_CENTER_START_RE = re.compile(
+    r"^\s*<!--\s*(?:center(?:-start)?)(?:[:\s]+([^>]+?))?\s*-->\s*$",
+    re.IGNORECASE,
+)
+_CENTER_END_RE = re.compile(
+    r"^\s*<!--\s*(?:/center|center-end)\s*-->\s*$",
+    re.IGNORECASE,
+)
 _COL_COLOR_RE = re.compile(
     r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
     re.IGNORECASE,
@@ -89,6 +98,10 @@ _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
 # This is the ONLY supported form; all legacy aliases have been removed.
 _TEXT_COLOR_RE = re.compile(
     r"<!--(yellow|red|green|blue|pink|purple|grey|gray)-->([\s\S]*?)<!--/\1-->",
+    re.IGNORECASE,
+)
+_CENTER_INLINE_RE = re.compile(
+    r"<!--\s*center(?:[:\s]+(\w+))?\s*-->([\s\S]*?)<!--\s*/center\s*-->",
     re.IGNORECASE,
 )
 _ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
@@ -175,6 +188,13 @@ def _preprocess_slide_markdown(content: str) -> str:
             continue
 
         text = _TEXT_COLOR_RE.sub(text_color_replacer, chunk)
+
+        def center_replacer(match: re.Match) -> str:
+            align = _parse_center_directive(match.group(1))
+            inner = match.group(2)
+            return f"\n\n%%SLIDE_CENTER_START_{align}%%\n{inner}\n%%SLIDE_CENTER_END%%\n\n"
+
+        text = _CENTER_INLINE_RE.sub(center_replacer, text)
         chunk_lines = text.splitlines(keepends=True)
         processed_lines: list[str] = []
         pending_quote_color: str | None = None
@@ -219,6 +239,28 @@ def _render_markdown(content: str) -> str:
     preprocessed = _preprocess_slide_markdown(content.strip())
     raw_html = MarkdownParser.parse(preprocessed)
 
+    def center_block_p_replacer(match: re.Match) -> str:
+        align = match.group(1).lower()
+        inner = match.group(2)
+        return f'<div class="slide-center slide-center-{align}">{inner}</div>'
+
+    html = re.sub(
+        r'<p[^>]*>\s*%%SLIDE_CENTER_START_(\w+)%%\s*</p>([\s\S]*?)<p[^>]*>\s*%%SLIDE_CENTER_END%%\s*</p>',
+        center_block_p_replacer,
+        raw_html,
+    )
+
+    def center_token_replacer(match: re.Match) -> str:
+        align = match.group(1).lower()
+        inner = match.group(2)
+        return f'<div class="slide-center slide-center-{align}">{inner}</div>'
+
+    html = re.sub(
+        r'%%SLIDE_CENTER_START_(\w+)%%([\s\S]*?)%%SLIDE_CENTER_END%%',
+        center_token_replacer,
+        html,
+    )
+
     def quote_replacer(match: re.Match) -> str:
         attrs = match.group(1)
         before = match.group(2)
@@ -230,7 +272,7 @@ def _render_markdown(content: str) -> str:
             attrs = f'{attrs} class="slide-quote-{color}"'
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
-    html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, raw_html)
+    html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, html)
     html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
@@ -289,13 +331,11 @@ def _parse_column_directive(value: str) -> tuple[tuple[float, ...], tuple[str, .
 def _parse_flow_directive(keyword: str, value: str | None) -> tuple[str, list[str]]:
     kw = keyword.lower()
     orientation = "vertical" if ("stack" in kw or "-vertical" in kw) else "horizontal"
+
     if not value or not value.strip():
         return orientation, []
 
-    raw = value.strip()
-    if raw.startswith(":"):
-        raw = raw[1:].strip()
-
+    raw = value.strip().lstrip(":")
     parts = raw.split()
     color_part = raw
     if parts:
@@ -318,6 +358,22 @@ def _parse_flow_directive(keyword: str, value: str | None) -> tuple[str, list[st
                 f"Invalid flow color '{c}'. Allowed colors: {', '.join(sorted(ALLOWED_SLIDE_COLORS))}."
             )
     return orientation, color_tokens
+
+
+def _parse_center_directive(arg: str | None) -> str:
+    if not arg or not arg.strip():
+        return "horizontal"
+    val = arg.strip().lower().lstrip(":")
+    if val in {"vert", "vertical", "v", "y"}:
+        return "vertical"
+    elif val in {"both", "xy", "all", "full"}:
+        return "both"
+    elif val in {"horiz", "horizontal", "h", "x"}:
+        return "horizontal"
+    else:
+        raise SlidesParseError(
+            f"Invalid center alignment '{val}'. Allowed options: 'horizontal' (default), 'vertical', or 'both'."
+        )
 
 
 def _split_markdown_list(content: str) -> tuple[bool, list[str]]:
@@ -362,6 +418,9 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
     flow_orientation: str = "horizontal"
     flow_has_explicit_sep: bool = False
 
+    center_lines: list[str] | None = None
+    center_alignment: str = "horizontal"
+
     def flush_full_width() -> None:
         html = _render_markdown("\n".join(full_width))
         if html:
@@ -372,7 +431,15 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
     fence_len = 0
 
     for line in content.splitlines():
-        target = columns[-1] if columns is not None else (flow_steps[-1] if flow_steps is not None else full_width)
+        target = (
+            columns[-1]
+            if columns is not None
+            else (
+                flow_steps[-1]
+                if flow_steps is not None
+                else (center_lines if center_lines is not None else full_width)
+            )
+        )
         match = _FENCE_RE.match(line)
         if match:
             char = match.group(1)[0]
@@ -394,6 +461,8 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
         if start:
             if flow_steps is not None:
                 raise SlidesParseError("A column block cannot start inside a flow block.")
+            if center_lines is not None:
+                raise SlidesParseError("A column block cannot start inside a center block.")
             if columns is not None:
                 raise SlidesParseError("A column block cannot start inside another column block.")
             flush_full_width()
@@ -445,6 +514,8 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
         if flow_start:
             if columns is not None:
                 raise SlidesParseError("A flow block cannot start inside a column block.")
+            if center_lines is not None:
+                raise SlidesParseError("A flow block cannot start inside a center block.")
             if flow_steps is not None:
                 raise SlidesParseError("A flow block cannot start inside another flow block.")
             flush_full_width()
@@ -538,12 +609,46 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             flow_has_explicit_sep = False
             continue
 
+        center_start = _CENTER_START_RE.match(line)
+        if center_start:
+            if flow_steps is not None:
+                target.append(line)
+                continue
+            if columns is not None:
+                raise SlidesParseError("A center block cannot start inside a column block.")
+            if center_lines is not None:
+                raise SlidesParseError("A center block cannot start inside another center block.")
+            flush_full_width()
+            center_alignment = _parse_center_directive(center_start.group(1))
+            center_lines = []
+            continue
+
+        if _CENTER_END_RE.match(line):
+            if flow_steps is not None:
+                target.append(line)
+                continue
+            if center_lines is None:
+                raise SlidesParseError("Found /center without a matching center directive.")
+            rendered_html = _render_markdown("\n".join(center_lines).strip())
+            blocks.append(
+                SlideBlock(
+                    kind="center",
+                    html=rendered_html,
+                    alignment=center_alignment,
+                )
+            )
+            center_lines = None
+            center_alignment = "horizontal"
+            continue
+
         target.append(line)
 
     if columns is not None:
         raise SlidesParseError("A column block is missing its col-end directive.")
     if flow_steps is not None:
         raise SlidesParseError("A flow block is missing its /flow directive.")
+    if center_lines is not None:
+        raise SlidesParseError("A center block is missing its /center directive.")
     flush_full_width()
     return tuple(blocks)
 

@@ -197,7 +197,38 @@ Async workers transform and batch payloads.
 
 ---
 
-## 7. Speaker Notes
+## 7. Centered Content (`<!-- center -->`)
+
+The `<!-- center -->` directive centers its inner Markdown content horizontally, vertically, or in both dimensions.
+
+### 7.1 Directive Syntax
+
+* **Horizontal Centering (Default):** `<!-- center -->` (or `<!-- center horizontal -->`, `<!-- center:horizontal -->`)
+  Centers text and auto-centers block elements (images, quotes, tables, lists) horizontally within the normal slide flow.
+* **Vertical Centering:** `<!-- center vert -->` (or `<!-- center vertical -->`, `<!-- center:vertical -->`, `<!-- center y -->`)
+  Expands to fill available slide height and vertically centers content while preserving normal text alignment.
+* **Both Dimensions:** `<!-- center both -->` (or `<!-- center:both -->`, `<!-- center xy -->`, `<!-- center:xy -->`)
+  Expands across available slide height and centers content both horizontally and vertically. Ideal for hero statements, splash quotes, or centered diagrams.
+* **Closing Tag:** Closes with `<!-- /center -->` or `<!-- center-end -->`.
+
+### 7.2 Syntax Examples
+
+```markdown
+<!-- center -->
+![System Architecture Diagram](/static/diagram.svg)
+<!-- /center -->
+```
+
+```markdown
+<!-- center both -->
+> ### "The best way to predict the future is to invent it."
+> — Alan Kay
+<!-- /center -->
+```
+
+---
+
+## 8. Speaker Notes
 
 Any Markdown content below an HTML comment starting with `<!-- speaker -->` until the start of the next slide (`<!-- slide-sep -->`) or the end of the document is treated as speaker notes.
 
@@ -231,7 +262,7 @@ This convention is purely suggestive and completely non-enforcing in nature. In 
 
 ---
 
-## 8. Complete Example Document
+## 9. Complete Example Document
 
 ```markdown
 ---

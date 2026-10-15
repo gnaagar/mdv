@@ -200,10 +200,28 @@ Connect sequence stages seamlessly with native flow cards and pastel accents:
    - Real-time telemetry monitoring
 <!-- /flow -->
 
+Unnumbered stages with centered content highlight focused milestones or states:
+
+<!-- flow yellow:pink:purple -->
+- <!-- center -->
+  **Validate**
+  Customer feedback & signals
+  <!-- /center -->
+- <!-- center -->
+  **Automate**
+  Zero-touch CD pipeline
+  <!-- /center -->
+- <!-- center -->
+  **Observe**
+  Synthetic health monitoring
+  <!-- /center -->
+<!-- /flow -->
+
 <!-- speaker -->
 > **SPEAKER NOTES**
 >
 > Native flow cards replace complex diagramming for standard linear workflows.
+> Unordered lists produce unnumbered cards with centered text.
 
 <!-- slide-sep -->
 
@@ -227,6 +245,22 @@ Vertical flow stacks organize top-to-bottom architectures, milestones, and lifec
 > **SPEAKER NOTES**
 >
 > Use vertical stack flow when describing layered systems, funnels, or progressive tiers.
+
+<!-- slide-sep -->
+
+## Impact & Mission
+
+<!-- center both -->
+> ### "The only way to do great work is to love what you do."
+> — Steve Jobs
+
+Orbit is built to remove friction from every step of your shipping lifecycle.
+<!-- /center -->
+
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Emphasize our overarching mission before diving into the final technical diagrams.
 
 <!-- slide-sep -->
 

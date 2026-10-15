@@ -579,6 +579,139 @@ title: Test
             parse_slides("---\ntitle: T\n---\n## S\n<!-- flow blue:green:red -->\n- A\n- B\n<!-- /flow -->\n")
         self.assertIn("declares 3 colors but contains 2 steps", str(ctx.exception))
 
+    def test_parses_center_default_horizontal(self):
+        source = """---
+title: Test
+---
+## Centered Slide
+
+<!-- center -->
+![Logo](/static/logo.png)
+
+Important announcement.
+<!-- /center -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides), 1)
+        self.assertEqual(len(doc.slides[0].blocks), 2)
+        self.assertEqual(doc.slides[0].blocks[0].kind, "markdown")
+        block = doc.slides[0].blocks[1]
+        self.assertEqual(block.kind, "center")
+        self.assertEqual(block.alignment, "horizontal")
+        self.assertIn("Important announcement.", block.html)
+        self.assertIn('alt="Logo"', block.html)
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn('class="slide-center slide-center-horizontal"', html)
+
+    def test_parses_center_vertical_and_both(self):
+        source = """---
+title: Test
+---
+## Center Vertical
+
+<!-- center:vert -->
+Left-aligned but vertically centered
+<!-- /center -->
+
+<!-- slide-sep -->
+
+## Center Both
+
+<!-- center both -->
+### Hero Quote
+<!-- /center -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides), 2)
+        b1 = doc.slides[0].blocks[1]
+        self.assertEqual(b1.kind, "center")
+        self.assertEqual(b1.alignment, "vertical")
+
+        b2 = doc.slides[1].blocks[1]
+        self.assertEqual(b2.kind, "center")
+        self.assertEqual(b2.alignment, "both")
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn('class="slide-center slide-center-vertical"', html)
+        self.assertIn('class="slide-center slide-center-both"', html)
+
+    def test_center_syntax_errors(self):
+        # Unclosed center
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- center -->\nSome text\n")
+        self.assertIn("missing its /center directive", str(ctx.exception))
+
+        # /center without opening
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- /center -->\n")
+        self.assertIn("without a matching center directive", str(ctx.exception))
+
+        # Invalid alignment
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- center diagonal -->\nSome text\n<!-- /center -->\n")
+        self.assertIn("Invalid center alignment 'diagonal'", str(ctx.exception))
+
+        # Column inside center
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- center -->\n<!-- col-start 1:1 none -->\n<!-- col-end -->\n<!-- /center -->\n")
+        self.assertIn("cannot start inside a center block", str(ctx.exception))
+
+        # Flow inside center
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- center -->\n<!-- flow -->\n- A\n<!-- /flow -->\n<!-- /center -->\n")
+        self.assertIn("cannot start inside a center block", str(ctx.exception))
+
+        # Center inside column
+        with self.assertRaises(SlidesParseError) as ctx:
+            parse_slides("---\ntitle: T\n---\n## S\n<!-- col-start 1:1 none -->\n<!-- center -->\n<!-- /center -->\n<!-- col-end -->\n")
+        self.assertIn("cannot start inside a column block", str(ctx.exception))
+
+    def test_parses_centered_flow(self):
+        source = """---
+title: Test
+---
+## Flow with Centered Items
+<!-- flow yellow:pink -->
+- <!-- center -->
+  **Card 1**
+  Desc 1
+  <!-- /center -->
+- <!-- center -->
+  **Card 2**
+  Desc 2
+  <!-- /center -->
+<!-- /flow -->
+"""
+        doc = parse_slides(source)
+        self.assertEqual(len(doc.slides), 1)
+        block = doc.slides[0][1]
+        self.assertEqual(block.kind, "flow")
+        self.assertFalse(block.is_numbered)
+        self.assertEqual(len(block.columns), 2)
+        self.assertIn('class="slide-center slide-center-horizontal"', block.columns[0])
+        self.assertIn('class="slide-center slide-center-horizontal"', block.columns[1])
+        self.assertIn("Card 1", block.columns[0])
+        self.assertIn("Card 2", block.columns[1])
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(source, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/")
+        self.assertEqual(response.status_code, 200)
+        html = response.data.decode("utf-8")
+        self.assertIn('class="slide-center slide-center-horizontal"', html)
+
 
 
 
