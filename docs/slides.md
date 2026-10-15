@@ -103,7 +103,7 @@ Columns are declared inside a slide using HTML comments. This ensures presentati
 
 All accent styling uses HTML comments so that documents remain 100% valid, portable plain Markdown across any standard viewer.
 
-Six standard accent colors are supported: `red`, `green`, `blue`, `yellow`, `pink`, and `purple` (plus `none` for invisible/neutral columns).
+Seven standard accent colors are supported: `yellow`, `red`, `green`, `blue`, `pink`, `purple`, and `grey` / `gray` (plus `none` for invisible/neutral columns).
 
 Accent color properties are centrally configured via CSS custom properties (`--accent-<color>-...`) in `:root`.
 
@@ -131,7 +131,73 @@ Apply accent border-left and tinted background to blockquotes:
 
 ---
 
-## 6. Speaker Notes
+## 6. Flow Pipelines & Stacks
+
+Flow blocks render sequences of connected cards with directional SVG arrows, ideal for multi-step pipelines, architectures, and lifecycles.
+
+### 6.1 Horizontal Flow Pipelines
+
+Render a horizontal flex row with right-pointing arrows (`➔`) between cards:
+
+```markdown
+<!-- flow blue:green:purple -->
+1. **Discover**
+   - User interviews & signals
+2. **Build**
+   - Sprint execution & CI
+3. **Ship**
+   - Canary progressive rollout
+<!-- /flow -->
+```
+
+* **Number Badges:** When an ordered list (`1.`, `2.`, `3.`) is used, circular pill badges are positioned on the left and vertically centered within each step card.
+* **Unordered Lists:** Use `-` or `*` for clean cards without number badges.
+* **Closing Tag:** Closes with `<!-- /flow -->` or `<!-- flow-end -->`.
+
+### 6.2 Vertical Flow Stacks
+
+Render a vertical sequence of cards connected by downward-pointing arrows (`⬇`), ideal for layered architectures or tier progressions:
+
+```markdown
+<!-- flow:vertical blue:green:yellow -->
+1. **Frontend Experience**
+
+   Next.js edge runtime with WebGL visualizers
+2. **Core Engine & API**
+
+   FastAPI async workers with schema-validated queues
+3. **Storage & Analytics**
+
+   Distributed PostgreSQL with real-time replication
+<!-- /flow -->
+```
+
+* **Directive Aliases:** `<!-- stack [colors] -->`, `<!-- flow:vertical [colors] -->`, `<!-- flow vertical [colors] -->`, or `<!-- flow-vertical [colors] -->`.
+* **Closing Aliases:** `<!-- /stack -->`, `<!-- stack-end -->`, `<!-- /flow -->`, or `<!-- flow-end -->`.
+
+### 6.3 Explicit Step Separators (`<!-- flow-sep -->`)
+
+For arbitrary multi-paragraph or complex Markdown blocks within flow steps, use explicit step separators:
+
+```markdown
+<!-- flow blue:green -->
+### Ingestion
+Raw event streams are buffered in memory.
+<!-- flow-sep -->
+### Processing
+Async workers transform and batch payloads.
+<!-- /flow -->
+```
+
+### 6.4 Color Allocation
+
+* **Multi-color assignment:** `<!-- flow blue:green:purple -->` assigns colors to steps sequentially.
+* **Single color expansion:** `<!-- flow yellow -->` applies the yellow pastel tint across all steps.
+* **Per-separator override:** `<!-- flow-sep purple -->` overrides the color for a specific step.
+
+---
+
+## 7. Speaker Notes
 
 Any Markdown content below an HTML comment starting with `<!-- speaker -->` until the start of the next slide (`<!-- slide-sep -->`) or the end of the document is treated as speaker notes.
 
@@ -165,7 +231,7 @@ This convention is purely suggestive and completely non-enforcing in nature. In 
 
 ---
 
-## 7. Complete Example Document
+## 8. Complete Example Document
 
 ```markdown
 ---

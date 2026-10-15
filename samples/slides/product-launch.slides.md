@@ -184,6 +184,52 @@ Mermaid blocks work just like they do in regular mdv documents.
 
 <!-- slide-sep -->
 
+## Delivery Pipeline
+
+Connect sequence stages seamlessly with native flow cards and pastel accents:
+
+<!-- flow blue:green:purple -->
+1. **Discover**
+   - User interviews & signals
+   - Clear problem definition
+2. **Build**
+   - Fast sprint execution
+   - Continuous integration
+3. **Ship**
+   - Canary progressive rollout
+   - Real-time telemetry monitoring
+<!-- /flow -->
+
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Native flow cards replace complex diagramming for standard linear workflows.
+
+<!-- slide-sep -->
+
+## Architecture Layers
+
+Vertical flow stacks organize top-to-bottom architectures, milestones, and lifecycles:
+
+<!-- flow:vertical blue:green:yellow -->
+1. **Frontend Experience**
+
+   Next.js edge runtime with responsive WebGL visualizers
+2. **Core Engine & API**
+
+   FastAPI async workers with schema-validated task queues
+3. **Storage & Analytics**
+
+   Distributed PostgreSQL with real-time replication
+<!-- /flow -->
+
+<!-- speaker -->
+> **SPEAKER NOTES**
+>
+> Use vertical stack flow when describing layered systems, funnels, or progressive tiers.
+
+<!-- slide-sep -->
+
 ## Another diagram
 
 <!-- col-start 1:1 none -->

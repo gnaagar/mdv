@@ -31,6 +31,8 @@ class SlideBlock:
     columns: tuple[str, ...] = ()
     ratios: tuple[float, ...] = ()
     column_colors: tuple[str, ...] = ()
+    is_numbered: bool = False
+    orientation: str = "horizontal"
 
 
 @dataclass(frozen=True)
@@ -62,6 +64,15 @@ _SPEAKER_RE = re.compile(r"^\s*<!--\s*speaker(?:[\s:-].*?)?\s*-->\s*$", re.IGNOR
 _COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
 _COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
 _COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
+_FLOW_START_RE = re.compile(
+    r"^\s*<!--\s*(flow(?:-start|-vertical)?|stack(?:-start)?)(?:[:\s]+([^>]+?))?\s*-->\s*$",
+    re.IGNORECASE,
+)
+_FLOW_SEP_RE = re.compile(r"^\s*<!--\s*(?:flow-sep|step-sep|step)(?:\s+([^>]+?))?\s*-->\s*$", re.IGNORECASE)
+_FLOW_END_RE = re.compile(
+    r"^\s*<!--\s*(?:/(?:flow|stack)|(?:flow|stack)-end)\s*-->\s*$",
+    re.IGNORECASE,
+)
 _COL_COLOR_RE = re.compile(
     r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
     re.IGNORECASE,
@@ -275,6 +286,67 @@ def _parse_column_directive(value: str) -> tuple[tuple[float, ...], tuple[str, .
     return ratios, tuple(colors)
 
 
+def _parse_flow_directive(keyword: str, value: str | None) -> tuple[str, list[str]]:
+    kw = keyword.lower()
+    orientation = "vertical" if ("stack" in kw or "-vertical" in kw) else "horizontal"
+    if not value or not value.strip():
+        return orientation, []
+
+    raw = value.strip()
+    if raw.startswith(":"):
+        raw = raw[1:].strip()
+
+    parts = raw.split()
+    color_part = raw
+    if parts:
+        first = parts[0].lower().lstrip(":")
+        if first in ("vertical", "v", "stack", "col", "column"):
+            orientation = "vertical"
+            color_part = " ".join(parts[1:])
+        elif first in ("horizontal", "h", "row"):
+            orientation = "horizontal"
+            color_part = " ".join(parts[1:])
+
+    color_part = color_part.strip().lstrip(":")
+    if not color_part:
+        return orientation, []
+
+    color_tokens = [p.strip().lower() for p in color_part.split(":")]
+    for c in color_tokens:
+        if c and c not in ALLOWED_SLIDE_COLORS:
+            raise SlidesParseError(
+                f"Invalid flow color '{c}'. Allowed colors: {', '.join(sorted(ALLOWED_SLIDE_COLORS))}."
+            )
+    return orientation, color_tokens
+
+
+def _split_markdown_list(content: str) -> tuple[bool, list[str]]:
+    lines = content.splitlines()
+    items: list[list[str]] = []
+    item_re = re.compile(r"^(?:[-*+]|\d+[.)])[ \t]+(.*)$")
+
+    first_non_empty = next((l for l in lines if l.strip()), None)
+    is_numbered = bool(re.match(r"^\s*\d+[.)]", first_non_empty)) if first_non_empty else False
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            if items:
+                items[-1].append(line)
+            continue
+        indent_len = len(line) - len(line.lstrip(" \t"))
+        match = item_re.match(stripped)
+        if indent_len <= 1 and match:
+            items.append([match.group(1)])
+        else:
+            if items:
+                items[-1].append(line)
+            else:
+                items.append([line])
+
+    return is_numbered, ["\n".join(it).strip() for it in items if any(l.strip() for l in it)]
+
+
 def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
     blocks: list[SlideBlock] = []
     full_width: list[str] = []
@@ -282,6 +354,13 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
     ratios: tuple[float, ...] = ()
     column_colors: list[str] = []
     default_colors: tuple[str, ...] = ()
+
+    flow_steps: list[list[str]] | None = None
+    flow_step_colors: list[str] = []
+    default_flow_colors: list[str] = []
+    raw_flow_colors_arg: str = ""
+    flow_orientation: str = "horizontal"
+    flow_has_explicit_sep: bool = False
 
     def flush_full_width() -> None:
         html = _render_markdown("\n".join(full_width))
@@ -293,6 +372,7 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
     fence_len = 0
 
     for line in content.splitlines():
+        target = columns[-1] if columns is not None else (flow_steps[-1] if flow_steps is not None else full_width)
         match = _FENCE_RE.match(line)
         if match:
             char = match.group(1)[0]
@@ -303,15 +383,17 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             elif char == fence_char and length >= fence_len:
                 fence_char = None
                 fence_len = 0
-            (columns[-1] if columns is not None else full_width).append(line)
+            target.append(line)
             continue
 
         if fence_char is not None:
-            (columns[-1] if columns is not None else full_width).append(line)
+            target.append(line)
             continue
 
         start = _COL_START_RE.match(line)
         if start:
+            if flow_steps is not None:
+                raise SlidesParseError("A column block cannot start inside a flow block.")
             if columns is not None:
                 raise SlidesParseError("A column block cannot start inside another column block.")
             flush_full_width()
@@ -358,10 +440,110 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             column_colors = []
             default_colors = ()
             continue
-        (columns[-1] if columns is not None else full_width).append(line)
+
+        flow_start = _FLOW_START_RE.match(line)
+        if flow_start:
+            if columns is not None:
+                raise SlidesParseError("A flow block cannot start inside a column block.")
+            if flow_steps is not None:
+                raise SlidesParseError("A flow block cannot start inside another flow block.")
+            flush_full_width()
+            keyword = flow_start.group(1)
+            raw_flow_colors_arg = flow_start.group(2) or ""
+            flow_orientation, default_flow_colors = _parse_flow_directive(keyword, raw_flow_colors_arg)
+            flow_steps = [[]]
+            flow_step_colors = [default_flow_colors[0] if default_flow_colors else ""]
+            flow_has_explicit_sep = False
+            continue
+
+        flow_sep = _FLOW_SEP_RE.match(line)
+        if flow_sep:
+            if flow_steps is None:
+                raise SlidesParseError("Found flow-sep outside a flow block.")
+            flow_has_explicit_sep = True
+            flow_steps.append([])
+            sep_color = flow_sep.group(1).strip().lower() if flow_sep.group(1) else ""
+            if sep_color and sep_color not in ALLOWED_SLIDE_COLORS:
+                raise SlidesParseError(
+                    f"Invalid flow color '{sep_color}'. Allowed colors: {', '.join(sorted(ALLOWED_SLIDE_COLORS))}."
+                )
+            next_idx = len(flow_steps) - 1
+            if len(default_flow_colors) == 1:
+                color_to_use = sep_color or default_flow_colors[0]
+            else:
+                color_to_use = sep_color or (default_flow_colors[next_idx] if next_idx < len(default_flow_colors) else "")
+            flow_step_colors.append(color_to_use)
+            continue
+
+        if _FLOW_END_RE.match(line):
+            if flow_steps is None:
+                raise SlidesParseError("Found flow-end without a matching flow directive.")
+
+            if flow_has_explicit_sep:
+                steps_raw = ["\n".join(step).strip() for step in flow_steps]
+                steps = [s for s in steps_raw if s]
+                is_numbered = False
+            else:
+                raw_body = "\n".join(flow_steps[0]).strip()
+                is_numbered, steps = _split_markdown_list(raw_body)
+                if not steps and raw_body:
+                    steps = [raw_body]
+
+            count = len(steps)
+            if default_flow_colors and not flow_has_explicit_sep:
+                if len(default_flow_colors) == 1:
+                    resolved_colors = tuple(default_flow_colors * count)
+                elif len(default_flow_colors) == count:
+                    resolved_colors = tuple(default_flow_colors)
+                else:
+                    raise SlidesParseError(
+                        f"Flow block declares {len(default_flow_colors)} colors but contains {count} steps: {raw_flow_colors_arg}."
+                    )
+            elif flow_has_explicit_sep and default_flow_colors:
+                if len(default_flow_colors) == 1:
+                    resolved_colors = tuple(
+                        (flow_step_colors[i] if i < len(flow_step_colors) and flow_step_colors[i] else default_flow_colors[0])
+                        for i in range(count)
+                    )
+                elif len(default_flow_colors) == count:
+                    resolved_colors = tuple(
+                        (flow_step_colors[i] if i < len(flow_step_colors) and flow_step_colors[i] else default_flow_colors[i])
+                        for i in range(count)
+                    )
+                else:
+                    raise SlidesParseError(
+                        f"Flow block declares {len(default_flow_colors)} colors but contains {count} steps: {raw_flow_colors_arg}."
+                    )
+            elif flow_step_colors:
+                resolved_colors = tuple(
+                    (flow_step_colors[i] if i < len(flow_step_colors) else "") for i in range(count)
+                )
+            else:
+                resolved_colors = ("",) * count
+
+            blocks.append(
+                SlideBlock(
+                    kind="flow",
+                    columns=tuple(_render_markdown(step) for step in steps),
+                    column_colors=resolved_colors,
+                    is_numbered=is_numbered,
+                    orientation=flow_orientation,
+                )
+            )
+            flow_steps = None
+            flow_step_colors = []
+            default_flow_colors = []
+            raw_flow_colors_arg = ""
+            flow_orientation = "horizontal"
+            flow_has_explicit_sep = False
+            continue
+
+        target.append(line)
 
     if columns is not None:
         raise SlidesParseError("A column block is missing its col-end directive.")
+    if flow_steps is not None:
+        raise SlidesParseError("A flow block is missing its /flow directive.")
     flush_full_width()
     return tuple(blocks)
 
