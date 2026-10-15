@@ -149,6 +149,11 @@ Content here
         self.assertIn(b'class="slide-text-red">critical</span>', response.data)
         self.assertIn(b'class="slide-text-blue">', response.data)
 
+        # Test grey and gray text
+        doc_grey = parse_slides("---\ntitle: T\n---\n## S\n<!--grey-->neutral<!--/grey--> and <!--gray-->slate<!--/gray-->")
+        self.assertIn('class="slide-text-grey">neutral</span>', doc_grey.slides[0][0].html)
+        self.assertIn('class="slide-text-gray">slate</span>', doc_grey.slides[0][0].html)
+
     def test_renders_blockquote_accent_colors(self):
         source = """---
 title: Test
@@ -366,7 +371,7 @@ title: Test
             response = Client(SlidesApp(path)).get("/static/slides.css")
         self.assertEqual(response.status_code, 200)
         css = response.data.decode("utf-8")
-        for color in ("red", "green", "blue", "yellow", "pink", "purple"):
+        for color in ("red", "green", "blue", "yellow", "pink", "purple", "grey", "gray"):
             self.assertIn(f"--accent-{color}-bg:", css)
             self.assertIn(f"--accent-{color}-border:", css)
             self.assertIn(f"--accent-{color}-text:", css)
@@ -388,6 +393,32 @@ title: Test
         self.assertRegex(html, r"<blockquote[^>]*>\s*<p[^>]*>Default neutral quote\.</p>\s*</blockquote>")
         # Second quote SHOULD have slide-quote-blue
         self.assertRegex(html, r"<blockquote[^>]*class=\"[^\"]*slide-quote-blue[^\"]*\"[^>]*>\s*<p[^>]*>Blue highlighted quote\.</p>\s*</blockquote>")
+
+    def test_slides_css_borderless_styling(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(SOURCE, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/static/slides.css")
+        self.assertEqual(response.status_code, 200)
+        css = response.data.decode("utf-8")
+        self.assertIn("border: none;", css)
+        self.assertIn("border-radius: 0;", css)
+        self.assertIn("box-shadow: none;", css)
+        self.assertIn("body.is-title-slide", css)
+        self.assertIn("linear-gradient", css)
+
+    def test_slides_js_borderless_header_sync(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "test.slides.md"
+            path.write_text(SOURCE, encoding="utf-8")
+            response = Client(SlidesApp(path)).get("/static/js/slides.js")
+        self.assertEqual(response.status_code, 200)
+        js = response.data.decode("utf-8")
+        self.assertIn("OUTER_GAP = 0;", js)
+        self.assertIn("appendChild(count)", js)
+        self.assertIn("updateHeaderSync", js)
+        self.assertIn("--header-bottom", js)
+
 
 
 

@@ -2,19 +2,7 @@
   /* ── 16:9 viewport scaling ──────────────────────────────────────────────── */
   const SLIDE_W = 1600;
   const SLIDE_H = 900;
-
-  function scaleSlides() {
-    // Cap at 1: never enlarge beyond 1600×900; scale down if viewport is smaller.
-    const scale = Math.min(1, window.innerWidth / SLIDE_W, window.innerHeight / SLIDE_H);
-    document.documentElement.style.setProperty('--slide-scale', scale);
-  }
-
-  scaleSlides();
-  window.addEventListener('resize', scaleSlides);
-
-  window.mermaid.initialize({
-    startOnLoad: false
-  });
+  const OUTER_GAP = 0;
 
   /* ── Slide navigation ───────────────────────────────────────────────────── */
   const slides = [...document.querySelectorAll('.slide')];
@@ -22,7 +10,42 @@
   let current = 0;
   let diagramId = 0;
 
+  function updateHeaderSync() {
+    const activeSlide = slides[current];
+    if (!activeSlide) return;
+
+    if (activeSlide.classList.contains('title-slide')) {
+      document.body.classList.add('is-title-slide');
+      document.documentElement.style.removeProperty('--header-bottom');
+      return;
+    }
+
+    document.body.classList.remove('is-title-slide');
+    const h2 = activeSlide.querySelector('.slide-markdown > h2:first-child');
+    if (h2) {
+      const bottom = Math.round(h2.getBoundingClientRect().bottom);
+      document.documentElement.style.setProperty('--header-bottom', `${bottom}px`);
+    } else {
+      document.documentElement.style.setProperty('--header-bottom', '0px');
+    }
+  }
+
+  function scaleSlides() {
+    const isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    const availableW = Math.max(1, window.innerWidth - OUTER_GAP * 2);
+    const availableH = Math.max(1, window.innerHeight - OUTER_GAP * 2);
+    const maxScale = isFullscreen ? Number.POSITIVE_INFINITY : 1;
+    const scale = Math.min(maxScale, availableW / SLIDE_W, availableH / SLIDE_H);
+    document.documentElement.style.setProperty('--slide-scale', scale);
+    updateHeaderSync();
+  }
+
+  window.addEventListener('resize', scaleSlides);
+  document.addEventListener('fullscreenchange', scaleSlides);
+  document.addEventListener('webkitfullscreenchange', scaleSlides);
+
   async function renderSlideDiagrams(slide) {
+    if (!window.mermaid?.render) return;
     for (const diagram of slide.querySelectorAll('.mermaid')) {
       if (diagram.hasAttribute('data-processed')) continue;
       diagram.setAttribute('data-processed', 'true');
@@ -47,23 +70,37 @@
       slide.classList.toggle('is-active', active);
       slide.setAttribute('aria-hidden', String(!active));
     });
-    count.textContent = `${current + 1} / ${slides.length}`;
+    if (count) {
+      count.textContent = `${current + 1} / ${slides.length}`;
+      if (slides[current] && count.parentElement !== slides[current]) {
+        slides[current].appendChild(count);
+      }
+    }
     history.replaceState(null, '', `#${current + 1}`);
+    updateHeaderSync();
     requestAnimationFrame(() => {
       renderSlideDiagrams(slides[current]);
+      updateHeaderSync();
     });
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
+  const init = () => {
     document.documentElement.classList.remove('theme-dark');
     document.body.classList.remove('theme-dark');
-    window.mermaid.initialize({
+    window.mermaid?.initialize?.({
       startOnLoad: false,
       flowchart: { wrappingWidth: 200 }
     });
+    scaleSlides();
     const fromHash = Number.parseInt(location.hash.slice(1), 10);
     show(fromHash ? fromHash - 1 : 0);
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
   document.addEventListener('keydown', (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
