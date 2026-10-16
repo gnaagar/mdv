@@ -171,6 +171,12 @@ title: Test
 
 > <!-- quote: yellow -->
 > Warning: Breaking change ahead.
+
+<!-- quote: red none -->
+> Neutral text with red quote bar.
+
+<!-- quote: purple yellow -->
+> Yellow text with purple quote bar.
 """
         with TemporaryDirectory() as directory:
             path = Path(directory) / "quotes.slides.md"
@@ -178,6 +184,8 @@ title: Test
             response = Client(SlidesApp(path)).get("/")
         self.assertIn(b'class="slide-quote-green"', response.data)
         self.assertIn(b'class="slide-quote-yellow"', response.data)
+        self.assertIn(b'class="slide-quote-red slide-quote-text-none"', response.data)
+        self.assertIn(b'class="slide-quote-purple slide-text-yellow"', response.data)
 
     def test_preserves_markdown_formatting_inside_color_directives(self):
         source = """---

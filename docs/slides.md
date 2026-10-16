@@ -236,10 +236,12 @@ Color individual words, lines, or blocks of Markdown content using the canonical
 
 ### 7.2 Blockquote Accent Colors
 
-Apply accent border-left and tinted background to blockquotes:
+Apply accent border-left, tinted background, and matching accent text color to blockquotes:
 
 * **Before blockquote:** `<!-- quote: green -->`
 * **Inside first line:** `> <!-- quote: green --> Safe and reversible.`
+* **Default Accent Text:** Text inside the blockquote is automatically styled in the accent color by default, keeping the Markdown clean without requiring nested `<!--color-->` tags.
+* **Neutral Text Override:** To keep default body text color while styling the border and background, pass `none` as the text option: `<!-- quote: green none -->`.
 
 ---
 

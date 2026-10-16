@@ -85,11 +85,11 @@ _COL_COLOR_RE = re.compile(
     re.IGNORECASE,
 )
 _QUOTE_DIRECTIVE_RE = re.compile(
-    r"^\s*<!--\s*quote:\s*(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
+    r"^\s*<!--\s*quote:\s*(yellow|red|green|blue|pink|purple|grey|gray)(?:\s+(none|yellow|red|green|blue|pink|purple|grey|gray))?\s*-->\s*$",
     re.IGNORECASE,
 )
 _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
-    r"^[ \t]*>[ \t]*<!--\s*quote:\s*(yellow|red|green|blue|pink|purple|grey|gray)\s*-->[ \t]*(.*)$",
+    r"^[ \t]*>[ \t]*<!--\s*quote:\s*(yellow|red|green|blue|pink|purple|grey|gray)(?:\s+(none|yellow|red|green|blue|pink|purple|grey|gray))?\s*-->[ \t]*(.*)$",
     re.IGNORECASE,
 )
 # Canonical text-color syntax: <!--red-->text<!--/red-->  (no spaces, no "color:" prefix).
@@ -126,7 +126,7 @@ def _parse_front_matter(source: str) -> tuple[dict[str, str], str]:
 
 
 _SLIDE_QUOTE_TOKEN_RE = re.compile(
-    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
+    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)(?:_text_(\w+))?%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_BLOCK_P_RE = re.compile(
@@ -194,35 +194,40 @@ def _preprocess_slide_markdown(content: str) -> str:
         text = _CENTER_INLINE_RE.sub(center_replacer, text)
         chunk_lines = text.splitlines(keepends=True)
         processed_lines: list[str] = []
-        pending_quote_color: str | None = None
+        pending_quote_token: str | None = None
 
         for line in chunk_lines:
             stripped = line.strip()
 
             inline_quote_match = _INLINE_QUOTE_DIRECTIVE_RE.match(line)
             if inline_quote_match:
-                color = inline_quote_match.group(1).lower()
-                rest = inline_quote_match.group(2)
-                processed_lines.append(f"> %%SLIDE_QUOTE_{color}%% {rest}\n")
-                pending_quote_color = None
+                bar_color = inline_quote_match.group(1).lower()
+                text_opt = inline_quote_match.group(2)
+                text_suffix = f"_text_{text_opt.lower()}" if text_opt else ""
+                rest = inline_quote_match.group(3)
+                processed_lines.append(f"> %%SLIDE_QUOTE_{bar_color}{text_suffix}%% {rest}\n")
+                pending_quote_token = None
                 continue
 
             quote_match = _QUOTE_DIRECTIVE_RE.match(line)
             if quote_match and not stripped.startswith(">"):
-                pending_quote_color = quote_match.group(1).lower()
+                bar_color = quote_match.group(1).lower()
+                text_opt = quote_match.group(2)
+                text_suffix = f"_text_{text_opt.lower()}" if text_opt else ""
+                pending_quote_token = f"{bar_color}{text_suffix}"
                 continue
 
-            if pending_quote_color:
+            if pending_quote_token:
                 if stripped.startswith(">"):
                     quote_rest = line.lstrip()[1:]
-                    processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_color}%%{quote_rest}")
-                    pending_quote_color = None
+                    processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_token}%%{quote_rest}")
+                    pending_quote_token = None
                     continue
                 elif not stripped:
                     processed_lines.append(line)
                     continue
                 else:
-                    pending_quote_color = None
+                    pending_quote_token = None
 
             processed_lines.append(line)
         processed_chunks.append("".join(processed_lines))
@@ -261,16 +266,22 @@ def _render_markdown(content: str) -> str:
     def quote_replacer(match: re.Match) -> str:
         attrs = match.group(1)
         before = match.group(2)
-        color = match.group(3).lower()
-        after = match.group(4)
+        quote_color = match.group(3).lower()
+        text_color = match.group(4).lower() if match.group(4) else ""
+        after = match.group(5)
+        extra_class = f"slide-quote-{quote_color}"
+        if text_color == "none":
+            extra_class += " slide-quote-text-none"
+        elif text_color:
+            extra_class += f" slide-text-{text_color}"
         if 'class="' in attrs:
-            attrs = re.sub(r'class="([^"]*)"', rf'class="\1 slide-quote-{color}"', attrs)
+            attrs = re.sub(r'class="([^"]*)"', rf'class="\1 {extra_class}"', attrs)
         else:
-            attrs = f'{attrs} class="slide-quote-{color}"'
+            attrs = f'{attrs} class="{extra_class}"'
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
     html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, html)
-    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*", "", html)
+    html = re.sub(r"%%SLIDE_QUOTE_(?:[a-zA-Z0-9_]+)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
         color = match.group(1).lower()

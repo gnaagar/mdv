@@ -674,14 +674,40 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-text-gray,   .slide-text-gray *   { color: var(--accent-grey-text) !important; }
 
 /* ── Blockquote colour variants ───────────────────────────────────────────── */
+.markdown-body .slide-content blockquote.slide-quote-yellow,
+.markdown-body .slide-content blockquote.slide-quote-yellow * { color: var(--accent-yellow-text); }
 .markdown-body .slide-content blockquote.slide-quote-yellow { background: var(--accent-yellow-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-yellow-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-red    { background: var(--accent-red-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-red-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-green  { background: var(--accent-green-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-green-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-blue   { background: var(--accent-blue-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-blue-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-pink   { background: var(--accent-pink-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-pink-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-red,
+.markdown-body .slide-content blockquote.slide-quote-red * { color: var(--accent-red-text); }
+.markdown-body .slide-content blockquote.slide-quote-red { background: var(--accent-red-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-red-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-green,
+.markdown-body .slide-content blockquote.slide-quote-green * { color: var(--accent-green-text); }
+.markdown-body .slide-content blockquote.slide-quote-green { background: var(--accent-green-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-green-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-blue,
+.markdown-body .slide-content blockquote.slide-quote-blue * { color: var(--accent-blue-text); }
+.markdown-body .slide-content blockquote.slide-quote-blue { background: var(--accent-blue-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-blue-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-pink,
+.markdown-body .slide-content blockquote.slide-quote-pink * { color: var(--accent-pink-text); }
+.markdown-body .slide-content blockquote.slide-quote-pink { background: var(--accent-pink-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-pink-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-purple,
+.markdown-body .slide-content blockquote.slide-quote-purple * { color: var(--accent-purple-text); }
 .markdown-body .slide-content blockquote.slide-quote-purple { background: var(--accent-purple-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-purple-quote-bar) !important; }
+
 .markdown-body .slide-content blockquote.slide-quote-grey,
-.markdown-body .slide-content blockquote.slide-quote-gray   { background: var(--accent-grey-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-grey-quote-bar) !important; }
+.markdown-body .slide-content blockquote.slide-quote-grey *,
+.markdown-body .slide-content blockquote.slide-quote-gray,
+.markdown-body .slide-content blockquote.slide-quote-gray * { color: var(--accent-grey-text); }
+.markdown-body .slide-content blockquote.slide-quote-grey,
+.markdown-body .slide-content blockquote.slide-quote-gray { background: var(--accent-grey-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-grey-quote-bar) !important; }
+
+/* Neutral text override in blockquotes (e.g. <!-- quote: red none -->) */
+.markdown-body .slide-content blockquote.slide-quote-text-none,
+.markdown-body .slide-content blockquote.slide-quote-text-none * { color: inherit !important; }
 
 
 /* ── Footer (slide counter & custom footer) ────────────────────────────────── */
