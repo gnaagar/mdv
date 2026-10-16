@@ -68,22 +68,22 @@ Markdown is still the primary authoring language; slides only add document metad
 > Use blockquotes for principles, evidence, or a memorable line.
 
 <!-- quote: red -->
-> <!--red-->**Intent**: Clear intent leads to clear work.<!--/red-->
+> **Intent**: Clear intent leads to clear work.
 
 <!-- quote: blue -->
-> <!--blue-->**Perspective**: Great presentations make **one idea** easy to carry forward.<!--/blue-->
+> **Perspective**: Great presentations make **one idea** easy to carry forward.
 
 <!-- quote: green -->
-> <!--green-->**Evidence**: Small, frequent releases keep teams focused on real outcomes.<!--/green-->
+> **Evidence**: Small, frequent releases keep teams focused on real outcomes.
 
 <!-- quote: yellow -->
-> <!--yellow-->**Guideline**: Keep slides focused; avoid clutter and preserve strong contrast.<!--/yellow-->
+> **Guideline**: Keep slides focused; avoid clutter and preserve strong contrast.
 
 <!-- quote: pink -->
-> <!--pink-->**Highlight**: Use accent colors intentionally to draw eyes to key metrics and takeaways.<!--/pink-->
+> **Highlight**: Use accent colors intentionally to draw eyes to key metrics and takeaways.
 
 <!-- quote: purple -->
-> <!--purple-->**Summary**: Consistent styling builds rhythm across complex slide decks.<!--/purple-->
+> **Summary**: Consistent styling builds rhythm across complex slide decks.
 
 <!-- slide -->
 
