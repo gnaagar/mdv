@@ -3,17 +3,20 @@ title: "Platform Architecture Review"
 subtitle: "A practical path to resilient delivery"
 author: "Engineering"
 date: 2026-10-08
+footer: "Platform Architecture • Q4 2026"
 ---
+
+<!-- slide -->
 
 ## Platform today
 
 Our services are reliable, but deployment speed is constrained by shared dependencies.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Design priorities
 
-<!-- col-start 2:1:2 -->
+<!-- col 2:1:2 -->
 
 ### Reliability
 
@@ -35,9 +38,9 @@ Independent deploys
 - Fast feedback loops
 - Useful operational defaults
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Next 90 days
 
@@ -47,7 +50,7 @@ Independent deploys
 | Deployment templates | Repeatable releases |
 | Observability baseline | Faster diagnosis |
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Decision
 

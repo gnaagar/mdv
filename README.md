@@ -69,7 +69,7 @@ Open an `md-slides` document in the standalone presentation viewer:
 mdv --slides presentation.slides.md
 ```
 
-Features multi-column grids (`<!-- col-start -->`), centered content (`<!-- center -->`), horizontal flow pipelines and vertical stacks (`<!-- flow -->`, `<!-- stack -->`), pastel palette themes, math (KaTeX), diagrams (Mermaid), and hidden speaker notes. See the [Slides Specification](docs/slides.md) for full syntax.
+Features multi-column grids (`<!-- col -->` / `<!-- /col -->`), centered content (`<!-- center -->` / `<!-- /center -->`), horizontal and vertical flow pipelines (`<!-- flow -->` / `<!-- /flow -->`), pastel palette themes, math (KaTeX), diagrams (Mermaid), and hidden speaker notes. See the [Slides Specification](docs/slides.md) for full syntax.
 
 Use the arrow keys or Space to navigate, Home and End to jump, and `F` for fullscreen.
 

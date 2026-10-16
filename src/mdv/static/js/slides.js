@@ -7,6 +7,7 @@
   /* ── Slide navigation ───────────────────────────────────────────────────── */
   const slides = [...document.querySelectorAll('.slide')];
   const count = document.getElementById('slide-count');
+  const customFooter = document.getElementById('slide-custom-footer');
   let current = 0;
   let diagramId = 0;
 
@@ -42,6 +43,11 @@
     }
   }
 
+  const parseSlideFromHash = () => {
+    const num = Number.parseInt(location.hash.slice(1), 10);
+    return Number.isNaN(num) ? 0 : Math.max(0, num - 1);
+  };
+
   const show = (index) => {
     current = Math.max(0, Math.min(index, slides.length - 1));
     slides.forEach((slide, i) => {
@@ -55,12 +61,25 @@
         slides[current].appendChild(count);
       }
     }
-    history.replaceState(null, '', `#${current + 1}`);
+    if (customFooter && slides[current] && customFooter.parentElement !== slides[current]) {
+      slides[current].appendChild(customFooter);
+    }
+    const expectedHash = `#${current + 1}`;
+    if (location.hash !== expectedHash) {
+      history.replaceState(null, '', expectedHash);
+    }
     document.body.classList.toggle('is-title-slide', Boolean(slides[current]?.classList.contains('title-slide')));
     requestAnimationFrame(() => {
       renderSlideDiagrams(slides[current]);
     });
   };
+
+  window.addEventListener('hashchange', () => {
+    const target = parseSlideFromHash();
+    if (target !== current) {
+      show(target);
+    }
+  });
 
   const init = () => {
     document.documentElement.classList.remove('theme-dark');
@@ -70,8 +89,7 @@
       flowchart: { wrappingWidth: 200 }
     });
     scaleSlides();
-    const fromHash = Number.parseInt(location.hash.slice(1), 10);
-    show(fromHash ? fromHash - 1 : 0);
+    show(parseSlideFromHash());
   };
 
   if (document.readyState === 'loading') {

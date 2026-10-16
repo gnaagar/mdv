@@ -16,7 +16,7 @@ One focused workspace for planning, building, and sharing your best work.
 >
 > Welcome everyone. Today we are introducing Orbit — a modern approach to collaborative planning and shipping.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Everyday Markdown
 
@@ -30,11 +30,11 @@ Highlight critical details using accent colors: <!--blue-->**informative notes**
 
 Markdown is still the primary authoring language; slides only add document metadata, separators, and column directives.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Lists and tasks
 
-<!-- col-start 1:1:1 none -->
+<!-- col 1:1:1 none -->
 
 ### What we need
 
@@ -59,9 +59,9 @@ Markdown is still the primary authoring language; slides only add document metad
 - [ ] <!--yellow-->Publish the plan (in review)<!--/yellow-->
 - [ ] <!--red-->Security sign-off (pending blocker)<!--/red-->
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## A point of view
 
@@ -85,11 +85,11 @@ Markdown is still the primary authoring language; slides only add document metad
 <!-- quote: purple -->
 > <!--purple-->**Summary**: Consistent styling builds rhythm across complex slide decks.<!--/purple-->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Code is first-class
 
-<!-- col-start 1:1 none:none -->
+<!-- col 1:1 none:none -->
 
 ```python
 # Compute readiness score from signals
@@ -131,9 +131,9 @@ print(launch(signals))
 # 🚀 ship it
 ```
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Separators in code blocks
 
@@ -144,16 +144,16 @@ Slide separators inside code blocks or backticks are safely ignored and never sp
 
 Slide content here.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Second Slide
 
 Next slide content.
 ```
 
-The `<!-- slide-sep -->` above is preserved verbatim inside the fenced code block.
+The `<!-- slide -->` above is preserved verbatim inside the fenced code block.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Data and math
 
@@ -168,7 +168,7 @@ $$
 a^2 + b^2 = c^2
 $$
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## A Mermaid diagram
 
@@ -182,7 +182,7 @@ flowchart TD
 
 Mermaid blocks work just like they do in regular mdv documents.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Delivery Pipeline
 
@@ -223,13 +223,13 @@ Unnumbered stages with centered content highlight focused milestones or states:
 > Native flow cards replace complex diagramming for standard linear workflows.
 > Unordered lists produce unnumbered cards with centered text.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Architecture Layers
 
 Vertical flow stacks organize top-to-bottom architectures, milestones, and lifecycles:
 
-<!-- flow:vertical blue:green:yellow -->
+<!-- flow vertical blue:green:yellow -->
 1. **Frontend Experience**
 
    Next.js edge runtime with responsive WebGL visualizers
@@ -246,7 +246,7 @@ Vertical flow stacks organize top-to-bottom architectures, milestones, and lifec
 >
 > Use vertical stack flow when describing layered systems, funnels, or progressive tiers.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Impact & Mission
 
@@ -262,11 +262,11 @@ Orbit is built to remove friction from every step of your shipping lifecycle.
 >
 > Emphasize our overarching mission before diving into the final technical diagrams.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Another diagram
 
-<!-- col-start 1:1 none -->
+<!-- col 1:1 none -->
 
 ```mermaid
 flowchart TD
@@ -287,13 +287,13 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 ```
 
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Built for flow
 
-<!-- col-start 1:1 blue:green -->
+<!-- col 1:1 blue:green -->
 
 ### Plan
 
@@ -309,7 +309,7 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 - Share progress clearly
 - <!--green-->**Learn from every release**<!--/green-->
 
-<!-- col-end -->
+<!-- /col -->
 
 <!-- quote: blue -->
 > "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra
@@ -320,11 +320,11 @@ C["`A *text* **that** needs to be wrapped to another line`"]
 > - Emphasize that planning and shipping happen in the same unified workflow.
 > - Transition to the next slide demonstrating multi-column Markdown.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Markdown in two columns
 
-<!-- col-start 1:1 pink:purple -->
+<!-- col 1:1 pink:purple -->
 
 ### A quote
 
@@ -344,15 +344,15 @@ Use **emphasis**, `inline code`, and ordinary paragraphs without a special synta
 | Small step | Fast learning |
 | Big bet | Bigger risk |
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Table as column card
 
 When a column contains **only** a table, it fills the card completely — no padding, borders merge.
 
-<!-- col-start 1:1 blue:green -->
+<!-- col 1:1 blue:green -->
 
 | Signal | Target | This week |
 | :--- | ---: | ---: |
@@ -366,13 +366,13 @@ When a column contains **only** a table, it fills the card completely — no pad
 
 The right column has normal content — the flush-fill only applies when the table is the **sole** element in the card.
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Markdown in three columns
 
-<!-- col-start 1:1:1 blue:yellow:green -->
+<!-- col 1:1:1 blue:yellow:green -->
 
 ### Plan
 
@@ -399,13 +399,13 @@ make it useful
 - Adjust the next step
 - <!--green-->**Ship with confidence**<!--/green-->
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## A two-row, three-column grid
 
-<!-- col-start 1:1:1 -->
+<!-- col 1:1:1 -->
 
 ### Discover
 
@@ -423,9 +423,9 @@ Write one measurable outcome.
 
 Choose the smallest useful step.
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- col-start 1:1:1 -->
+<!-- col 1:1:1 -->
 
 ### Build
 
@@ -443,13 +443,13 @@ Watch the signal that matters.
 
 Use the result to guide the next cycle.
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## A mixed row layout
 
-<!-- col-start 1:1:1 red:yellow:green -->
+<!-- col 1:1:1 red:yellow:green -->
 
 ### Blocked
 
@@ -473,9 +473,9 @@ Migrating cache tier to new cluster.
 **Zero errors** recorded over the last 24 hours.
 <!--/green-->
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- col-start 1:1 blue:blue -->
+<!-- col 1:1 blue:blue -->
 
 ### Detail
 
@@ -487,18 +487,18 @@ Two larger areas work well for comparison.
 
 Use the second row for the final trade-off.
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- col-start 1 green -->
+<!-- col 1 green -->
 
 ### Conclusion
 
 <!-- quote: green -->
 > **Orbit simplifies complex flows**: Plan, collaborate, and ship safely.
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Blockquote styles
 
@@ -514,13 +514,13 @@ Use the second row for the final trade-off.
 <!-- quote: red -->
 > **Red**: An urgent blocker or critical constraint — hard to miss.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Table colour matching
 
 When a column's only content is a table, borders and headers adopt the column palette.
 
-<!-- col-start 1:1 blue:green -->
+<!-- col 1:1 blue:green -->
 
 | Signal | This week |
 | :--- | ---: |
@@ -536,13 +536,13 @@ When a column's only content is a table, borders and headers adopt the column pa
 | Test pass | 98 % |
 | Deploy freq | 3 / day |
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Invisible multi-column
 
-<!-- col-start 1:1 none:none -->
+<!-- col 1:1 none:none -->
 
 ### Left area
 
@@ -561,13 +561,13 @@ The `none` colour removes border, background, and border-radius, making the spli
 <!-- quote: blue -->
 > Useful when you want layout control without the card look.
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Mixed: card + invisible
 
-<!-- col-start 1:2 blue:none -->
+<!-- col 1:2 blue:none -->
 
 ### Highlight
 
@@ -584,17 +584,37 @@ Use `none` on just one side to anchor a card on the left or right while giving t
 - No background
 - Full padding preserved
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide -->
+
+## Centered example 1
+
+<!-- col 1:1 red:yellow -->
+
+### First column
+
+First column is the leftmost one.
+
+<!-- col-sep -->
+
+### Second column
+
+Second column is the rightmost one.
+
+<!-- /col -->
+
+<!-- slide -->
 
 ## The result
 
+<!-- center -->
 Less coordination. More creation.
 
 <!--green-->
 **Orbit is available today.**
 <!--/green-->
+<!-- /center -->
 
 <!-- speaker -->
 > **SPEAKER NOTES**
