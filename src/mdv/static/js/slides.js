@@ -24,22 +24,34 @@
   document.addEventListener('fullscreenchange', scaleSlides);
   document.addEventListener('webkitfullscreenchange', scaleSlides);
 
-  async function renderSlideDiagrams(slide) {
-    if (!window.mermaid?.render) return;
-    for (const diagram of slide.querySelectorAll('.mermaid')) {
-      if (diagram.hasAttribute('data-processed')) continue;
-      diagram.setAttribute('data-processed', 'true');
+  async function renderDiagram(diagram) {
+    if (!diagram || diagram.hasAttribute('data-processed')) return;
+    diagram.setAttribute('data-processed', 'true');
 
-      try {
-        const { svg, bindFunctions } = await window.mermaid.render(
-          `slide-mermaid-${diagramId++}`, diagram.dataset.mermaidSrc
-        );
-        diagram.innerHTML = svg;
-        bindFunctions?.(diagram);
-      } catch (error) {
-        diagram.removeAttribute('data-processed');
-        console.error('Unable to render mermaid diagram:', error);
-      }
+    try {
+      const { svg, bindFunctions } = await window.mermaid.render(
+        `slide-mermaid-${diagramId++}`, diagram.dataset.mermaidSrc
+      );
+      diagram.innerHTML = svg;
+      bindFunctions?.(diagram);
+    } catch (error) {
+      diagram.removeAttribute('data-processed');
+      console.error('Unable to render mermaid diagram:', error);
+    }
+  }
+
+  async function renderSlideDiagrams(slide) {
+    if (!window.mermaid?.render || !slide) return;
+    for (const diagram of slide.querySelectorAll('.mermaid')) {
+      await renderDiagram(diagram);
+    }
+  }
+
+  async function preRenderAllDiagrams() {
+    if (!window.mermaid?.render) return;
+    const allDiagrams = document.querySelectorAll('.slide .mermaid');
+    for (const diagram of allDiagrams) {
+      await renderDiagram(diagram);
     }
   }
 
@@ -90,6 +102,7 @@
     });
     scaleSlides();
     show(parseSlideFromHash());
+    preRenderAllDiagrams();
   };
 
   if (document.readyState === 'loading') {
