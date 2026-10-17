@@ -7,6 +7,7 @@
   /* ── Slide navigation ───────────────────────────────────────────────────── */
   const slides = [...document.querySelectorAll('.slide')];
   const count = document.getElementById('slide-count');
+  const customFooter = document.getElementById('slide-custom-footer');
   let current = 0;
   let diagramId = 0;
 
@@ -23,24 +24,41 @@
   document.addEventListener('fullscreenchange', scaleSlides);
   document.addEventListener('webkitfullscreenchange', scaleSlides);
 
-  async function renderSlideDiagrams(slide) {
-    if (!window.mermaid?.render) return;
-    for (const diagram of slide.querySelectorAll('.mermaid')) {
-      if (diagram.hasAttribute('data-processed')) continue;
-      diagram.setAttribute('data-processed', 'true');
+  async function renderDiagram(diagram) {
+    if (!diagram || diagram.hasAttribute('data-processed')) return;
+    diagram.setAttribute('data-processed', 'true');
 
-      try {
-        const { svg, bindFunctions } = await window.mermaid.render(
-          `slide-mermaid-${diagramId++}`, diagram.dataset.mermaidSrc
-        );
-        diagram.innerHTML = svg;
-        bindFunctions?.(diagram);
-      } catch (error) {
-        diagram.removeAttribute('data-processed');
-        console.error('Unable to render mermaid diagram:', error);
-      }
+    try {
+      const { svg, bindFunctions } = await window.mermaid.render(
+        `slide-mermaid-${diagramId++}`, diagram.dataset.mermaidSrc
+      );
+      diagram.innerHTML = svg;
+      bindFunctions?.(diagram);
+    } catch (error) {
+      diagram.removeAttribute('data-processed');
+      console.error('Unable to render mermaid diagram:', error);
     }
   }
+
+  async function renderSlideDiagrams(slide) {
+    if (!window.mermaid?.render || !slide) return;
+    for (const diagram of slide.querySelectorAll('.mermaid')) {
+      await renderDiagram(diagram);
+    }
+  }
+
+  async function preRenderAllDiagrams() {
+    if (!window.mermaid?.render) return;
+    const allDiagrams = document.querySelectorAll('.slide .mermaid');
+    for (const diagram of allDiagrams) {
+      await renderDiagram(diagram);
+    }
+  }
+
+  const parseSlideFromHash = () => {
+    const num = Number.parseInt(location.hash.slice(1), 10);
+    return Number.isNaN(num) ? 0 : Math.max(0, num - 1);
+  };
 
   const show = (index) => {
     current = Math.max(0, Math.min(index, slides.length - 1));
@@ -55,12 +73,25 @@
         slides[current].appendChild(count);
       }
     }
-    history.replaceState(null, '', `#${current + 1}`);
+    if (customFooter && slides[current] && customFooter.parentElement !== slides[current]) {
+      slides[current].appendChild(customFooter);
+    }
+    const expectedHash = `#${current + 1}`;
+    if (location.hash !== expectedHash) {
+      history.replaceState(null, '', expectedHash);
+    }
     document.body.classList.toggle('is-title-slide', Boolean(slides[current]?.classList.contains('title-slide')));
     requestAnimationFrame(() => {
       renderSlideDiagrams(slides[current]);
     });
   };
+
+  window.addEventListener('hashchange', () => {
+    const target = parseSlideFromHash();
+    if (target !== current) {
+      show(target);
+    }
+  });
 
   const init = () => {
     document.documentElement.classList.remove('theme-dark');
@@ -70,8 +101,8 @@
       flowchart: { wrappingWidth: 200 }
     });
     scaleSlides();
-    const fromHash = Number.parseInt(location.hash.slice(1), 10);
-    show(fromHash ? fromHash - 1 : 0);
+    show(parseSlideFromHash());
+    preRenderAllDiagrams();
   };
 
   if (document.readyState === 'loading') {

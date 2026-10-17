@@ -40,6 +40,9 @@ class SlideBlock:
 class Slide:
     blocks: tuple[SlideBlock, ...]
     notes_html: str = ""
+    align: str = "center"
+    title_html: str = ""
+    body_blocks: tuple[SlideBlock, ...] = ()
 
     def __iter__(self):
         return iter(self.blocks)
@@ -58,50 +61,44 @@ class SlideDocument:
 
 
 _FRONT_MATTER_RE = re.compile(r"\A---[ \t]*\r?\n(?P<body>.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.DOTALL)
-# Canonical slide separator: <!-- slide-sep -->
-# The old "---" form is no longer recognised; it renders as a plain <hr> in standard viewers.
-_SLIDE_SEP_RE = re.compile(r"^\s*<!--\s*slide-sep\s*-->\s*$")
-_SPEAKER_RE = re.compile(r"^\s*<!--\s*speaker(?:[\s:-].*?)?\s*-->\s*$", re.IGNORECASE)
-_COL_START_RE = re.compile(r"^\s*<!--\s*col-start\s+([^>]+?)\s*-->\s*$")
-_COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$")
-_COL_END_RE = re.compile(r"^\s*<!--\s*col-end\s*-->\s*$")
+_SLIDE_RE = re.compile(
+    r"^\s*<!--\s*slide(?:\s+(?:align:)?(center|top))?\s*-->\s*$",
+    re.IGNORECASE,
+)
+_SPEAKER_RE = re.compile(r"^\s*<!--\s*speaker\s*-->\s*$", re.IGNORECASE)
+_COL_START_RE = re.compile(r"^\s*<!--\s*col\s+([^>]+?)\s*-->\s*$", re.IGNORECASE)
+_COL_SEP_RE = re.compile(r"^\s*<!--\s*col-sep(?:\s+([^>]+?))?\s*-->\s*$", re.IGNORECASE)
+_COL_END_RE = re.compile(r"^\s*<!--\s*/col\s*-->\s*$", re.IGNORECASE)
 _FLOW_START_RE = re.compile(
-    r"^\s*<!--\s*(flow(?:-start|-vertical)?|stack(?:-start)?)(?:[:\s]+([^>]+?))?\s*-->\s*$",
+    r"^\s*<!--\s*flow(?:\s+([^>]+?))?\s*-->\s*$",
     re.IGNORECASE,
 )
-_FLOW_SEP_RE = re.compile(r"^\s*<!--\s*(?:flow-sep|step-sep|step)(?:\s+([^>]+?))?\s*-->\s*$", re.IGNORECASE)
-_FLOW_END_RE = re.compile(
-    r"^\s*<!--\s*(?:/(?:flow|stack)|(?:flow|stack)-end)\s*-->\s*$",
-    re.IGNORECASE,
-)
+_FLOW_SEP_RE = re.compile(r"^\s*<!--\s*flow-sep(?:\s+([^>]+?))?\s*-->\s*$", re.IGNORECASE)
+_FLOW_END_RE = re.compile(r"^\s*<!--\s*/flow\s*-->\s*$", re.IGNORECASE)
 _CENTER_START_RE = re.compile(
-    r"^\s*<!--\s*(?:center(?:-start)?)(?:[:\s]+([^>]+?))?\s*-->\s*$",
+    r"^\s*<!--\s*center(?:\s+([^>]+?))?\s*-->\s*$",
     re.IGNORECASE,
 )
-_CENTER_END_RE = re.compile(
-    r"^\s*<!--\s*(?:/center|center-end)\s*-->\s*$",
-    re.IGNORECASE,
-)
+_CENTER_END_RE = re.compile(r"^\s*<!--\s*/center\s*-->\s*$", re.IGNORECASE)
 _COL_COLOR_RE = re.compile(
-    r"^\s*<!--\s*(?:col-color[:\s]+|col-accent[:\s]+|accent[:\s]+|col-)(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
+    r"^\s*<!--\s*col-color:\s*(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
     re.IGNORECASE,
 )
 _QUOTE_DIRECTIVE_RE = re.compile(
-    r"^\s*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple|grey|gray)\s*-->\s*$",
+    r"^\s*<!--\s*quote:\s*(yellow|red|green|blue|pink|purple|grey|gray)(?:\s+(none|yellow|red|green|blue|pink|purple|grey|gray))?\s*-->\s*$",
     re.IGNORECASE,
 )
 _INLINE_QUOTE_DIRECTIVE_RE = re.compile(
-    r"^[ \t]*>[ \t]*<!--\s*(?:(?:quote-color|quote|blockquote-color|blockquote|color|quote-)[:\s]+)?(yellow|red|green|blue|pink|purple|grey|gray)\s*-->[ \t]*(.*)$",
+    r"^[ \t]*>[ \t]*<!--\s*quote:\s*(yellow|red|green|blue|pink|purple|grey|gray)(?:\s+(none|yellow|red|green|blue|pink|purple|grey|gray))?\s*-->[ \t]*(.*)$",
     re.IGNORECASE,
 )
 # Canonical text-color syntax: <!--red-->text<!--/red-->  (no spaces, no "color:" prefix).
-# This is the ONLY supported form; all legacy aliases have been removed.
 _TEXT_COLOR_RE = re.compile(
     r"<!--(yellow|red|green|blue|pink|purple|grey|gray)-->([\s\S]*?)<!--/\1-->",
     re.IGNORECASE,
 )
 _CENTER_INLINE_RE = re.compile(
-    r"<!--\s*center(?:[:\s]+(\w+))?\s*-->([\s\S]*?)<!--\s*/center\s*-->",
+    r"<!--\s*center(?:\s+([^>]+?))?\s*-->([\s\S]*?)<!--\s*/center\s*-->",
     re.IGNORECASE,
 )
 _ATX_HEADING_RE = re.compile(r"^(#{1,6})[ \t]+")
@@ -129,7 +126,7 @@ def _parse_front_matter(source: str) -> tuple[dict[str, str], str]:
 
 
 _SLIDE_QUOTE_TOKEN_RE = re.compile(
-    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
+    r"<blockquote([^>]*)>((?:(?!<\/blockquote>)[\s\S])*?)%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)(?:_text_(\w+))?%%[ \t]*((?:(?!<\/blockquote>)[\s\S])*?)<\/blockquote>",
     re.IGNORECASE,
 )
 _SLIDE_TEXT_BLOCK_P_RE = re.compile(
@@ -197,35 +194,40 @@ def _preprocess_slide_markdown(content: str) -> str:
         text = _CENTER_INLINE_RE.sub(center_replacer, text)
         chunk_lines = text.splitlines(keepends=True)
         processed_lines: list[str] = []
-        pending_quote_color: str | None = None
+        pending_quote_token: str | None = None
 
         for line in chunk_lines:
             stripped = line.strip()
 
             inline_quote_match = _INLINE_QUOTE_DIRECTIVE_RE.match(line)
             if inline_quote_match:
-                color = inline_quote_match.group(1).lower()
-                rest = inline_quote_match.group(2)
-                processed_lines.append(f"> %%SLIDE_QUOTE_{color}%% {rest}\n")
-                pending_quote_color = None
+                bar_color = inline_quote_match.group(1).lower()
+                text_opt = inline_quote_match.group(2)
+                text_suffix = f"_text_{text_opt.lower()}" if text_opt else ""
+                rest = inline_quote_match.group(3)
+                processed_lines.append(f"> %%SLIDE_QUOTE_{bar_color}{text_suffix}%% {rest}\n")
+                pending_quote_token = None
                 continue
 
             quote_match = _QUOTE_DIRECTIVE_RE.match(line)
             if quote_match and not stripped.startswith(">"):
-                pending_quote_color = quote_match.group(1).lower()
+                bar_color = quote_match.group(1).lower()
+                text_opt = quote_match.group(2)
+                text_suffix = f"_text_{text_opt.lower()}" if text_opt else ""
+                pending_quote_token = f"{bar_color}{text_suffix}"
                 continue
 
-            if pending_quote_color:
+            if pending_quote_token:
                 if stripped.startswith(">"):
                     quote_rest = line.lstrip()[1:]
-                    processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_color}%%{quote_rest}")
-                    pending_quote_color = None
+                    processed_lines.append(f"> %%SLIDE_QUOTE_{pending_quote_token}%%{quote_rest}")
+                    pending_quote_token = None
                     continue
                 elif not stripped:
                     processed_lines.append(line)
                     continue
                 else:
-                    pending_quote_color = None
+                    pending_quote_token = None
 
             processed_lines.append(line)
         processed_chunks.append("".join(processed_lines))
@@ -264,16 +266,22 @@ def _render_markdown(content: str) -> str:
     def quote_replacer(match: re.Match) -> str:
         attrs = match.group(1)
         before = match.group(2)
-        color = match.group(3).lower()
-        after = match.group(4)
+        quote_color = match.group(3).lower()
+        text_color = match.group(4).lower() if match.group(4) else ""
+        after = match.group(5)
+        extra_class = f"slide-quote-{quote_color}"
+        if text_color == "none":
+            extra_class += " slide-quote-text-none"
+        elif text_color:
+            extra_class += f" slide-text-{text_color}"
         if 'class="' in attrs:
-            attrs = re.sub(r'class="([^"]*)"', rf'class="\1 slide-quote-{color}"', attrs)
+            attrs = re.sub(r'class="([^"]*)"', rf'class="\1 {extra_class}"', attrs)
         else:
-            attrs = f'{attrs} class="slide-quote-{color}"'
+            attrs = f'{attrs} class="{extra_class}"'
         return f"<blockquote{attrs}>{before}{after}</blockquote>"
 
     html = _SLIDE_QUOTE_TOKEN_RE.sub(quote_replacer, html)
-    html = re.sub(r"%%SLIDE_QUOTE_(yellow|red|green|blue|pink|purple|grey|gray)%%[ \t]*", "", html)
+    html = re.sub(r"%%SLIDE_QUOTE_(?:[a-zA-Z0-9_]+)%%[ \t]*", "", html)
 
     def block_p_replacer(match: re.Match) -> str:
         color = match.group(1).lower()
@@ -328,26 +336,18 @@ def _parse_column_directive(value: str) -> tuple[tuple[float, ...], tuple[str, .
     return ratios, tuple(colors)
 
 
-def _parse_flow_directive(keyword: str, value: str | None) -> tuple[str, list[str]]:
-    kw = keyword.lower()
-    orientation = "vertical" if ("stack" in kw or "-vertical" in kw) else "horizontal"
-
+def _parse_flow_directive(value: str | None) -> tuple[str, list[str]]:
     if not value or not value.strip():
-        return orientation, []
+        return "horizontal", []
 
-    raw = value.strip().lstrip(":")
+    raw = value.strip()
     parts = raw.split()
+    orientation = "horizontal"
     color_part = raw
-    if parts:
-        first = parts[0].lower().lstrip(":")
-        if first in ("vertical", "v", "stack", "col", "column"):
-            orientation = "vertical"
-            color_part = " ".join(parts[1:])
-        elif first in ("horizontal", "h", "row"):
-            orientation = "horizontal"
-            color_part = " ".join(parts[1:])
+    if parts and parts[0].lower() == "vertical":
+        orientation = "vertical"
+        color_part = " ".join(parts[1:])
 
-    color_part = color_part.strip().lstrip(":")
     if not color_part:
         return orientation, []
 
@@ -363,17 +363,12 @@ def _parse_flow_directive(keyword: str, value: str | None) -> tuple[str, list[st
 def _parse_center_directive(arg: str | None) -> str:
     if not arg or not arg.strip():
         return "horizontal"
-    val = arg.strip().lower().lstrip(":")
-    if val in {"vert", "vertical", "v", "y"}:
-        return "vertical"
-    elif val in {"both", "xy", "all", "full"}:
-        return "both"
-    elif val in {"horiz", "horizontal", "h", "x"}:
-        return "horizontal"
-    else:
-        raise SlidesParseError(
-            f"Invalid center alignment '{val}'. Allowed options: 'horizontal' (default), 'vertical', or 'both'."
-        )
+    val = arg.strip().lower()
+    if val in {"horizontal", "vertical", "both"}:
+        return val
+    raise SlidesParseError(
+        f"Invalid center alignment '{val}'. Allowed options: 'horizontal' (default), 'vertical', or 'both'."
+    )
 
 
 def _split_markdown_list(content: str) -> tuple[bool, list[str]]:
@@ -491,7 +486,7 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             continue
         if _COL_END_RE.match(line):
             if columns is None:
-                raise SlidesParseError("Found col-end without a matching col-start.")
+                raise SlidesParseError("Found /col without a matching col directive.")
             if len(columns) != len(ratios):
                 raise SlidesParseError(
                     f"Column block declares {len(ratios)} columns but contains {len(columns)}."
@@ -519,9 +514,8 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
             if flow_steps is not None:
                 raise SlidesParseError("A flow block cannot start inside another flow block.")
             flush_full_width()
-            keyword = flow_start.group(1)
-            raw_flow_colors_arg = flow_start.group(2) or ""
-            flow_orientation, default_flow_colors = _parse_flow_directive(keyword, raw_flow_colors_arg)
+            raw_flow_colors_arg = flow_start.group(1) or ""
+            flow_orientation, default_flow_colors = _parse_flow_directive(raw_flow_colors_arg)
             flow_steps = [[]]
             flow_step_colors = [default_flow_colors[0] if default_flow_colors else ""]
             flow_has_explicit_sep = False
@@ -548,7 +542,7 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
 
         if _FLOW_END_RE.match(line):
             if flow_steps is None:
-                raise SlidesParseError("Found flow-end without a matching flow directive.")
+                raise SlidesParseError("Found /flow without a matching flow directive.")
 
             if flow_has_explicit_sep:
                 steps_raw = ["\n".join(step).strip() for step in flow_steps]
@@ -644,13 +638,29 @@ def _parse_slide(content: str) -> tuple[SlideBlock, ...]:
         target.append(line)
 
     if columns is not None:
-        raise SlidesParseError("A column block is missing its col-end directive.")
+        raise SlidesParseError("A col block is missing its /col directive.")
     if flow_steps is not None:
         raise SlidesParseError("A flow block is missing its /flow directive.")
     if center_lines is not None:
         raise SlidesParseError("A center block is missing its /center directive.")
     flush_full_width()
     return tuple(blocks)
+
+
+def _extract_slide_title(slide_body: str) -> tuple[str, str]:
+    """Extract opening H2 slide title line and the remaining body content."""
+    lines = slide_body.splitlines()
+    title_line: str = ""
+    title_index: int | None = None
+
+    for index, line in enumerate(lines):
+        if re.match(r"^[ \t]*##[ \t]+", line):
+            title_index = index
+            title_line = line
+            break
+
+    body_lines = [line for index, line in enumerate(lines) if index != title_index]
+    return title_line, "\n".join(body_lines)
 
 
 def _validate_slide_headings(content: str, slide_number: int) -> None:
@@ -709,9 +719,17 @@ def _split_slide_notes(part: str) -> tuple[str, str]:
     return part, ""
 
 
-def _split_slides(body: str) -> list[str]:
-    parts: list[str] = []
+def _split_slides(body: str) -> list[tuple[str, str]]:
+    """Split presentation body into individual slides.
+
+    Content before the first `<!-- slide -->` directive is treated as free preamble
+    and ignored. Each slide begins at `<!-- slide [align:center|align:top] -->` and
+    continues until the next `<!-- slide -->` directive or the end of the document.
+    """
+    slides: list[tuple[str, str]] = []
     current_lines: list[str] = []
+    current_align: str = "center"
+    seen_first_slide = False
     fence_char: str | None = None
     fence_len = 0
 
@@ -726,34 +744,61 @@ def _split_slides(body: str) -> list[str]:
             elif char == fence_char and length >= fence_len:
                 fence_char = None
                 fence_len = 0
-            current_lines.append(line)
+            if seen_first_slide:
+                current_lines.append(line)
             continue
 
-        if fence_char is None and _SLIDE_SEP_RE.match(line):
-            part = "".join(current_lines)
-            if part.strip():
-                parts.append(part)
+        if fence_char is not None:
+            if seen_first_slide:
+                current_lines.append(line)
+            continue
+
+        slide_match = _SLIDE_RE.match(line)
+        if slide_match:
+            if seen_first_slide:
+                content = "".join(current_lines)
+                if content.strip():
+                    slides.append((content, current_align))
+            seen_first_slide = True
             current_lines = []
-        else:
+            align_arg = slide_match.group(1)
+            current_align = align_arg.lower() if align_arg else "center"
+        elif seen_first_slide:
             current_lines.append(line)
 
-    part = "".join(current_lines)
-    if part.strip():
-        parts.append(part)
-    return parts
+    if seen_first_slide:
+        content = "".join(current_lines)
+        if content.strip():
+            slides.append((content, current_align))
+
+    return slides
 
 
 def parse_slides(source: str) -> SlideDocument:
     """Parse an md-slides source document into renderable slides."""
     metadata, body = _parse_front_matter(source)
-    parts = _split_slides(body)
+    slides_data = _split_slides(body)
     slides: list[Slide] = []
-    for number, part in enumerate(parts, start=1):
+    for number, (part, slide_align) in enumerate(slides_data, start=1):
         slide_body, notes_body = _split_slide_notes(part)
         _validate_slide_headings(slide_body, number)
+
+        title_line, body_content = _extract_slide_title(slide_body)
+        title_html = _render_markdown(title_line) if title_line else ""
+
+        body_blocks = _parse_slide(body_content) if body_content.strip() else ()
         blocks = _parse_slide(slide_body)
+
         notes_html = _render_markdown(notes_body) if notes_body.strip() else ""
-        slides.append(Slide(blocks=blocks, notes_html=notes_html))
+        slides.append(
+            Slide(
+                blocks=blocks,
+                notes_html=notes_html,
+                align=slide_align,
+                title_html=title_html,
+                body_blocks=body_blocks,
+            )
+        )
     if not slides:
         raise SlidesParseError("The presentation does not contain any slide content.")
     return SlideDocument(metadata=metadata, slides=tuple(slides))

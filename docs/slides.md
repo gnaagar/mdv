@@ -8,10 +8,11 @@
 
 ## 1. Document Structure
 
-An `md-slides` document consists of two main sections:
+An `md-slides` document consists of:
 
 1. **Header / Metadata:** Standard YAML Frontmatter at the beginning of the file.
-2. **Body:** Standard Markdown content partitioned into individual slides and columnar blocks.
+2. **Preamble (Optional):** Free markdown content before the first `<!-- slide -->` directive. This content is rendered in standard document viewers but ignored in the presentation viewer.
+3. **Slides:** Each slide begins with a `<!-- slide -->` directive followed by a required `## Slide Title`. Slide content continues until the next `<!-- slide -->` directive or the end of the document.
 
 ---
 
@@ -27,6 +28,7 @@ The document MUST start with a YAML frontmatter block enclosed by triple-dashed 
 | `subtitle` | String | Subtitle or brief overview |
 | `author` | String | Presenter or author name |
 | `date` | String / Date | Presentation date |
+| `footer` | String | Optional custom footer text on the bottom-left of each slide (default: none) |
 
 ### Syntax Example
 
@@ -36,108 +38,110 @@ title: "Building Modern Systems"
 subtitle: "An architectural overview for 2026"
 author: "Alex Mercer"
 date: 2026-10-08
+footer: "Acme Corp • Confidential"
 ---
-
 ```
 
+### Slide Footer & Page Numbers
+
+* **Slide Numbers:** Positioned on the bottom-right of each slide (`1 / N`).
+* **Custom Footer:** By default, no custom footer is rendered. When `footer` is specified in frontmatter, it is displayed on the bottom-left in the exact same font, size, and muted color as the slide numbers.
+
 ---
 
-## 3. Slide Separation
+## 3. Slide Declaration & Vertical Centering
 
-Slides are separated by an HTML comment on a standalone line:
+Each slide begins with a `<!-- slide -->` directive on its own line:
 
 ```markdown
-<!-- slide-sep -->
+<!-- slide -->
 ```
 
-* Trailing or leading whitespace on the separator line is ignored.
-* Content before the first `<!-- slide-sep -->` separator (excluding frontmatter) belongs to Slide 1.
-* **Code blocks:** `<!-- slide-sep -->` lines inside code blocks (fenced by ```` ``` ```` or `~~~`) or inline backticks are safely ignored and preserved verbatim as code without splitting slides.
+### Vertical Centering (Default)
+
+By default, slide content is vertically centered beneath its fixed top header banner. This standard presentation layout ensures slides look balanced regardless of screen aspect ratio:
+
+* **Default Center Alignment:** `<!-- slide -->` (or explicit `<!-- slide align:center -->`)
+  The header title remains pinned at the top, and all slide content (columns, flow cards, text, images) is centered vertically in the space below.
+* **Top Alignment:** `<!-- slide align:top -->`
+  Disables vertical centering for content-dense slides, aligning body content to the top.
+
+### Slide Preamble
+
+Any markdown text placed between the YAML frontmatter and the first `<!-- slide -->` directive is treated as a preamble. It renders normally in standard markdown viewers (e.g. GitHub or `mdv` workspace viewer) and is automatically skipped in slide mode.
+
+### Code Blocks
+
+`<!-- slide -->` directives placed inside fenced code blocks (```` ``` ```` or `~~~`) or inline backticks are preserved verbatim as code without splitting slides.
+
+### Address Bar Navigation
+
+You can link or jump directly to any slide by adding `#<slide_number>` to the URL (for example, `http://localhost:8000/#3` for Slide 3).
 
 ### Syntax Example
 
 ```markdown
-## Slide 1 Title
+---
+title: "System Architecture"
+---
 
-Slide 1 content goes here.
+# Document Preamble
+Notes visible in regular document view, ignored in slides.
 
-<!-- slide-sep -->
+<!-- slide -->
 
-## Slide 2 Title
+## Introduction
 
-Slide 2 content goes here.
+This slide body is vertically centered by default.
+
+<!-- slide align:top -->
+
+## Detailed Specifications
+
+This slide body is top-aligned to accommodate longer content.
 ```
 
 ---
 
-## 4. Multi-Column Layouts
+## 4. Multi-Column Layouts (`<!-- col -->`)
 
-Columns are declared inside a slide using HTML comments. This ensures presentation layout instructions do not interfere with standard Markdown rendering in simple previewers.
+Columns are declared inside a slide using paired HTML comments following the `col` and `/col` convention:
 
 ### Directive Syntax
 
-1. **Start Column Block:** `<!-- col-start <ratio> -->`
-* `<ratio>` defines the column width proportions, expressed as colon-separated integers or floats (e.g., `1:1`, `2:1:5`, `1:2:1`).
-* The number of values in the ratio defines the total number of columns expected.
+1. **Start Column Block:** `<!-- col <ratio> [colors] -->`
+   * `<ratio>` defines column width proportions as colon-separated integers or floats (e.g., `1:1`, `1:2`, `2:1:5`).
+   * The number of values in `<ratio>` defines the total column count.
+   * Optional `[colors]` assigns background tint colors to columns (e.g., `yellow:blue` or `blue`).
+2. **Column Separator:** `<!-- col-sep [color] -->`
+   * Marks the boundary between adjacent columns.
+   * Can optionally override the column color (e.g. `<!-- col-sep green -->`).
+3. **End Column Block:** `<!-- /col -->`
+   * Closes the column layout and returns to full-width rendering.
 
+### In-Column Accent Color
 
-2. **Column Separator:** `<!-- col-sep -->`
-* Marks the boundary between adjacent columns.
+You can also set the color of a column using `<!-- col-color: <color> -->` within that column:
 
-
-3. **End Column Block:** `<!-- col-end -->`
-* Closes the column layout section and returns to full-width rendering.
-
-
-
-### Rules & Semantics
-
-* Column directives MUST be placed on their own dedicated lines.
-* Content inside columns supports standard Markdown syntax.
-* Every `col-start` block MUST be matched with a corresponding `col-end`.
-* The number of `col-sep` directives within a block MUST equal $N - 1$, where $N$ is the count of proportions in the `col-start` ratio.
-
----
-
-## 5. Accent Colors (HTML Comments)
-
-All accent styling uses HTML comments so that documents remain 100% valid, portable plain Markdown across any standard viewer.
-
-Seven standard accent colors are supported: `yellow`, `red`, `green`, `blue`, `pink`, `purple`, and `grey` / `gray` (plus `none` for invisible/neutral columns).
-
-Accent color properties are centrally configured via CSS custom properties (`--accent-<color>-...`) in `:root`.
-
-### 5.1 Column Box Accent Colors
-Accent colors apply a matching background tint and colored border to column cards.
-
-* **Inside a column:** `<!-- col-color: <color> -->` (e.g. `<!-- col-color: yellow -->`, `<!-- col-green -->`, `<!-- accent: red -->`)
-* **In block declaration:** `<!-- col-start 1:1 blue:green -->` or `<!-- col-start 1:1 yellow -->`
-* **In separator:** `<!-- col-sep green -->`
-
-### 5.2 Text Accent Colors
-Color individual words, lines, or blocks of Markdown content using the single canonical format:
-
-* **Syntax:** `<!--<color>-->content<!--/<color>-->`
-* **Examples:**
-  - `<!--red-->urgent blocker<!--/red-->`
-  - `<!--green-->**verified result**<!--/green-->`
-  - `<!--blue-->informative text<!--/blue-->`
-
-### 5.3 Blockquote Accent Colors
-Apply accent border-left and tinted background to blockquotes:
-
-* **Before blockquote:** `<!-- quote: green -->`
-* **Inside first line:** `> <!-- quote: green --> Safe and reversible.`
+```markdown
+<!-- col 1:1 -->
+<!-- col-color: yellow -->
+### Left Column
+<!-- col-sep -->
+<!-- col-color: green -->
+### Right Column
+<!-- /col -->
+```
 
 ---
 
-## 6. Flow Pipelines & Stacks
+## 5. Flow Pipelines (`<!-- flow -->`)
 
 Flow blocks render sequences of connected cards with directional SVG arrows, ideal for multi-step pipelines, architectures, and lifecycles.
 
-### 6.1 Horizontal Flow Pipelines
+### 5.1 Horizontal Flow Pipelines
 
-Render a horizontal flex row with right-pointing arrows (`➔`) between cards:
+Render a horizontal flex row with right-pointing arrows between cards:
 
 ```markdown
 <!-- flow blue:green:purple -->
@@ -150,34 +154,28 @@ Render a horizontal flex row with right-pointing arrows (`➔`) between cards:
 <!-- /flow -->
 ```
 
-* **Number Badges:** When an ordered list (`1.`, `2.`, `3.`) is used, circular pill badges are positioned on the left and vertically centered within each step card.
-* **Unordered Lists:** Use `-` or `*` for clean cards without number badges.
-* **Closing Tag:** Closes with `<!-- /flow -->` or `<!-- flow-end -->`.
+* **Number Badges:** When an ordered list (`1.`, `2.`, `3.`) is used, circular pill badges are rendered.
+* **Unordered Lists:** Use `-` or `*` for cards without number badges.
+* **Closing Tag:** Closes with `<!-- /flow -->`.
 
-### 6.2 Vertical Flow Stacks
+### 5.2 Vertical Flow
 
-Render a vertical sequence of cards connected by downward-pointing arrows (`⬇`), ideal for layered architectures or tier progressions:
+Render a vertical sequence of cards connected by downward-pointing arrows:
 
 ```markdown
-<!-- flow:vertical blue:green:yellow -->
+<!-- flow vertical blue:green:yellow -->
 1. **Frontend Experience**
-
-   Next.js edge runtime with WebGL visualizers
+   Next.js edge runtime
 2. **Core Engine & API**
-
-   FastAPI async workers with schema-validated queues
+   FastAPI async workers
 3. **Storage & Analytics**
-
-   Distributed PostgreSQL with real-time replication
+   Distributed PostgreSQL
 <!-- /flow -->
 ```
 
-* **Directive Aliases:** `<!-- stack [colors] -->`, `<!-- flow:vertical [colors] -->`, `<!-- flow vertical [colors] -->`, or `<!-- flow-vertical [colors] -->`.
-* **Closing Aliases:** `<!-- /stack -->`, `<!-- stack-end -->`, `<!-- /flow -->`, or `<!-- flow-end -->`.
+### 5.3 Explicit Step Separators (`<!-- flow-sep -->`)
 
-### 6.3 Explicit Step Separators (`<!-- flow-sep -->`)
-
-For arbitrary multi-paragraph or complex Markdown blocks within flow steps, use explicit step separators:
+For arbitrary multi-paragraph or complex Markdown blocks within flow steps:
 
 ```markdown
 <!-- flow blue:green -->
@@ -189,37 +187,29 @@ Async workers transform and batch payloads.
 <!-- /flow -->
 ```
 
-### 6.4 Color Allocation
-
-* **Multi-color assignment:** `<!-- flow blue:green:purple -->` assigns colors to steps sequentially.
-* **Single color expansion:** `<!-- flow yellow -->` applies the yellow pastel tint across all steps.
-* **Per-separator override:** `<!-- flow-sep purple -->` overrides the color for a specific step.
-
 ---
 
-## 7. Centered Content (`<!-- center -->`)
+## 6. Centered Content (`<!-- center -->`)
 
-The `<!-- center -->` directive centers its inner Markdown content horizontally, vertically, or in both dimensions.
+To center specific content blocks (such as logos, hero statements, or diagrams) within a slide, use `center` and `/center`:
 
-### 7.1 Directive Syntax
+### Directive Syntax
 
-* **Horizontal Centering (Default):** `<!-- center -->` (or `<!-- center horizontal -->`, `<!-- center:horizontal -->`)
-  Centers text and auto-centers block elements (images, quotes, tables, lists) horizontally within the normal slide flow.
-* **Vertical Centering:** `<!-- center vert -->` (or `<!-- center vertical -->`, `<!-- center:vertical -->`, `<!-- center y -->`)
-  Expands to fill available slide height and vertically centers content while preserving normal text alignment.
-* **Both Dimensions:** `<!-- center both -->` (or `<!-- center:both -->`, `<!-- center xy -->`, `<!-- center:xy -->`)
-  Expands across available slide height and centers content both horizontally and vertically. Ideal for hero statements, splash quotes, or centered diagrams.
-* **Closing Tag:** Closes with `<!-- /center -->` or `<!-- center-end -->`.
+* **Horizontal Centering (Default):** `<!-- center -->` or `<!-- center horizontal -->`
+  Centers text and auto-centers block elements horizontally.
+* **Vertical Centering:** `<!-- center vertical -->`
+  Expands to fill available height and vertically centers content while preserving text alignment.
+* **Both Dimensions:** `<!-- center both -->`
+  Centers content both horizontally and vertically.
+* **Closing Tag:** Closes with `<!-- /center -->`.
 
-### 7.2 Syntax Examples
+### Syntax Example
 
 ```markdown
 <!-- center -->
-![System Architecture Diagram](/static/diagram.svg)
+![Architecture Diagram](/static/diagram.svg)
 <!-- /center -->
-```
 
-```markdown
 <!-- center both -->
 > ### "The best way to predict the future is to invent it."
 > — Alan Kay
@@ -228,14 +218,40 @@ The `<!-- center -->` directive centers its inner Markdown content horizontally,
 
 ---
 
-## 8. Speaker Notes
+## 7. Accent Colors
 
-Any Markdown content below an HTML comment starting with `<!-- speaker -->` until the start of the next slide (`<!-- slide-sep -->`) or the end of the document is treated as speaker notes.
+All accent styling uses HTML comments so that documents remain 100% valid, portable plain Markdown.
 
-* **In normal Markdown viewers:** The `<!-- speaker -->` comment is hidden and the notes remain visible as ordinary text.
-* **In the slide presentation:** Speaker notes are excluded from the visible presentation slide.
+Supported accent colors: `yellow`, `red`, `green`, `blue`, `pink`, `purple`, `grey` / `gray` (and `none` for unstyled).
+
+### 7.1 Text Accent Colors
+
+Color individual words, lines, or blocks of Markdown content using the canonical format:
+
+* **Syntax:** `<!--<color>-->content<!--/<color>-->`
+* **Examples:**
+  - `<!--red-->urgent blocker<!--/red-->`
+  - `<!--green-->**verified result**<!--/green-->`
+  - `<!--blue-->informative text<!--/blue-->`
+
+### 7.2 Blockquote Accent Colors
+
+Apply accent border-left, tinted background, and matching accent text color to blockquotes:
+
+* **Before blockquote:** `<!-- quote: green -->`
+* **Inside first line:** `> <!-- quote: green --> Safe and reversible.`
+* **Default Accent Text:** Text inside the blockquote is automatically styled in the accent color by default, keeping the Markdown clean without requiring nested `<!--color-->` tags.
+* **Neutral Text Override:** To keep default body text color while styling the border and background, pass `none` as the text option: `<!-- quote: green none -->`.
+
+---
+
+## 8. Speaker Notes (`<!-- speaker -->`)
+
+Any Markdown content below `<!-- speaker -->` until the next `<!-- slide -->` directive or the end of document is treated as speaker notes:
 
 ```markdown
+<!-- slide -->
+
 ## Production Readiness
 
 All verification checks have passed.
@@ -247,22 +263,61 @@ All verification checks have passed.
 > - Thank the deployment and QA teams
 ```
 
-### Suggested Convention (Non-Enforcing)
-
-While content under `<!-- speaker -->` can be any freeform Markdown, a clean convention is to wrap notes inside a blockquote starting with bold `**SPEAKER NOTES**`:
-
-```markdown
-<!-- speaker -->
-> **SPEAKER NOTES**
->
-> Key talking points or reminders for this slide.
-```
-
-This convention is purely suggestive and completely non-enforcing in nature. In standard Markdown viewers (such as GitHub, VS Code, or `mdv` document mode), it visually sets presenter notes apart from the slide body.
+* **In normal Markdown viewers:** The `<!-- speaker -->` comment is hidden and the notes remain visible as ordinary text.
+* **In slide presentation:** Speaker notes are excluded from the presentation screen.
 
 ---
 
-## 9. Complete Example Document
+## 9. Charts & Visualizations (Mermaid)
+
+Native Mermaid diagrams and charts are fully supported inside slides and render seamlessly. Standard code fences (` ```mermaid `) are used:
+
+### 9.1 Pie Charts
+
+Use `pie` or `pie showData` to display proportions and resource allocations:
+
+```markdown
+```mermaid
+pie showData
+    title Platform Workload Distribution
+    "Core API Services" : 42
+    "Event Stream Processors" : 26
+    "Datastores & Caching" : 18
+    "Edge Ingress & CDN" : 14
+```
+```
+
+### 9.2 Line Charts (`xychart-beta`)
+
+Plot trends over time (velocity, MTTR, latencies) using Mermaid's `xychart-beta` with `line`:
+
+```markdown
+```mermaid
+xychart-beta
+    title "Weekly Production Deployments"
+    x-axis ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"]
+    y-axis "Deploys / Week" 0 --> 60
+    line [12, 16, 22, 28, 35, 41, 46, 54]
+```
+```
+
+### 9.3 Histograms & Bar Charts (`xychart-beta`)
+
+Display frequency distributions and continuous data bins using `bar`:
+
+```markdown
+```mermaid
+xychart-beta
+    title "CI Pipeline Build & Test Times"
+    x-axis ["0-2m", "2-5m", "5-10m", "10-15m", "15-20m", "20-30m", "30m+"]
+    y-axis "Pipelines" 0 --> 80
+    bar [12, 48, 74, 52, 26, 11, 4]
+```
+```
+
+---
+
+## 10. Complete Example Document
 
 ```markdown
 ---
@@ -272,9 +327,11 @@ author: "Engineering Team"
 date: 2026-10-08
 ---
 
+<!-- slide -->
+
 ## Overview
 
-Welcome to the presentation. This slide uses standard full-width Markdown.
+Welcome to the presentation. This slide body is vertically centered by default.
 
 - Simple text formatting
 - Code blocks and lists behave as usual
@@ -284,11 +341,11 @@ Welcome to the presentation. This slide uses standard full-width Markdown.
 >
 > Introduce the session goal and agenda briefly before diving into architecture.
 
-<!-- slide-sep -->
+<!-- slide -->
 
 ## Key Metrics & Architecture
 
-<!-- col-start 1:2 -->
+<!-- col 1:2 -->
 
 ### Core Principles
 
@@ -305,13 +362,13 @@ Welcome to the presentation. This slide uses standard full-width Markdown.
 | Latency | < 50ms | 32ms |
 | Uptime | 99.9% | 99.95% |
 
-<!-- col-end -->
+<!-- /col -->
 
-<!-- slide-sep -->
+<!-- slide align:top -->
 
 ## Three-Column Summary
 
-<!-- col-start 2:1:5 -->
+<!-- col 2:1:5 yellow:blue:green -->
 
 ### Left Column (Ratio 2)
 Broader introductory notes or context.
@@ -326,7 +383,5 @@ Key takeaway or visual cue.
 ### Right Column (Ratio 5)
 Detailed analysis, code snippets, or extended discussion.
 
-<!-- col-end -->
-```
-
+<!-- /col -->
 ```

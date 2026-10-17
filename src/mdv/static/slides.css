@@ -176,6 +176,32 @@ body.is-title-slide, body.theme-sans.is-title-slide {
   min-height: 0;
 }
 
+.slide-header {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.slide-body {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+.markdown-body .slide-body > :first-child {
+  margin-top: 0 !important;
+}
+
+.slide-align-center .slide-body {
+  justify-content: center;
+}
+
+.markdown-body .slide-align-center .slide-body > :last-child {
+  margin-bottom: 0 !important;
+}
+
 /* ── Title slide ──────────────────────────────────────────────────────────── */
 .markdown-body .title-slide {
   text-align: center;
@@ -224,6 +250,8 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .markdown-body .slide-column > :first-child { margin-top: 0 !important; }
 
 /* Slide header banner: stretches full-bleed across top of slide with white title text */
+.markdown-body .slide-content > .slide-header > h2,
+.markdown-body .slide-content > .slide-header > h2:first-child,
 .markdown-body .slide-content > .slide-markdown > h2:first-child {
   position: relative;
   margin: calc(-6rem - 100vh) calc(-7rem - 100vw) 2.75rem calc(-7rem - 100vw);
@@ -233,6 +261,8 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   letter-spacing: -0.02em;
 }
+.markdown-body .slide-content > .slide-header > h2 *,
+.markdown-body .slide-content > .slide-header > h2:first-child *,
 .markdown-body .slide-content > .slide-markdown > h2:first-child * {
   color: var(--slide-header-text) !important;
 }
@@ -271,6 +301,12 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-content .math.block, .slide-content .katex-display { display: block; margin: 1.25em auto; text-align: center; font-size: 1.35em; }
 .slide-content .mermaid-wrapper { margin: 1.5rem auto; text-align: center; }
 /* .slide-content .mermaid svg { max-width: 100%; height: auto; } */
+.markdown-body .slide-content .mermaid svg [class*="line-plot-"] path { stroke-width: 3.5px !important; }
+.markdown-body .slide-content .mermaid svg .line-plot-0 path { stroke: var(--slide-accent, #2563eb) !important; }
+.markdown-body .slide-content .mermaid svg .line-plot-1 path { stroke: #16a34a !important; }
+.markdown-body .slide-content .mermaid svg .bar-plot-0 rect { fill: #93c5fd !important; stroke: #2563eb !important; rx: 4px; }
+.markdown-body .slide-content .mermaid svg .bar-plot-1 rect { fill: #86efac !important; stroke: #16a34a !important; rx: 4px; }
+
 
 /* ── Column layout ────────────────────────────────────────────────────────── */
 .slide-columns { display: flex; gap: 1.5rem; align-items: stretch; }
@@ -644,20 +680,46 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-text-gray,   .slide-text-gray *   { color: var(--accent-grey-text) !important; }
 
 /* ── Blockquote colour variants ───────────────────────────────────────────── */
+.markdown-body .slide-content blockquote.slide-quote-yellow,
+.markdown-body .slide-content blockquote.slide-quote-yellow * { color: var(--accent-yellow-text); }
 .markdown-body .slide-content blockquote.slide-quote-yellow { background: var(--accent-yellow-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-yellow-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-red    { background: var(--accent-red-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-red-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-green  { background: var(--accent-green-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-green-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-blue   { background: var(--accent-blue-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-blue-quote-bar) !important; }
-.markdown-body .slide-content blockquote.slide-quote-pink   { background: var(--accent-pink-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-pink-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-red,
+.markdown-body .slide-content blockquote.slide-quote-red * { color: var(--accent-red-text); }
+.markdown-body .slide-content blockquote.slide-quote-red { background: var(--accent-red-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-red-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-green,
+.markdown-body .slide-content blockquote.slide-quote-green * { color: var(--accent-green-text); }
+.markdown-body .slide-content blockquote.slide-quote-green { background: var(--accent-green-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-green-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-blue,
+.markdown-body .slide-content blockquote.slide-quote-blue * { color: var(--accent-blue-text); }
+.markdown-body .slide-content blockquote.slide-quote-blue { background: var(--accent-blue-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-blue-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-pink,
+.markdown-body .slide-content blockquote.slide-quote-pink * { color: var(--accent-pink-text); }
+.markdown-body .slide-content blockquote.slide-quote-pink { background: var(--accent-pink-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-pink-quote-bar) !important; }
+
+.markdown-body .slide-content blockquote.slide-quote-purple,
+.markdown-body .slide-content blockquote.slide-quote-purple * { color: var(--accent-purple-text); }
 .markdown-body .slide-content blockquote.slide-quote-purple { background: var(--accent-purple-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-purple-quote-bar) !important; }
+
 .markdown-body .slide-content blockquote.slide-quote-grey,
-.markdown-body .slide-content blockquote.slide-quote-gray   { background: var(--accent-grey-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-grey-quote-bar) !important; }
+.markdown-body .slide-content blockquote.slide-quote-grey *,
+.markdown-body .slide-content blockquote.slide-quote-gray,
+.markdown-body .slide-content blockquote.slide-quote-gray * { color: var(--accent-grey-text); }
+.markdown-body .slide-content blockquote.slide-quote-grey,
+.markdown-body .slide-content blockquote.slide-quote-gray { background: var(--accent-grey-quote-bg) !important; border: none !important; border-left: 8px solid var(--accent-grey-quote-bar) !important; }
+
+/* Neutral text override in blockquotes (e.g. <!-- quote: red none -->) */
+.markdown-body .slide-content blockquote.slide-quote-text-none,
+.markdown-body .slide-content blockquote.slide-quote-text-none * { color: inherit !important; }
 
 
-/* ── Footer (slide counter) ───────────────────────────────────────────────── */
-.slides-footer {
+/* ── Footer (slide counter & custom footer) ────────────────────────────────── */
+.slides-footer,
+.slides-custom-footer {
   position: absolute;
-  right: 3.5rem;
   bottom: 2.25rem;
   color: var(--slide-muted);
   font-size: 1.15rem;
@@ -667,6 +729,19 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
   user-select: none;
 }
 
-.markdown-body .title-slide .slides-footer {
+.slides-footer {
+  right: 3.5rem;
+}
+
+.slides-custom-footer {
+  left: 3.5rem;
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.markdown-body .title-slide .slides-footer,
+.markdown-body .title-slide .slides-custom-footer {
   color: #64748b;
 }
