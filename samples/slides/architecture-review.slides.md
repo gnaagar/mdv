@@ -42,6 +42,68 @@ Independent deploys
 
 <!-- slide -->
 
+## Workload Distribution
+
+<!-- col 3:2 none -->
+
+```mermaid
+pie showData
+    title Platform Workload Distribution
+    "Core API Services" : 42
+    "Event Stream Processors" : 26
+    "Datastores & Caching" : 18
+    "Edge Ingress & CDN" : 14
+```
+
+<!-- col-sep -->
+
+### Resource allocation
+
+- **Core APIs**: Compute-heavy workloads requiring dedicated autoscaling
+- **Event streams**: High throughput messaging pipelines
+- **Datastores**: Low latency distributed cache & replica sets
+
+<!-- quote: blue -->
+> Decoupling async workers freed 15% core compute headroom in Q3.
+
+<!-- /col -->
+
+<!-- slide -->
+
+## Deployment Velocity Trend
+
+Weekly production release cadence following service contract decoupling:
+
+```mermaid
+xychart-beta
+    title "Weekly Production Deployments (2026)"
+    x-axis ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"]
+    y-axis "Deploys / Week" 0 --> 60
+    line [12, 16, 22, 28, 35, 41, 46, 54]
+```
+
+<!-- quote: green -->
+> Production deployment frequency grew **4.5×** with automated canary validations.
+
+<!-- slide -->
+
+## Build Duration Distribution
+
+Histogram of CI pipeline build and test durations across 250+ services:
+
+```mermaid
+xychart-beta
+    title "CI Pipeline Build & Test Times"
+    x-axis ["0-2m", "2-5m", "5-10m", "10-15m", "15-20m", "20-30m", "30m+"]
+    y-axis "Pipelines" 0 --> 80
+    bar [12, 48, 74, 52, 26, 11, 4]
+```
+
+<!-- quote: yellow -->
+> **72%** of pipelines complete under 10 minutes; targeting sub-5m for core services in Q1.
+
+<!-- slide -->
+
 ## Next 90 days
 
 | Milestone | Outcome |

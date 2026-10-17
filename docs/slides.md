@@ -268,7 +268,56 @@ All verification checks have passed.
 
 ---
 
-## 9. Complete Example Document
+## 9. Charts & Visualizations (Mermaid)
+
+Native Mermaid diagrams and charts are fully supported inside slides and render seamlessly. Standard code fences (` ```mermaid `) are used:
+
+### 9.1 Pie Charts
+
+Use `pie` or `pie showData` to display proportions and resource allocations:
+
+```markdown
+```mermaid
+pie showData
+    title Platform Workload Distribution
+    "Core API Services" : 42
+    "Event Stream Processors" : 26
+    "Datastores & Caching" : 18
+    "Edge Ingress & CDN" : 14
+```
+```
+
+### 9.2 Line Charts (`xychart-beta`)
+
+Plot trends over time (velocity, MTTR, latencies) using Mermaid's `xychart-beta` with `line`:
+
+```markdown
+```mermaid
+xychart-beta
+    title "Weekly Production Deployments"
+    x-axis ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"]
+    y-axis "Deploys / Week" 0 --> 60
+    line [12, 16, 22, 28, 35, 41, 46, 54]
+```
+```
+
+### 9.3 Histograms & Bar Charts (`xychart-beta`)
+
+Display frequency distributions and continuous data bins using `bar`:
+
+```markdown
+```mermaid
+xychart-beta
+    title "CI Pipeline Build & Test Times"
+    x-axis ["0-2m", "2-5m", "5-10m", "10-15m", "15-20m", "20-30m", "30m+"]
+    y-axis "Pipelines" 0 --> 80
+    bar [12, 48, 74, 52, 26, 11, 4]
+```
+```
+
+---
+
+## 10. Complete Example Document
 
 ```markdown
 ---

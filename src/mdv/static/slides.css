@@ -301,6 +301,12 @@ body.theme-sans .markdown-body .slide-content h3 { font-size: 1.9rem; line-heigh
 .slide-content .math.block, .slide-content .katex-display { display: block; margin: 1.25em auto; text-align: center; font-size: 1.35em; }
 .slide-content .mermaid-wrapper { margin: 1.5rem auto; text-align: center; }
 /* .slide-content .mermaid svg { max-width: 100%; height: auto; } */
+.markdown-body .slide-content .mermaid svg [class*="line-plot-"] path { stroke-width: 3.5px !important; }
+.markdown-body .slide-content .mermaid svg .line-plot-0 path { stroke: var(--slide-accent, #2563eb) !important; }
+.markdown-body .slide-content .mermaid svg .line-plot-1 path { stroke: #16a34a !important; }
+.markdown-body .slide-content .mermaid svg .bar-plot-0 rect { fill: #93c5fd !important; stroke: #2563eb !important; rx: 4px; }
+.markdown-body .slide-content .mermaid svg .bar-plot-1 rect { fill: #86efac !important; stroke: #16a34a !important; rx: 4px; }
+
 
 /* ── Column layout ────────────────────────────────────────────────────────── */
 .slide-columns { display: flex; gap: 1.5rem; align-items: stretch; }

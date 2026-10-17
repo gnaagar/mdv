@@ -797,6 +797,8 @@ Explicit center alignment.
         self.assertIn(".slide-align-center .slide-body", css)
         self.assertIn("justify-content: center;", css)
         self.assertIn(".markdown-body .slide-content > .slide-header > h2", css)
+        self.assertIn(".line-plot-0", css)
+        self.assertIn(".bar-plot-0", css)
 
     def test_sample_slide_files_parse_without_errors(self):
         samples_dir = Path(__file__).resolve().parent.parent / "samples" / "slides"
