@@ -49,6 +49,7 @@ function onPageLoad() {
   processSearchQuery();
   setupModalsAndHeader();
   setupHeadingObserver();
+  setupWindowFocusSync();
   
   setTimeout(() => {
      if (window.location.hash) {
@@ -63,6 +64,30 @@ function onPageLoad() {
      const mainSection = document.getElementById('section-main');
      if (mainSection) mainSection.dispatchEvent(new Event('scroll'));
   }, 100);
+}
+
+// -----------------------------------------------------------------------------
+// WORKSPACE FOCUS SYNC
+// -----------------------------------------------------------------------------
+let lastTreeSyncTime = 0;
+const TREE_SYNC_THROTTLE_MS = 1000;
+
+function syncWorkspaceOnFocus() {
+  const now = Date.now();
+  if (now - lastTreeSyncTime < TREE_SYNC_THROTTLE_MS) {
+    return;
+  }
+  lastTreeSyncTime = now;
+  loadDirTree(DIR_TREE);
+}
+
+function setupWindowFocusSync() {
+  window.addEventListener('focus', syncWorkspaceOnFocus);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncWorkspaceOnFocus();
+    }
+  });
 }
 
 // Global modal close function (needs to be accessible from search handlers)
@@ -987,9 +1012,17 @@ function loadDirTree(container, callback) {
 
       // 3. Highlight current file in the tree
       highlightCurrentFileInModalTree();
+
+      // Re-trigger dir filter if active
+      if (dirFilterInput && dirFilterInput.value.trim() !== '') {
+        dirFilterInput.dispatchEvent(new Event('input'));
+      }
       
       // 4. Update breadcrumbs
       updateBreadcrumbs();
+
+      // 5. Update directory page content if on a directory view or dashboard
+      updateDirectoryPageContent();
     });
 }
 
@@ -1036,7 +1069,7 @@ function updateBreadcrumbs() {
       populateDropdownMenu(menu, siblings, part);
       item.appendChild(menu);
 
-      setupDropdownToggle(btn, menu);
+      setupDropdownToggle(btn, menu, parentParts, part);
     }
 
     container.appendChild(item);
@@ -1085,11 +1118,12 @@ function getChildrenForPath(tree, pathParts) {
 }
 
 function populateDropdownMenu(menu, items, activeName) {
+  menu.innerHTML = '';
   const sortedItems = [...items].sort((a, b) => {
     if (a.type !== b.type) {
       return a.type === 'directory' ? -1 : 1;
     }
-    return a.name.localeCompare(b.name);
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
   });
 
   sortedItems.forEach(item => {
@@ -1117,7 +1151,7 @@ function closeAllBreadcrumbDropdowns() {
   });
 }
 
-function setupDropdownToggle(btn, menu) {
+function setupDropdownToggle(btn, menu, parentParts, part) {
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
 
@@ -1125,6 +1159,11 @@ function setupDropdownToggle(btn, menu) {
     closeAllBreadcrumbDropdowns();
 
     if (!wasOpen) {
+      if (workspaceTreeData && parentParts) {
+        const freshSiblings = getChildrenForPath(workspaceTreeData, parentParts);
+        populateDropdownMenu(menu, freshSiblings, part);
+      }
+
       menu.classList.add('show');
       btn.classList.add('open');
 
@@ -1138,6 +1177,93 @@ function setupDropdownToggle(btn, menu) {
       }
     }
   });
+}
+
+function updateDirectoryPageContent() {
+  if (!workspaceTreeData) return;
+
+  const folderSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-folder" style="color: var(--text-muted); flex-shrink: 0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+  const fileSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-file" style="color: var(--text-muted); flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+
+  // 1. Viewer Directory Page: #markdown-body contains .dash-card with .dash-recent-list
+  const dirCard = document.querySelector('#markdown-body .dash-card');
+  const dirList = dirCard ? dirCard.querySelector('.dash-recent-list') : null;
+  if (dirList) {
+    let pathStr = decodeURIComponent(window.location.pathname.replace(/^\/_\/?/, '').replace(/\/+$/, ''));
+    const pathParts = pathStr ? pathStr.split('/').filter(Boolean) : [];
+    const children = getChildrenForPath(workspaceTreeData, pathParts);
+
+    const sortedChildren = [...children].sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === 'directory' ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    });
+
+    dirList.innerHTML = '';
+    if (sortedChildren.length === 0) {
+      const emptyLi = document.createElement('li');
+      emptyLi.className = 'dash-empty';
+      emptyLi.textContent = 'This directory is empty.';
+      dirList.appendChild(emptyLi);
+    } else {
+      sortedChildren.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '/_/' + item.path;
+        a.className = 'dash-recent-entry';
+
+        const info = document.createElement('div');
+        info.className = 'dash-recent-info';
+        info.style.display = 'flex';
+        info.style.alignItems = 'center';
+        info.style.gap = '8px';
+
+        info.innerHTML = (item.type === 'directory' ? folderSvg : fileSvg) +
+          `<span class="dash-recent-name" style="font-weight: 500;">${escapeHtml(item.name)}</span>`;
+
+        a.appendChild(info);
+        li.appendChild(a);
+        dirList.appendChild(li);
+      });
+    }
+  }
+
+  // 2. Dashboard Page: .dash-body .dash-recent-list.single-column-list
+  const dashList = document.querySelector('.dash-body .dash-recent-list.single-column-list');
+  if (dashList) {
+    const rootChildren = [...workspaceTreeData].sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === 'directory' ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    });
+
+    dashList.innerHTML = '';
+    if (rootChildren.length === 0) {
+      const emptyLi = document.createElement('li');
+      emptyLi.className = 'dash-empty';
+      emptyLi.textContent = 'No markdown files or directories found.';
+      dashList.appendChild(emptyLi);
+    } else {
+      rootChildren.forEach(item => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '/_/' + item.path;
+        a.className = 'dash-recent-entry';
+
+        const info = document.createElement('div');
+        info.className = 'dash-recent-info';
+
+        info.innerHTML = (item.type === 'directory' ? folderSvg : fileSvg) +
+          `<span class="dash-recent-name">${escapeHtml(item.name)}</span>`;
+
+        a.appendChild(info);
+        li.appendChild(a);
+        dashList.appendChild(li);
+      });
+    }
+  }
 }
 
 document.addEventListener('click', (e) => {

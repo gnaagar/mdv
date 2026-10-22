@@ -179,6 +179,7 @@ class App:
         return self.render_markdown(template, md_html, current_file=filename)
 
     def handle_common(self, filename: str, template: str, prefix: str) -> Response:
+        self.state.refresh()
         if self.state.is_file(filename):
             return self.render_file(template, filename)
         return self.render_tree(template, prefix, filename)
