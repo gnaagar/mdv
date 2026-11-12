@@ -13,7 +13,20 @@
   <!-- Fixed top strip: breadcrumb left, icons right -->
   <div id="top-strip">
     <div id="top-strip-breadcrumb">
-      <div id="breadcrumb-bar"></div>
+      <div id="breadcrumb-bar">
+        {% if path_parts %}
+        <div class="breadcrumb-container">
+          {% for part in path_parts %}
+            <div class="breadcrumb-item">
+              <button class="breadcrumb-link{% if loop.last %} active{% endif %}">{{ part }}</button>
+            </div>
+            {% if not loop.last %}
+              <span class="breadcrumb-separator">›</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
     </div>
     <div id="top-strip-nav">
       {{ home_button() }}

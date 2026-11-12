@@ -156,8 +156,9 @@ class App:
 
     def render_markdown(self, template: str, content: str, current_file: str = "") -> Response:
         content = MarkdownParser.rewrite_wikilinks(content, lambda t: self.state.resolve_wikilink(t, current_file))
+        parts = [p for p in current_file.split("/") if p]
         html = env.get_template(template).render(
-            content=content, **self._theme_ctx()
+            content=content, path_parts=parts, **self._theme_ctx()
         )
         return Response(html, mimetype="text/html")
 

@@ -43,11 +43,19 @@ function onPageLoad() {
   MD_BODY = document.getElementById('markdown-body');
   DIR_TREE = document.getElementById('dtree-container');
   TOC_TREE = document.getElementById('toc-container');
+
+  // Wire up navbar buttons and modal handlers immediately
+  setupModalsAndHeader();
+
+  // Render initial breadcrumbs synchronously from pathname
+  updateBreadcrumbs();
+
+  // Load tree asynchronously in background
   loadDirTree(DIR_TREE);
+
   setupSearch();
   if (MD_BODY && TOC_TREE) generateTOC(MD_BODY, TOC_TREE);
   processSearchQuery();
-  setupModalsAndHeader();
   setupHeadingObserver();
   setupWindowFocusSync();
   
@@ -997,40 +1005,47 @@ function loadDirTree(container, callback) {
     .then((tree) => {
       workspaceTreeData = tree;
       
-      // 1. Render Hierarchical Tree View in #dir-tree-view
-      const treeView = document.getElementById('dir-tree-view');
-      if (treeView) {
-        renderModalTreeView(treeView, tree);
-      }
-      
-      // 2. Render Flat Search View in #dir-search-view
-      const searchView = document.getElementById('dir-search-view');
-      if (searchView) {
-        const flatFiles = flattenDirTree(tree);
-        renderFlatTree(searchView, flatFiles);
-      }
-
-      // 3. Highlight current file in the tree
-      highlightCurrentFileInModalTree();
-
-      // Re-trigger dir filter if active
-      if (dirFilterInput && dirFilterInput.value.trim() !== '') {
-        dirFilterInput.dispatchEvent(new Event('input'));
-      }
-      
-      // 4. Update breadcrumbs
+      // 1. Update breadcrumbs immediately (visible UI in navbar)
       updateBreadcrumbs();
 
-      // 5. Update directory page content if on a directory view or dashboard
+      // 2. Update directory page content if on a directory view or dashboard
       updateDirectoryPageContent();
+
+      // 3. Render modal tree views (deferred if modal is hidden)
+      const renderModals = () => {
+        const treeView = document.getElementById('dir-tree-view');
+        if (treeView) {
+          renderModalTreeView(treeView, tree);
+        }
+        
+        const searchView = document.getElementById('dir-search-view');
+        if (searchView) {
+          const flatFiles = flattenDirTree(tree);
+          renderFlatTree(searchView, flatFiles);
+        }
+
+        highlightCurrentFileInModalTree();
+
+        if (dirFilterInput && dirFilterInput.value.trim() !== '') {
+          dirFilterInput.dispatchEvent(new Event('input'));
+        }
+      };
+
+      const dirModal = document.getElementById('dir-modal');
+      const isModalOpen = dirModal && !dirModal.classList.contains('hidden');
+      if (isModalOpen) {
+        renderModals();
+      } else if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(renderModals);
+      } else {
+        setTimeout(renderModals, 50);
+      }
     });
 }
 
 function updateBreadcrumbs() {
   const bar = document.getElementById('breadcrumb-bar');
   if (!bar) return;
-
-  bar.innerHTML = '';
 
   // In focus mode, the top strip is hidden via CSS — nothing more to do
   if (document.body.classList.contains('focus-active')) return;
@@ -1039,7 +1054,8 @@ function updateBreadcrumbs() {
   pathStr = decodeURIComponent(pathStr);
   const pathParts = pathStr.split('/').filter(p => p);
 
-  if (pathParts.length === 0 || !workspaceTreeData) {
+  if (pathParts.length === 0) {
+    bar.innerHTML = '';
     return;
   }
 
@@ -1061,7 +1077,7 @@ function updateBreadcrumbs() {
     item.appendChild(btn);
 
     const parentParts = pathParts.slice(0, idx);
-    const siblings = getChildrenForPath(workspaceTreeData, parentParts);
+    const siblings = workspaceTreeData ? getChildrenForPath(workspaceTreeData, parentParts) : null;
 
     if (siblings && siblings.length > 0) {
       const menu = document.createElement('div');
@@ -1082,6 +1098,7 @@ function updateBreadcrumbs() {
     }
   });
 
+  bar.innerHTML = '';
   bar.appendChild(container);
 
   // Auto-scroll to the right so the active leaf item is always in view
