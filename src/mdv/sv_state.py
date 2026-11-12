@@ -202,8 +202,6 @@ class MdViewerState:
         with self._map_lock:
             nodes = list(self._node_map.values())
         for node in nodes:
-            if node.raw is None:
-                self._refresh_node(node)
             with node.lock:
                 rel_path = node.id
                 
